@@ -18,6 +18,10 @@ connectDB();
 const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log("Request Headers:", req.headers);
+  next();
+});
 app.use(passport.initialize());
 import("./config/passport.js").then((mod) => mod.default(passport));
 
