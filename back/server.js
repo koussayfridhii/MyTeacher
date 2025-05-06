@@ -1,7 +1,7 @@
 import express from "express";
 import passport from "passport";
 import cors from "cors";
-// import connectDB from "./config/db.js";
+import connectDB from "./config/db.js";
 // import errorHandler from "./middleware/errorHandler.js";
 // import authRoutes from "./routes/authRoutes.js";
 // import userRoutes from "./routes/userRoutes.js";
