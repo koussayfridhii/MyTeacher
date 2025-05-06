@@ -9,7 +9,7 @@ async function fetchStreamToken() {
   const jwt = localStorage.getItem("token");
   if (!jwt) throw new Error("Not authenticated");
 
-  const res = await axios.get("http://localhost:5000/api/stream/token", {
+  const res = await axios.get(import.meta.env.VITE_API_URL + "/stream/token", {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${jwt}`,

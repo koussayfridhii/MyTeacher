@@ -34,7 +34,7 @@ export default function SignUpForm() {
       const { PasswordRepeat, ...payload } = data;
       // POST to your signup controller
       const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
+        import.meta.env.VITE_API_URL + "/auth/signup",
         payload
       );
       //   alert(res.data.message);

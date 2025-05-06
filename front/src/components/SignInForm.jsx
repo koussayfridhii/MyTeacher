@@ -28,16 +28,19 @@ export default function SignInForm() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/signin", {
-        email: data.Email,
-        password: data.Password,
-      });
+      const res = await axios.post(
+        import.meta.env.VITE_API_URL + "/auth/signin",
+        {
+          email: data.Email,
+          password: data.Password,
+        }
+      );
       // store token
       localStorage.setItem("token", res.data.token);
 
       // optionally fetch user profile, assuming endpoint returns user data
       const profileRes = await axios.get(
-        "http://localhost:5000/api/auth/profile",
+        import.meta.env.VITE_API_URL + "/auth/profile",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
       );
       const userData = profileRes.data.user;
