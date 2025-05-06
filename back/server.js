@@ -9,7 +9,7 @@ import authRoutes from "./routes/authRoutes.js";
 // import classRoutes from "./routes/classRoutes.js";
 // import callRoutes from "./routes/callRoutes.js";
 // import recordingRoutes from "./routes/recordingRoutes.js";
-// import streamTokenRouter from "./routes/streamTokenRoutes.js";
+import streamTokenRouter from "./routes/streamTokenRoutes.js";
 
 connectDB();
 
@@ -25,7 +25,7 @@ app.use("/api/auth", authRoutes);
 // app.use("/api/classes", classRoutes);
 // app.use("/api/calls", callRoutes);
 // app.use("/api/recordings", recordingRoutes);
-// app.use("/api/stream", streamTokenRouter);
+app.use("/api/stream", streamTokenRouter);
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });
