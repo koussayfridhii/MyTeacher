@@ -1,5 +1,5 @@
 import express from "express";
-// import passport from "passport";
+import passport from "passport";
 // import cors from "cors";
 // import connectDB from "./config/db.js";
 // import errorHandler from "./middleware/errorHandler.js";
