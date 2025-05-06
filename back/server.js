@@ -14,7 +14,7 @@ import errorHandler from "./middleware/errorHandler.js";
 connectDB();
 
 const app = express();
-// app.use(cors({ origin: "*" }));
+app.use(cors({ origin: "*" }));
 // app.use(express.json());
 // app.use(passport.initialize());
 // import("./config/passport.js").then((mod) => mod.default(passport));
