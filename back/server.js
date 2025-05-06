@@ -90,13 +90,13 @@ const routes = {
 };
 
 // Use routes under /api
-app.use("/api/auth", routes.auth);
-app.use("/api/users", routes.users);
-app.use("/api/wallet", routes.wallet);
-app.use("/api/classes", routes.classes);
-app.use("/api/calls", routes.calls);
-app.use("/api/recordings", routes.recordings);
-app.use("/api/stream", routes.stream);
+// app.use("/api/auth", routes.auth);
+// app.use("/api/users", routes.users);
+// app.use("/api/wallet", routes.wallet);
+// app.use("/api/classes", routes.classes);
+// app.use("/api/calls", routes.calls);
+// app.use("/api/recordings", routes.recordings);
+// app.use("/api/stream", routes.stream);
 
 // Simple test route
 app.get("/", (req, res) => {
