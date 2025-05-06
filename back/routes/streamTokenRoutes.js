@@ -13,7 +13,7 @@ if (!STREAM_API_KEY || !STREAM_SECRET_KEY) {
 const streamClient = new StreamClient(STREAM_API_KEY, STREAM_SECRET_KEY);
 
 router.get(
-  "/token",
+  "/stream/token",
   passport.authenticate("jwt", { session: false }), // now passport is defined
   (req, res, next) => {
     try {

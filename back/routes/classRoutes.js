@@ -6,9 +6,9 @@ import { createClass, listClasses } from "../controllers/classController.js";
 const router = express.Router();
 
 // Anyone logged in can see available classes
-router.get("/", auth, listClasses);
+router.get("/class", auth, listClasses);
 
 // Admin or Coordinator can create new classes
-router.post("/", auth, role("admin", "coordinator"), createClass);
+router.post("/class", auth, role("admin", "coordinator"), createClass);
 
 export default router;

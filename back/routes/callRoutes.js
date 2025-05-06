@@ -9,9 +9,9 @@ import {
 
 const callRouter = express.Router();
 // Protected routes for calls
-callRouter.post("/instant", auth, createInstant);
-callRouter.get("/:id", auth, getCallById);
-callRouter.post("/schedule", auth, scheduleCall);
-callRouter.get("/", auth, listCalls);
+callRouter.post("/call/instant", auth, createInstant);
+callRouter.get("/call/:id", auth, getCallById);
+callRouter.post("/call/schedule", auth, scheduleCall);
+callRouter.get("/call", auth, listCalls);
 
 export default callRouter;

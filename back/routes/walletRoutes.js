@@ -10,12 +10,17 @@ import {
 const router = express.Router();
 
 // Any authenticated user can view their wallet
-router.get("/", auth, getMyWallet);
+router.get("/wallet", auth, getMyWallet);
 
 // Admin or Coordinator add points to any wallet
-router.patch("/add-points", auth, role("admin", "coordinator"), addPoints);
+router.patch(
+  "/wallet/add-points",
+  auth,
+  role("admin", "coordinator"),
+  addPoints
+);
 
 // Student attends a class (deduct points + grant recording)
-router.post("/attend-class", auth, role("student"), attendClass);
+router.post("/wallet/attend-class", auth, role("student"), attendClass);
 
 export default router;
