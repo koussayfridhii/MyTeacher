@@ -99,5 +99,7 @@ app.get("/", (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-// Export the serverless handler (for Vercel/AWS Lambda)
-export default serverless(app);
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`Server running on port ${process.env.PORT || 5000}`);
+});
+// export default serverless(app);
