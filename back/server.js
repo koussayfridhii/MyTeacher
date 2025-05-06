@@ -1,6 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
+import serverless from "serverless-http"; // ✅ Add this
+
 dotenv.config();
+
 import mongoose from "mongoose";
 import passport from "passport";
 import cors from "cors";
@@ -14,6 +17,7 @@ import callRoutes from "./routes/callRoutes.js";
 import recordingRoutes from "./routes/recordingRoutes.js";
 import streamTokenRouter from "./routes/streamTokenRoutes.js";
 
+// Connect DB once (important for serverless)
 connectDB();
 
 const app = express();
@@ -29,10 +33,10 @@ app.use("/api/classes", classRoutes);
 app.use("/api/calls", callRoutes);
 app.use("/api/recordings", recordingRoutes);
 app.use("/api/stream", streamTokenRouter);
+
 app.use("/", (req, res) => {
   res.send("working !!!!");
 });
-app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.use(errorHandler);
+export const handler = serverless(app);
