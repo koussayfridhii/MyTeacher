@@ -39,6 +39,8 @@ const Home = () => {
       direction="column"
       gap={10}
       align="center"
+      bg="white"
+      p={4}
     >
       <Box
         h="303px"

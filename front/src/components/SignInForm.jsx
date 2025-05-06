@@ -9,6 +9,7 @@ import {
   useToast,
   Flex,
   Text,
+  Image as ChakraImage,
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { translations } from "../data/forms";
@@ -74,71 +75,89 @@ export default function SignInForm() {
   const t = translations[language] || translations.en;
 
   return (
-    <Card
-      bg="background"
-      border="2px"
-      borderColor="primary"
-      w={{ lg: "30vw", base: "80vw" }}
-      px={6}
-      py={20}
-    >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        dir={language === "ar" ? "rtl" : "ltr"}
+    <Flex>
+      <ChakraImage
+        src="./assets/icons/signin.svg"
+        w={{ lg: "30vw", base: "80vw" }}
+      />
+      <Card
+        bg="background"
+        border="2px"
+        borderColor="primary"
+        w={{ lg: "30vw", base: "80vw" }}
+        px={6}
+        py={20}
+        display="flex"
+        flexDirection="column"
+        justify="center"
       >
-        {/* Email */}
-        <FormControl isInvalid={!!errors.Email} mb={4}>
-          <FormLabel color="primary" htmlFor="email">
-            {t.email}
-          </FormLabel>
-          <Input
-            id="email"
-            type="email"
-            placeholder={t.email}
-            {...register("Email", {
-              required: t.emailRequired,
-              pattern: { value: /^\S+@\S+$/i, message: t.emailInvalid },
-            })}
-          />
-          <FormErrorMessage>
-            {errors.Email && errors.Email.message}
-          </FormErrorMessage>
-        </FormControl>
+        <Text
+          fontSize="4xl"
+          color="primary"
+          textAlign="center"
+          fontWeight="bold"
+          mb={8}
+        >
+          Signin
+        </Text>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          dir={language === "ar" ? "rtl" : "ltr"}
+        >
+          {/* Email */}
+          <FormControl isInvalid={!!errors.Email} mb={4}>
+            <FormLabel color="primary" htmlFor="email">
+              {t.email}
+            </FormLabel>
+            <Input
+              id="email"
+              type="email"
+              placeholder={t.email}
+              {...register("Email", {
+                required: t.emailRequired,
+                pattern: { value: /^\S+@\S+$/i, message: t.emailInvalid },
+              })}
+            />
+            <FormErrorMessage>
+              {errors.Email && errors.Email.message}
+            </FormErrorMessage>
+          </FormControl>
 
-        {/* Password */}
-        <FormControl isInvalid={!!errors.Password} mb={6}>
-          <FormLabel color="primary" htmlFor="password">
-            {t.password}
-          </FormLabel>
-          <Input
-            id="password"
-            type="password"
-            placeholder={t.password}
-            {...register("Password", {
-              required: t.passwordRequired,
-              minLength: { value: 6, message: t.passwordMin },
-            })}
-          />
-          <FormErrorMessage>
-            {errors.Password && errors.Password.message}
-          </FormErrorMessage>
-        </FormControl>
+          {/* Password */}
+          <FormControl isInvalid={!!errors.Password} mb={6}>
+            <FormLabel color="primary" htmlFor="password">
+              {t.password}
+            </FormLabel>
+            <Input
+              id="password"
+              type="password"
+              placeholder={t.password}
+              {...register("Password", {
+                required: t.passwordRequired,
+                minLength: { value: 6, message: t.passwordMin },
+              })}
+            />
+            <FormErrorMessage>
+              {errors.Password && errors.Password.message}
+            </FormErrorMessage>
+          </FormControl>
 
-        <Flex w="100%" justify="center" align="center" gap={3}>
-          <Button
-            mt={4}
-            bg="primary"
-            color="white"
-            isLoading={isSubmitting}
-            type="submit"
-          >
-            {t.submit}
-          </Button>
-          <Text fontSize="xs" mt={3} color="primary">
-            <Link to="/signup">Don’t have an account?</Link>
-          </Text>
-        </Flex>
-      </form>
-    </Card>
+          <Flex w="100%" justify="center" align="center" gap={3}>
+            <Button
+              mt={4}
+              bg="primary"
+              color="white"
+              isLoading={isSubmitting}
+              type="submit"
+            >
+              {t.submit}
+            </Button>
+            <Text fontSize="xs" mt={3} color="primary">
+              <Link to="/signup">Don’t have an account?</Link>
+            </Text>
+          </Flex>
+        </form>
+      </Card>
+    </Flex>
   );
 }

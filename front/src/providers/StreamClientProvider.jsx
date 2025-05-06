@@ -3,6 +3,7 @@ import { StreamVideo, StreamVideoClient } from "@stream-io/video-react-sdk";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 // anywhere in your frontend code:
 async function fetchStreamToken() {
@@ -25,9 +26,13 @@ const apiKey = import.meta.env.VITE_STREAM_API_KEY;
 const StreamVideoProvider = ({ children }) => {
   const [videoClient, setVideoClient] = useState();
   const { user, isLoggedIn } = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoggedIn || !user) return;
+    if (!isLoggedIn || !user) {
+      navigate("/signin");
+      return;
+    }
     if (!apiKey) throw new Error("Missing Stream API key");
 
     const client = new StreamVideoClient({

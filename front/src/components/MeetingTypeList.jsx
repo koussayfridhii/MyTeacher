@@ -177,7 +177,7 @@ const MeetingTypeList = () => {
         title="Enter the link"
         className="text-center"
         buttonText="Join Meeting"
-        handleClick={() => navigate(values.link)}
+        handleClick={() => navigate(`/meeting/${values.link}`)}
       >
         <Input
           placeholder="Meeting link"

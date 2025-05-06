@@ -11,6 +11,7 @@ import {
   AlertTitle,
   Box,
   Button,
+  Center,
   Checkbox,
   Heading,
   VStack,
@@ -64,22 +65,36 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
     );
 
   return (
-    <VStack h="100vh" w="100%" justify="center" spacing={6} textAlign="center">
+    <VStack
+      h="100vh"
+      w={{ base: "100vw", md: "full" }}
+      justify="center"
+      spacing={6}
+      textAlign="center"
+      color={"gray.800"}
+      overflow={"hidden"}
+      mx={0}
+    >
       <Heading size="lg">Setup</Heading>
-      <Box w="100%" maxW="500px">
-        <VideoPreview />
-      </Box>
-      <Box display="flex" alignItems="center" gap={4} color="white">
+      <Center w="90%" maxW="500px" mx="auto">
+        <VideoPreview marginX={0} />
+      </Center>
+      <Box display="flex" alignItems="center" gap={4} color="white" mx={0}>
         <Checkbox
           isChecked={isMicCamToggled}
           onChange={(e) => setIsMicCamToggled(e.target.checked)}
+          colorScheme="blue"
+          bg="gray.800"
+          p={2}
+          borderRadius={4}
         >
           Join with mic and camera off
         </Checkbox>
         <DeviceSettings />
       </Box>
       <Button
-        colorScheme="green"
+        bg="primary"
+        color="white"
         onClick={() => {
           call.join();
           setIsSetupComplete(true);

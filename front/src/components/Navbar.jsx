@@ -54,7 +54,7 @@ const Navbar = () => {
     dispatch(languageReducer(language === "en" ? "ar" : "en"));
   };
   return (
-    <Box as="header" bg={bg} p={4} color={color}>
+    <Box as="header" bg={bg} p={4} color={color} w="full">
       <Flex align="center" justify={{ base: "space-between" }}>
         {/* <ChakraImage src="./assets/icons/yoom-logo.svg" boxSize={20} m={0} /> */}
         <HStack spacing={5} align="center">

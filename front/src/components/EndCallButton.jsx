@@ -1,10 +1,11 @@
+import { Button } from "@chakra-ui/react";
 import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
-import { Button } from "./ui/button";
+// import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 
 const EndCallButton = () => {
   const call = useCall();
-  const history = useNavigate();
+  const navigate = useNavigate();
 
   if (!call)
     throw new Error(
@@ -24,11 +25,11 @@ const EndCallButton = () => {
 
   const endCall = async () => {
     await call.endCall();
-    history.push("/");
+    navigate("/");
   };
 
   return (
-    <Button onClick={endCall} className="bg-red-500">
+    <Button onClick={endCall} colorScheme="red" borderRadius={"full"}>
       End call for everyone
     </Button>
   );

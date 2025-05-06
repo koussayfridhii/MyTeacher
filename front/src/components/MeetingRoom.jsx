@@ -65,7 +65,7 @@ const MeetingRoom = () => {
         </div>
       </div>
       {/* video layout and call controls */}
-      <div className="fixed bottom-0 flex w-full items-center justify-center gap-5">
+      <div className="fixed bottom-0 flex w-full items-center justify-center gap-5 bg-gray-800">
         <CallControls onLeave={() => navigate(`/`)} />{" "}
         {/* navigate is used here */}
         <DropdownMenu>
