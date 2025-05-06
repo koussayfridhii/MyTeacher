@@ -7,7 +7,7 @@ import {
 
 const recordingRouter = express.Router();
 // Protected routes for recordings
-recordingRouter.get("/recordings/", auth, listRecordings);
-recordingRouter.get("/recordings/:id", auth, getRecordingUrl);
+recordingRouter.get("/", auth, listRecordings);
+recordingRouter.get("/:id", auth, getRecordingUrl);
 
 export default recordingRouter;

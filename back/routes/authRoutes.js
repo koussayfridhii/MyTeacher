@@ -11,12 +11,12 @@ import auth from "../middleware/auth.js";
 const router = express.Router();
 
 // Public routes
-router.post("/auth/signup", signup);
-router.get("/auth/verify/:token", verifyEmail);
-router.post("/auth/signin", signin);
+router.post("/signup", signup);
+router.get("/verify/:token", verifyEmail);
+router.post("/signin", signin);
 
 // Protected routes (require valid, single‐session JWT)
-router.post("/auth/logout", auth, logout);
-router.get("/auth/profile", auth, getProfile);
+router.post("/logout", auth, logout);
+router.get("/profile", auth, getProfile);
 
 export default router;

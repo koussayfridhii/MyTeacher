@@ -1,57 +1,110 @@
 // api/index.js
+
 import express from "express";
 import dotenv from "dotenv";
-dotenv.config();
-
+import mongoose from "mongoose";
 import passport from "passport";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+import logger from "morgan";
 import serverless from "serverless-http";
 
+// Configs & middlewares
 import connectDB from "../config/db.js";
 import errorHandler from "../middleware/errorHandler.js";
 
+// Routes
 import authRoutes from "../routes/authRoutes.js";
 import userRoutes from "../routes/userRoutes.js";
 import walletRoutes from "../routes/walletRoutes.js";
 import classRoutes from "../routes/classRoutes.js";
 import callRoutes from "../routes/callRoutes.js";
 import recordingRoutes from "../routes/recordingRoutes.js";
-import streamTokenRouter from "../routes/streamTokenRoutes.js";
+import streamTokenRoutes from "../routes/streamTokenRoutes.js";
 
-// connect to MongoDB
-connectDB();
+// Initialize dotenv
+dotenv.config();
 
-// build the app
+// Initialize the app
 const app = express();
-app.use(cors({ origin: "*" }));
+
+// Logging middleware
+app.use(logger("dev"));
+
+// Body parsers & cookie parser
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+// Passport initialization
 app.use(passport.initialize());
 await import("../config/passport.js").then((mod) => mod.default(passport));
 
-// mount your routers
-app.use("/api", [
-  authRoutes,
-  userRoutes,
-  walletRoutes,
-  classRoutes,
-  callRoutes,
-  recordingRoutes,
-  streamTokenRouter,
-]);
-// app.use("/api/users", userRoutes);
-// app.use("/api/wallet", walletRoutes);
-// app.use("/api/classes", classRoutes);
-// app.use("/api/calls", callRoutes);
-// app.use("/api/recordings", recordingRoutes);
-// app.use("/api/stream", streamTokenRouter);
+// CORS setup
+const allowedOrigins = [
+  "https://yourdomain.com",
+  "http://localhost:3000",
+  // Add any other allowed origins here
+];
 
-// simple root endpoint
-app.get("/", (req, res) => res.send("✅ Serverless Express on Vercel works!"));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  })
+);
 
-// error middleware
+// Debugging incoming headers
+app.use((req, res, next) => {
+  console.log("Request Headers:", req.headers);
+  next();
+});
+
+// Database connection (ensure you still connect if using serverless)
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// Group your routes for better structure
+const routes = {
+  auth: authRoutes,
+  users: userRoutes,
+  wallet: walletRoutes,
+  classes: classRoutes,
+  calls: callRoutes,
+  recordings: recordingRoutes,
+  stream: streamTokenRoutes,
+};
+
+// Use routes under /api
+app.use("/api/auth", routes.auth);
+app.use("/api/users", routes.users);
+app.use("/api/wallet", routes.wallet);
+app.use("/api/classes", routes.classes);
+app.use("/api/calls", routes.calls);
+app.use("/api/recordings", routes.recordings);
+app.use("/api/stream", routes.stream);
+
+// Simple test route
+app.get("/", (req, res) => {
+  res.json("✅ Serverless Express API is running");
+});
+
+// Error handler
 app.use(errorHandler);
 
-// **export** the handler instead of app.listen()
-app.listen(process.env.PORT || 5000, () => {
-  console.log(`Server running on port ${process.env.PORT || 5000}`);
-});
+// Export the serverless handler (for Vercel/AWS Lambda)
+export default serverless(app);
