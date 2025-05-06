@@ -79,6 +79,7 @@ export default function SignInForm() {
       <ChakraImage
         src="./assets/icons/signin.svg"
         w={{ lg: "30vw", base: "80vw" }}
+        display={{ lg: "block", base: "none" }}
       />
       <Card
         bg="background"
