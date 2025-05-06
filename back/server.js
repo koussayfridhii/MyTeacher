@@ -27,7 +27,7 @@ const app = express();
 // app.use("/api/recordings", recordingRoutes);
 // app.use("/api/stream", streamTokenRouter);
 app.get("/", (req, res) => {
-  res.send("working !!!!");
+  res.send("working !!!!!!!!!!!!!!!!!");
 });
 // app.use(errorHandler);
 
