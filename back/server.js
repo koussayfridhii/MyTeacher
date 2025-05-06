@@ -3,7 +3,7 @@ import passport from "passport";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import errorHandler from "./middleware/errorHandler.js";
-// import authRoutes from "./routes/authRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 // import userRoutes from "./routes/userRoutes.js";
 // import walletRoutes from "./routes/walletRoutes.js";
 // import classRoutes from "./routes/classRoutes.js";
@@ -19,7 +19,7 @@ app.use(cors({ origin: "*" }));
 app.use(passport.initialize());
 import("./config/passport.js").then((mod) => mod.default(passport));
 
-// app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 // app.use("/api/users", userRoutes);
 // app.use("/api/wallet", walletRoutes);
 // app.use("/api/classes", classRoutes);
