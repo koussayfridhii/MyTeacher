@@ -16,8 +16,8 @@ import streamTokenRouter from "./routes/streamTokenRoutes.js";
 const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
-app.use(passport.initialize());
-import("./config/passport.js").then((mod) => mod.default(passport));
+// app.use(passport.initialize());
+// import("./config/passport.js").then((mod) => mod.default(passport));
 
 // app.use("/api/auth", authRoutes);
 // app.use("/api/users", userRoutes);
