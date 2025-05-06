@@ -29,7 +29,7 @@ app.use("/api/classes", classRoutes);
 app.use("/api/calls", callRoutes);
 app.use("/api/recordings", recordingRoutes);
 app.use("/api/stream", streamTokenRouter);
-app.use("/api", (req, res) => {
+app.use("/", (req, res) => {
   res.send("working !!!!");
 });
 app.use(errorHandler);
