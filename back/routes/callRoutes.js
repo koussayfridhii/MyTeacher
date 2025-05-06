@@ -5,7 +5,7 @@ import {
   getCallById,
   scheduleCall,
   listCalls,
-} from "../controllers/CallController.js";
+} from "../controllers/callController.js";
 
 const callRouter = express.Router();
 // Protected routes for calls
