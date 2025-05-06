@@ -18,10 +18,6 @@ connectDB();
 const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
-app.use((req, res, next) => {
-  console.log("Request Headers:", req.headers);
-  next();
-});
 app.use(passport.initialize());
 import("./config/passport.js").then((mod) => mod.default(passport));
 
@@ -32,7 +28,7 @@ app.use("/api/classes", classRoutes);
 app.use("/api/calls", callRoutes);
 app.use("/api/recordings", recordingRoutes);
 app.use("/api/stream", streamTokenRouter);
-app.use("/", (req, res) => {
+app.get("/", (req, res) => {
   res.send("working !!!!");
 });
 app.use(errorHandler);
