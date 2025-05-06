@@ -29,7 +29,7 @@ import("./config/passport.js").then((mod) => mod.default(passport));
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });
-// app.use(errorHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
