@@ -70,14 +70,7 @@ app.use((req, res, next) => {
 });
 
 // Database connection (ensure you still connect if using serverless)
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-
+connectDB();
 // Group your routes for better structure
 const routes = {
   auth: authRoutes,
