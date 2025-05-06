@@ -11,7 +11,7 @@ import errorHandler from "./middleware/errorHandler.js";
 // import recordingRoutes from "./routes/recordingRoutes.js";
 // import streamTokenRouter from "./routes/streamTokenRoutes.js";
 
-// connectDB();
+connectDB();
 
 const app = express();
 // app.use(cors({ origin: "*" }));
