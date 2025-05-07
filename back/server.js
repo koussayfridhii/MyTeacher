@@ -14,10 +14,7 @@ import streamTokenRouter from "./routes/streamTokenRoutes.js";
 connectDB();
 
 const app = express();
-const allowedOrigins = [
-  "http://localhost:3000/",
-  "https://my-teacher-6ner.vercel.app",
-];
+const allowedOrigins = ["https://my-teacher-6ner.vercel.app"];
 app.use(
   cors({
     origin: (origin, callback) => {

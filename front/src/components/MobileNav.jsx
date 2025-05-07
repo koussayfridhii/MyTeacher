@@ -26,9 +26,7 @@ const MobileNav = () => {
   return (
     <Box display={{ base: "block", md: "none" }} dir={dir}>
       <IconButton
-        icon={
-          <ChakraImage src="./assets/icons/hamburger.svg" alt="menu icon" />
-        }
+        icon={<ChakraImage src="/assets/icons/hamburger.svg" alt="menu icon" />}
         aria-label="Open menu"
         variant="ghost"
         onClick={onOpen}
@@ -45,7 +43,7 @@ const MobileNav = () => {
           <DrawerBody p={4} dir={dir}>
             <Box mb={6} display="flex" alignItems="center">
               <ChakraImage
-                src="./assets/icons/logo.svg"
+                src="/assets/icons/logo.svg"
                 alt="yoom logo"
                 boxSize="8"
               />

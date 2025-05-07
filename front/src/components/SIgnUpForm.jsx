@@ -249,7 +249,7 @@ export default function SignUpForm() {
       </Card>
       <Center bg="gray.50" display={{ base: "none", lg: "block" }}>
         <ChakraImage
-          src="./assets/icons/signup.svg"
+          src="/assets/icons/signup.svg"
           w={{ lg: "30vw", base: "80vw" }}
         />
       </Center>

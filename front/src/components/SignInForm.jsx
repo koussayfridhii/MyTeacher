@@ -77,7 +77,7 @@ export default function SignInForm() {
   return (
     <Flex>
       <ChakraImage
-        src="./assets/icons/signin.svg"
+        src="/assets/icons/signin.svg"
         w={{ lg: "30vw", base: "80vw" }}
         display={{ lg: "block", base: "none" }}
       />

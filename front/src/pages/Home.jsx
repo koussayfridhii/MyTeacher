@@ -26,8 +26,8 @@ const Home = () => {
   }, []);
 
   const heroBg = useColorModeValue(
-    "url('./assets/images/hero-background.png')",
-    "url('./assets/images/hero-background.png')"
+    "url('/assets/images/hero-background.png')",
+    "url('/assets/images/hero-background.png')"
   );
 
   return (

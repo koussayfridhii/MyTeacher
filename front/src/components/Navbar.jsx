@@ -56,13 +56,13 @@ const Navbar = () => {
   return (
     <Box as="header" bg={bg} p={4} color={color} w="full">
       <Flex align="center" justify={{ base: "space-between" }}>
-        {/* <ChakraImage src="./assets/icons/yoom-logo.svg" boxSize={20} m={0} /> */}
+        {/* <ChakraImage src="/assets/icons/yoom-logo.svg" boxSize={20} m={0} /> */}
         <HStack spacing={5} align="center">
           <Menu bg={bg} color={color}>
             <MenuButton>
               <Avatar
                 name={`${user?.firstName} ${user?.lastName}`}
-                src={"./assets/images/avatar-5.png"}
+                src={"/assets/images/avatar-5.png"}
               />
             </MenuButton>
             <MenuList bg={bg} color={color}>
@@ -108,7 +108,7 @@ const Navbar = () => {
             <Text color="white" fontSize="xl" fontWeight="bold">
               200
             </Text>
-            <ChakraImage src="./assets/icons/coin.svg" boxSize={6} />
+            <ChakraImage src="/assets/icons/coin.svg" boxSize={6} />
           </HStack>
         </HStack>
         <MobileNav />

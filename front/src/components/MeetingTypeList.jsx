@@ -98,31 +98,31 @@ const MeetingTypeList = () => {
       my={5}
     >
       <HomeCard
-        img="./assets/icons/add-meeting.svg"
+        img="/assets/icons/add-meeting.svg"
         title="New Meeting"
         description="Start an instant meeting"
         handleClick={() => setMeetingState("instant")}
         bgColor="primary"
       />
       <HomeCard
-        img="./assets/icons/join-meeting.svg"
+        img="/assets/icons/join-meeting.svg"
         title="Join Meeting"
         description="Via invitation link"
         handleClick={() => setMeetingState("join")}
         bgColor="secondary"
       />
       <HomeCard
-        img="./assets/icons/schedule.svg"
+        img="/assets/icons/schedule.svg"
         title="Schedule Meeting"
         description="Plan your meeting"
         handleClick={() => setMeetingState("schedule")}
         bgColor="pink.500"
       />
       <HomeCard
-        img="./assets/icons/recordings.svg"
+        img="/assets/icons/recordings.svg"
         title="View Recordings"
         description="Meeting Recordings"
-        handleClick={() => navigate("/recordings")}
+        handleClick={() => navigate("/meeting/recordings")}
         bgColor="green.500"
       />
 
@@ -164,8 +164,8 @@ const MeetingTypeList = () => {
             navigator.clipboard.writeText(meetingLink);
             toast({ title: "Link Copied", status: "success", duration: 3000 });
           }}
-          image="./assets/icons/checked.svg"
-          buttonIcon="./assets/icons/copy.svg"
+          image="/assets/icons/checked.svg"
+          buttonIcon="/assets/icons/copy.svg"
           className="text-center"
           buttonText="Copy Meeting Link"
         />
