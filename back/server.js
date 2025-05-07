@@ -1,5 +1,6 @@
 import express from "express";
 import passport from "passport";
+import "dotenv/config";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import errorHandler from "./middleware/errorHandler.js";
@@ -10,13 +11,12 @@ import classRoutes from "./routes/classRoutes.js";
 import callRoutes from "./routes/callRoutes.js";
 import recordingRoutes from "./routes/recordingRoutes.js";
 import streamTokenRouter from "./routes/streamTokenRoutes.js";
-
 connectDB();
 
 const app = express();
 const allowedOrigins = [
-  "https://my-teacher-6ner.vercel.app",
   "http://localhost:3000/",
+  "https://my-teacher-6ner.vercel.app",
 ];
 app.use(
   cors({
@@ -33,7 +33,8 @@ app.use(
     optionsSuccessStatus: 204,
   })
 );
-// app.use(express.json());
+// app.use(cors({ origin: "*" }));
+app.use(express.json());
 app.use(passport.initialize());
 import("./config/passport.js").then((mod) => mod.default(passport));
 
