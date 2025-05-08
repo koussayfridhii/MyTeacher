@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   FormErrorMessage,
@@ -12,7 +13,10 @@ import {
   Text,
   Image as ChakraImage,
   Center,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/react";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSelector } from "react-redux";
 import { translations } from "../data/forms";
 import axios from "axios";
@@ -27,6 +31,11 @@ export default function SignUpForm() {
     formState: { errors, isSubmitting },
   } = useForm();
   const toast = useToast();
+
+  // Local state to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   // watch password for repeat validation
   const password = watch("Password", "");
 
@@ -39,7 +48,6 @@ export default function SignUpForm() {
         import.meta.env.VITE_API_URL + "/auth/signup",
         payload
       );
-      //   alert(res.data.message);
       toast({
         title: "Account created.",
         description: res.data.message,
@@ -47,18 +55,16 @@ export default function SignUpForm() {
         duration: 5000,
         isClosable: true,
       });
-      // Redirect or reset form as needed
       navigate("/signin");
     } catch (err) {
       console.error(err);
       toast({
         title: "Failed.",
-        description: err.response.data.error,
+        description: err.response?.data?.error || "Signup failed",
         status: "error",
         duration: 5000,
         isClosable: true,
       });
-      //   alert(err.response?.data?.message || "Signup failed");
     }
   };
 
@@ -91,7 +97,7 @@ export default function SignUpForm() {
           fontWeight="bold"
           mb={8}
         >
-          Signin
+          {t.signUpTitle || "SignUp"}
         </Text>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -110,9 +116,7 @@ export default function SignUpForm() {
                 maxLength: { value: 100, message: t.firstNameMax },
               })}
             />
-            <FormErrorMessage>
-              {errors["First Name"] && errors["First Name"].message}
-            </FormErrorMessage>
+            <FormErrorMessage>{errors["First Name"]?.message}</FormErrorMessage>
           </FormControl>
 
           {/* Last Name */}
@@ -128,9 +132,7 @@ export default function SignUpForm() {
                 maxLength: { value: 100, message: t.lastNameMax },
               })}
             />
-            <FormErrorMessage>
-              {errors["Last Name"] && errors["Last Name"].message}
-            </FormErrorMessage>
+            <FormErrorMessage>{errors["Last Name"]?.message}</FormErrorMessage>
           </FormControl>
 
           {/* Email */}
@@ -147,9 +149,7 @@ export default function SignUpForm() {
                 pattern: { value: /^\S+@\S+$/i, message: t.emailInvalid },
               })}
             />
-            <FormErrorMessage>
-              {errors.Email && errors.Email.message}
-            </FormErrorMessage>
+            <FormErrorMessage>{errors.Email?.message}</FormErrorMessage>
           </FormControl>
 
           {/* Mobile */}
@@ -169,7 +169,7 @@ export default function SignUpForm() {
               })}
             />
             <FormErrorMessage>
-              {errors["Mobile number"] && errors["Mobile number"].message}
+              {errors["Mobile number"]?.message}
             </FormErrorMessage>
           </FormControl>
 
@@ -187,50 +187,73 @@ export default function SignUpForm() {
               <option value="Parent">{t.optionParent}</option>
               <option value="Student">{t.optionStudent}</option>
             </Select>
-            <FormErrorMessage>
-              {errors.Tilte && errors.Tilte.message}
-            </FormErrorMessage>
+            <FormErrorMessage>{errors.Tilte?.message}</FormErrorMessage>
           </FormControl>
 
-          {/* Password */}
+          {/* Password Field with toggle */}
           <FormControl isInvalid={!!errors.Password} mb={4}>
             <FormLabel color="primary" htmlFor="password">
-              Password
+              {t.passwordLabel || "Password"}
             </FormLabel>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Password"
-              {...register("Password", {
-                required: "Password is required",
-                minLength: { value: 6, message: "Minimum length is 6" },
-              })}
-            />
-            <FormErrorMessage>
-              {errors.Password && errors.Password.message}
-            </FormErrorMessage>
+            <InputGroup>
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder={t.passwordPlaceholder || "Password"}
+                {...register("Password", {
+                  required: t.passwordRequired || "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: t.passwordMinLength || "Minimum length is 6",
+                  },
+                })}
+              />
+              <InputRightElement h="full">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
+            <FormErrorMessage>{errors.Password?.message}</FormErrorMessage>
           </FormControl>
 
-          {/* Confirm Password */}
+          {/* Confirm Password Field with toggle */}
           <FormControl isInvalid={!!errors.PasswordRepeat} mb={6}>
             <FormLabel color="primary" htmlFor="passwordRepeat">
-              Confirm Password
+              {t.confirmPasswordLabel || "Confirm Password"}
             </FormLabel>
-            <Input
-              id="passwordRepeat"
-              type="password"
-              placeholder="Confirm Password"
-              {...register("PasswordRepeat", {
-                required: "Please confirm your password",
-                validate: (value) =>
-                  value === password || "Passwords do not match",
-              })}
-            />
+            <InputGroup>
+              <Input
+                id="passwordRepeat"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder={t.confirmPasswordPlaceholder || "Confirm Password"}
+                {...register("PasswordRepeat", {
+                  required:
+                    t.confirmPasswordRequired || "Please confirm your password",
+                  validate: (value) =>
+                    value === password ||
+                    t.passwordsDoNotMatch ||
+                    "Passwords do not match",
+                })}
+              />
+              <InputRightElement h="full">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
             <FormErrorMessage>
-              {errors.PasswordRepeat && errors.PasswordRepeat.message}
+              {errors.PasswordRepeat?.message}
             </FormErrorMessage>
           </FormControl>
 
+          {/* Submit and link */}
           <Flex w="100%" justify="center" align="center" gap={3}>
             <Button
               mt={4}
@@ -242,7 +265,9 @@ export default function SignUpForm() {
               {t.submit}
             </Button>
             <Text fontSize="xs" mt={3} color="primary">
-              <Link to="/signin">Already have an account ?</Link>
+              <Link to="/signin">
+                {t.haveAccount || "Already have an account?"}
+              </Link>
             </Text>
           </Flex>
         </form>

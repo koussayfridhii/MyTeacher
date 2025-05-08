@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   FormErrorMessage,
@@ -10,7 +11,11 @@ import {
   Flex,
   Text,
   Image as ChakraImage,
+  InputGroup,
+  InputRightElement,
+  Center,
 } from "@chakra-ui/react";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { translations } from "../data/forms";
 import axios from "axios";
@@ -27,6 +32,9 @@ export default function SignInForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Local state to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
+
   const onSubmit = async (data) => {
     try {
       const res = await axios.post(
@@ -36,10 +44,11 @@ export default function SignInForm() {
           password: data.Password,
         }
       );
+
       // store token
       localStorage.setItem("token", res.data.token);
 
-      // optionally fetch user profile, assuming endpoint returns user data
+      // fetch user profile
       const profileRes = await axios.get(
         import.meta.env.VITE_API_URL + "/auth/profile",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
@@ -50,15 +59,13 @@ export default function SignInForm() {
       dispatch(loginAction(userData));
 
       toast({
-        title:
-          "Welcome back! " + userData?.firstName + " " + userData?.lastName,
+        title: `Welcome back! ${userData.firstName} ${userData.lastName}`,
         description: "Signed in successfully.",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
 
-      // redirect
       navigate("/");
     } catch (err) {
       toast({
@@ -75,12 +82,19 @@ export default function SignInForm() {
   const t = translations[language] || translations.en;
 
   return (
-    <Flex>
-      <ChakraImage
-        src="/assets/icons/signin.svg"
-        w={{ lg: "30vw", base: "80vw" }}
-        display={{ lg: "block", base: "none" }}
-      />
+    <Flex
+      flexDir={{ base: "column-reverse", lg: "row" }}
+      w="100%"
+      h="100vh"
+      justify="center"
+      align="center"
+    >
+      <Center bg="gray.50" display={{ base: "none", lg: "block" }}>
+        <ChakraImage
+          src="/assets/icons/signin.svg"
+          w={{ lg: "30vw", base: "80vw" }}
+        />
+      </Center>
       <Card
         bg="background"
         border="2px"
@@ -99,7 +113,7 @@ export default function SignInForm() {
           fontWeight="bold"
           mb={8}
         >
-          Signin
+          {t.signInTitle || "SignIn"}
         </Text>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -119,28 +133,34 @@ export default function SignInForm() {
                 pattern: { value: /^\S+@\S+$/i, message: t.emailInvalid },
               })}
             />
-            <FormErrorMessage>
-              {errors.Email && errors.Email.message}
-            </FormErrorMessage>
+            <FormErrorMessage>{errors.Email?.message}</FormErrorMessage>
           </FormControl>
 
-          {/* Password */}
+          {/* Password with toggle */}
           <FormControl isInvalid={!!errors.Password} mb={6}>
             <FormLabel color="primary" htmlFor="password">
               {t.password}
             </FormLabel>
-            <Input
-              id="password"
-              type="password"
-              placeholder={t.password}
-              {...register("Password", {
-                required: t.passwordRequired,
-                minLength: { value: 6, message: t.passwordMin },
-              })}
-            />
-            <FormErrorMessage>
-              {errors.Password && errors.Password.message}
-            </FormErrorMessage>
+            <InputGroup>
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder={t.password}
+                {...register("Password", {
+                  required: t.passwordRequired,
+                  minLength: { value: 6, message: t.passwordMin },
+                })}
+              />
+              <InputRightElement h="full">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
+            <FormErrorMessage>{errors.Password?.message}</FormErrorMessage>
           </FormControl>
 
           <Flex w="100%" justify="center" align="center" gap={3}>
@@ -154,7 +174,9 @@ export default function SignInForm() {
               {t.submit}
             </Button>
             <Text fontSize="xs" mt={3} color="primary">
-              <Link to="/signup">Don’t have an account?</Link>
+              <Link to="/signup">
+                {t.noAccount || "Don’t have an account?"}
+              </Link>
             </Text>
           </Flex>
         </form>

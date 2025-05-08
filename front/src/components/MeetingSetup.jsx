@@ -16,6 +16,7 @@ import {
   Heading,
   VStack,
 } from "@chakra-ui/react";
+import { useIsMeetingOwner } from "../hooks/useIsMeetingOwner";
 
 const MeetingSetup = ({ setIsSetupComplete }) => {
   const { useCallEndedAt, useCallStartsAt } = useCallStateHooks();
@@ -26,6 +27,7 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
   const callHasEnded = !!callEndedAt;
 
   const call = useCall();
+  const isOwner = useIsMeetingOwner(); // ✅ get owner status
 
   if (!call) {
     throw new Error(
@@ -96,7 +98,11 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
         bg="primary"
         color="white"
         onClick={() => {
-          call.join();
+          if (isOwner) {
+            call.join(); // ✅ owner joins directly
+          } else {
+            call.join({ waitForOwnerApproval: true }); // ✅ non-owner joins in pending mode
+          }
           setIsSetupComplete(true);
         }}
       >

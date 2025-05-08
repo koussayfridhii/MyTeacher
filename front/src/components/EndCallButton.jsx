@@ -1,26 +1,15 @@
+// src/components/EndCallButton.tsx
 import { Button } from "@chakra-ui/react";
-import { useCall, useCallStateHooks } from "@stream-io/video-react-sdk";
-// import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import { useCall } from "@stream-io/video-react-sdk";
+import { useIsMeetingOwner } from "../hooks/useIsMeetingOwner";
 
 const EndCallButton = () => {
   const call = useCall();
   const navigate = useNavigate();
+  const isMeetingOwner = useIsMeetingOwner();
 
-  if (!call)
-    throw new Error(
-      "useStreamCall must be used within a StreamCall component."
-    );
-
-  // https://getstream.io/video/docs/react/guides/call-and-participant-state/#participant-state-3
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
-
-  const isMeetingOwner =
-    localParticipant &&
-    call.state.createdBy &&
-    localParticipant.userId === call.state.createdBy.id;
-
+  // only owners get a button
   if (!isMeetingOwner) return null;
 
   const endCall = async () => {
@@ -29,7 +18,7 @@ const EndCallButton = () => {
   };
 
   return (
-    <Button onClick={endCall} colorScheme="red" borderRadius={"full"}>
+    <Button onClick={endCall} colorScheme="red" borderRadius="full">
       End call for everyone
     </Button>
   );
