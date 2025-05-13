@@ -42,7 +42,6 @@ const CallList = ({ type }) => {
 
   useEffect(() => {
     const fetchRecordings = async () => {
-      console.log(callRecordings);
       const callData = await Promise.all(
         (callRecordings ?? []).map(async (meeting) => {
           try {
