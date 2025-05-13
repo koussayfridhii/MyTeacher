@@ -5,11 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { Box, SimpleGrid, Text, Spinner, Center } from "@chakra-ui/react";
 import { useGetCalls } from "../hooks/useGetCalls";
 import MeetingCard from "./MeetingCard";
-
+import { useSelector } from "react-redux";
+const allowedToFetchAllCalls = ["admin", "coordinator"];
 const CallList = ({ type }) => {
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.user);
   const { endedCalls, upcomingCalls, callRecordings, isLoading } = useGetCalls({
-    allUsers: true,
+    allUsers: allowedToFetchAllCalls.includes(user?.role),
   });
 
   const [recordings, setRecordings] = useState([]);
