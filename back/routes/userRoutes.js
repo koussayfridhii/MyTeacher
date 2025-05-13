@@ -6,6 +6,8 @@ import {
   createTeacher,
   approveTeacher,
   myRecordings,
+  addClassToUser,
+  getUserClasses,
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -15,6 +17,9 @@ router.post("/create-student", auth, role("parent"), createStudent);
 
 // Coordinator creates teacher
 router.post("/create-teacher", auth, role("coordinator"), createTeacher);
+//add class to user
+router.post("/push-class", auth, addClassToUser);
+router.get("/userClasses", auth, getUserClasses);
 
 // Coordinator or Admin approve teacher signup
 router.patch(

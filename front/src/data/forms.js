@@ -25,7 +25,7 @@ export const translations = {
     title: "Title",
     titlePlaceholder: "Select title",
     titleRequired: "Title is required",
-    optionParent: "Parent",
+    optionTeacher: "Teacher",
     optionStudent: "Student",
 
     // Password
@@ -67,7 +67,7 @@ export const translations = {
     title: "Titre",
     titlePlaceholder: "Sélectionnez le titre",
     titleRequired: "Le titre est requis",
-    optionParent: "Parent",
+    optionTeacher: "Teacher",
     optionStudent: "Étudiant",
 
     // Mot de passe
@@ -109,7 +109,7 @@ export const translations = {
     title: "الصفة",
     titlePlaceholder: "اختر الصفة",
     titleRequired: "الصفة مطلوب",
-    optionParent: "ولي أمر",
+    optionTeacher: "أستاذ",
     optionStudent: "طالب",
 
     // كلمة المرور

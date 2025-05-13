@@ -4,10 +4,9 @@ import Class from "../models/Class.js";
 // @access  admin, coordinator
 export const createClass = async (req, res, next) => {
   try {
-    const { title, description, cost, recordingUrl } = req.body;
+    const { meetID, cost, recordingUrl } = req.body;
     const newClass = await Class.create({
-      title,
-      description,
+      meetID,
       cost,
       recordingUrl,
     });

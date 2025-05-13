@@ -184,7 +184,7 @@ export default function SignUpForm() {
               {...register("Tilte", { required: t.titleRequired })}
               p={3}
             >
-              <option value="Parent">{t.optionParent}</option>
+              <option value="Teacher">{t.optionTeacher}</option>
               <option value="Student">{t.optionStudent}</option>
             </Select>
             <FormErrorMessage>{errors.Tilte?.message}</FormErrorMessage>

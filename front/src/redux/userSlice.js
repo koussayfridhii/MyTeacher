@@ -9,9 +9,18 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    attendClass(state, action) {
+      state.isLoggedIn;
+      state.user = {
+        ...state.user,
+        attendedClasses: action.payload.attendedClasses,
+      };
+      state.wallet = { ...state.wallet, balance: action.payload.balance };
+    },
     login(state, action) {
       state.isLoggedIn = true;
-      state.user = action.payload;
+      state.user = action.payload.user;
+      state.wallet = action.payload.wallet;
     },
     logout(state) {
       state.isLoggedIn = false;
@@ -20,5 +29,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { login, logout } = userSlice.actions;
+export const { login, logout, attendClass } = userSlice.actions;
 export default userSlice.reducer;

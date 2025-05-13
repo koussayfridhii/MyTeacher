@@ -14,13 +14,16 @@ import {
   Spinner,
   Center,
 } from "@chakra-ui/react";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { attendClass } from "../redux/userSlice";
 
 const initialValues = {
   dateTime: new Date(),
   description: "",
   link: "",
 };
-
+const baseURL = import.meta.env.VITE_API_URL;
 // Custom input for ReactDatePicker using Chakra UI Input
 const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
   <Input
@@ -31,16 +34,19 @@ const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
     cursor="pointer"
   />
 ));
+const allowedRoles = ["admin", "teacher", "coordinator"];
 
 const MeetingTypeList = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const token = localStorage.getItem("token");
+  const wallet = useSelector((state) => state.user.wallet);
+  const user = useSelector((state) => state.user.user);
   const [meetingState, setMeetingState] = useState();
   const [values, setValues] = useState(initialValues);
   const [callDetail, setCallDetail] = useState();
   const client = useStreamVideoClient();
   const toast = useToast();
-
   const createMeeting = async () => {
     if (!client || !token) return;
     if (!values.dateTime) {
@@ -52,6 +58,15 @@ const MeetingTypeList = () => {
       return;
     }
     try {
+      if (!allowedRoles.includes(user.role)) {
+        toast({
+          title:
+            "Failed to create Meeting , you are not allowed to create a meeting",
+          status: "error",
+          duration: 3000,
+        });
+        return;
+      }
       const id = crypto.randomUUID();
       const call = client.call("default", id);
       if (!call) throw new Error("Failed to create meeting");
@@ -64,6 +79,21 @@ const MeetingTypeList = () => {
       });
       setCallDetail(call);
       toast({ title: "Meeting Created", status: "success", duration: 3000 });
+      await axios
+        .post(
+          `${baseURL}/classes`,
+          {
+            meetID: call.id,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          console.log(res);
+        });
       if (!values.description) {
         navigate(`/meeting/${call.id}`);
       }
@@ -76,7 +106,65 @@ const MeetingTypeList = () => {
       });
     }
   };
+  const handleJoinMeeting = async () => {
+    if (!client || !token) return;
 
+    if (wallet?.balance - 10 < wallet?.minimum) {
+      toast({
+        title: "Insufficient balance",
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+    try {
+      // 1) hit the purchase-and-enroll endpoint
+      const { data } = await axios.post(
+        `${baseURL}/users/push-class`, // <-- your purchase endpoint
+        { classId: values.link }, // pass the meetID
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // 2) unpack
+      const { attendedClasses, walletBalance } = data;
+      console.log("Joined class; server replied:", data);
+
+      // 3) update Redux
+      dispatch(
+        attendClass({
+          attendedClasses,
+          balance: walletBalance,
+        })
+      );
+
+      // 4) navigate into the meeting
+      navigate(`/meeting/${values.link}`);
+    } catch (err) {
+      // 5) if it’s a 400-insufficient-funds from the server...
+      if (
+        err.response?.status === 400 &&
+        err.response.data.error?.toLowerCase().includes("insufficient")
+      ) {
+        toast({
+          title: "Not enough points in your wallet.",
+          description: "Please top up before joining this meeting.",
+          status: "warning",
+          duration: 4000,
+        });
+      } else {
+        // 6) generic failure
+        console.error("Failed to buy & join class:", err);
+        toast({
+          title: "Failed to join Meeting",
+          description: err.response?.data?.error || err.message,
+          status: "error",
+          duration: 3000,
+        });
+      }
+    }
+  };
   if (!client || !token) {
     return (
       <Center h="200px">
@@ -177,7 +265,7 @@ const MeetingTypeList = () => {
         title="Enter the link"
         className="text-center"
         buttonText="Join Meeting"
-        handleClick={() => navigate(`/meeting/${values.link}`)}
+        handleClick={handleJoinMeeting}
       >
         <Input
           placeholder="Meeting link"

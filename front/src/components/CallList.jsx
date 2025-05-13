@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 "use strict";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,8 +8,10 @@ import MeetingCard from "./MeetingCard";
 
 const CallList = ({ type }) => {
   const navigate = useNavigate();
-  const { endedCalls, upcomingCalls, callRecordings, isLoading } =
-    useGetCalls();
+  const { endedCalls, upcomingCalls, callRecordings, isLoading } = useGetCalls({
+    allUsers: true,
+  });
+
   const [recordings, setRecordings] = useState([]);
 
   const getCalls = () => {
@@ -39,13 +42,20 @@ const CallList = ({ type }) => {
 
   useEffect(() => {
     const fetchRecordings = async () => {
+      console.log(callRecordings);
       const callData = await Promise.all(
-        callRecordings?.map((meeting) => meeting.queryRecordings()) ?? []
+        (callRecordings ?? []).map(async (meeting) => {
+          try {
+            return await meeting.queryRecordings();
+          } catch (err) {
+            return { recordings: [] };
+          }
+        })
       );
 
       const allRecs = callData
-        .filter((call) => call.recordings?.length > 0)
-        .flatMap((call) => call.recordings);
+        .filter((c) => c.recordings?.length > 0)
+        .flatMap((c) => c.recordings);
 
       setRecordings(allRecs);
     };
@@ -92,7 +102,7 @@ const CallList = ({ type }) => {
 
             return (
               <MeetingCard
-                key={id}
+                key={id || meeting._id}
                 icon={icon}
                 title={title}
                 date={date}

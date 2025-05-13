@@ -1,6 +1,6 @@
 // Navbar.js
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/userSlice";
 import { languageReducer } from "../redux/languageSlice";
@@ -17,20 +17,19 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
-
 import MobileNav from "./MobileNav";
 import axios from "axios";
 
-const Navbar = () => {
+const Navbar = ({ home }) => {
   const token = localStorage.getItem("token");
-  const user = useSelector((state) => state.user.user);
+  const { user, wallet } = useSelector((state) => state.user);
   const language = useSelector((state) => state.language.language);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const bg = useColorModeValue("gray.800", "gray.900");
   const color = useColorModeValue("white", "white");
-
   const handleLogout = async () => {
     await axios
       .post(
@@ -106,10 +105,22 @@ const Navbar = () => {
           </Menu>
           <HStack spacing={1} align="center">
             <Text color="white" fontSize="xl" fontWeight="bold">
-              200
+              {wallet?.balance}{" "}
             </Text>
             <ChakraImage src="/assets/icons/coin.svg" boxSize={6} />
           </HStack>
+          {home && (
+            <HStack spacing={1} align="center">
+              <ChakraLink
+                as={Link}
+                color="white"
+                fontSize="xl"
+                fontWeight="bold"
+              >
+                Home
+              </ChakraLink>
+            </HStack>
+          )}
         </HStack>
         <MobileNav />
       </Flex>

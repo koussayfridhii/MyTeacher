@@ -9,6 +9,6 @@ const router = express.Router();
 router.get("/", auth, listClasses);
 
 // Admin or Coordinator can create new classes
-router.post("/", auth, role("admin", "coordinator"), createClass);
+router.post("/", auth, role("admin", "coordinator", "teacher"), createClass);
 
 export default router;

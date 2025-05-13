@@ -36,8 +36,7 @@ const userSchema = new mongoose.Schema(
     // “Title” comes from your form (Parent / Student)
     title: {
       type: String,
-      enum: ["Parent", "Student"],
-      required: true,
+      enum: ["Parent", "Student", "Teacher", ""],
     },
 
     // Internal role for RBAC (admin, coordinator, teacher, etc.)

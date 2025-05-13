@@ -1,8 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Flex } from "@chakra-ui/react";
 import SignInForm from "../../components/SignInForm";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const SignIn = () => {
+  const navigate = useNavigate();
+  const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn]);
   return (
     <Flex
       align="center"

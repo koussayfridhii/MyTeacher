@@ -1,10 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const classSchema = new mongoose.Schema({
-  title:       { type: String, required: true },
-  description: { type: String },
-  cost:        { type: Number, required: true },
-  recordingUrl:{ type: String, required: true }
-}, { timestamps: true });
+const classSchema = new mongoose.Schema(
+  {
+    meetID: { type: String, required: true },
+    cost: { type: Number, default: 10 },
+    recordingUrl: { type: String },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model('Class', classSchema);
+export default mongoose.model("Class", classSchema);

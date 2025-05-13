@@ -53,7 +53,12 @@ export default function SignInForm() {
         import.meta.env.VITE_API_URL + "/auth/profile",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
       );
-      const userData = profileRes.data.user;
+      const walletRes = await axios.get(
+        import.meta.env.VITE_API_URL + "/wallet",
+        { headers: { Authorization: `Bearer ${res.data.token}` } }
+      );
+
+      const userData = { user: profileRes.data.user, ...walletRes.data };
 
       // dispatch login to Redux
       dispatch(loginAction(userData));
