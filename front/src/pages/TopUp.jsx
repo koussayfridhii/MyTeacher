@@ -287,6 +287,7 @@ import { withAuthorization } from "../HOC/Protect";
 
 const TopUp = () => {
   const token = localStorage.getItem("token");
+  const user = useSelector((state) => state.user.user);
   const language = useSelector((state) => state.language.language);
   const labels = topUpData[language] || topUpData.en;
 
@@ -299,7 +300,9 @@ const TopUp = () => {
       .get(`${import.meta.env.VITE_API_URL}/users`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setUsers(res.data.users))
+      .then((res) =>
+        setUsers(res.data.users?.filter((u) => u.coordinator?._id === user._id))
+      )
       .catch((err) => console.error(err));
   };
 

@@ -67,7 +67,6 @@ export default function SignInForm() {
         import.meta.env.VITE_API_URL + "/wallet",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
       );
-      console.log(profileRes.data);
       const userData = { user: profileRes.data.user, ...walletRes.data };
 
       // dispatch login to Redux
