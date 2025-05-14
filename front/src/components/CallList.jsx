@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 "use strict";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, SimpleGrid, Text, Spinner, Center } from "@chakra-ui/react";
 import { useGetCalls } from "../hooks/useGetCalls";
@@ -42,29 +42,30 @@ const CallList = ({ type }) => {
     }
   };
 
+  const fetchRecordings = useCallback(async () => {
+    if (!Array.isArray(callRecordings) || callRecordings.length === 0) {
+      setRecordings([]);
+      return;
+    }
+
+    const results = await Promise.allSettled(
+      callRecordings.map((meeting) => meeting.queryRecordings())
+    );
+
+    const allRecs = results
+      .filter(
+        (r) => r.status === "fulfilled" && Array.isArray(r.value.recordings)
+      )
+      .flatMap((r) => r.value.recordings);
+
+    setRecordings(allRecs);
+  }, [callRecordings]);
+
   useEffect(() => {
-    const fetchRecordings = async () => {
-      const callData = await Promise.all(
-        (callRecordings ?? []).map(async (meeting) => {
-          try {
-            return await meeting.queryRecordings();
-          } catch (err) {
-            return { recordings: [] };
-          }
-        })
-      );
-
-      const allRecs = callData
-        .filter((c) => c.recordings?.length > 0)
-        .flatMap((c) => c.recordings);
-
-      setRecordings(allRecs);
-    };
-
     if (type === "recordings") {
       fetchRecordings();
     }
-  }, [type, callRecordings]);
+  }, [type, fetchRecordings]);
 
   if (isLoading) {
     return (
@@ -103,7 +104,7 @@ const CallList = ({ type }) => {
 
             return (
               <MeetingCard
-                key={id || meeting._id}
+                key={meeting._id}
                 icon={icon}
                 title={title}
                 date={date}

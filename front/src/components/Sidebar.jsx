@@ -10,13 +10,15 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { sidebarLinks } from "../data/sidebar";
+import { useSelector } from "react-redux";
 
 const Sidebar = () => {
   const location = useLocation();
+  const language = useSelector((state) => state.language.language);
+  const user = useSelector((state) => state.user.user);
   const bgColor = useColorModeValue("gray.800", "gray.900");
   const activeColor = useColorModeValue("white", "white");
   const inactiveColor = useColorModeValue("gray.200", "gray.400");
-
   return (
     <Box
       as="aside"
@@ -32,34 +34,41 @@ const Sidebar = () => {
       display={{ base: "none", lg: "block" }}
     >
       <VStack align="stretch" spacing={4} h="full" justify="flex-start">
-        {sidebarLinks.map((item) => {
-          const isActive =
-            location.pathname === item.route ||
-            location.pathname.startsWith(`${item.route}/`);
+        {sidebarLinks
+          .filter((element) => element?.authorizedRoles.includes(user?.role))
+          .map((item) => {
+            const isActive =
+              location.pathname === item.route ||
+              location.pathname.startsWith(`${item.route}/`);
 
-          return (
-            <ChakraLink
-              as={NavLink}
-              to={item.route}
-              key={item.label}
-              style={{ textDecoration: "none" }}
-              _hover={{ textDecoration: "none" }}
-            >
-              <Flex
-                align="center"
-                p={4}
-                borderRadius="lg"
-                bg={isActive ? "primary" : "transparent"}
-                color={isActive ? activeColor : inactiveColor}
+            return (
+              <ChakraLink
+                as={NavLink}
+                to={item.route}
+                key={item.route}
+                style={{ textDecoration: "none" }}
+                _hover={{ textDecoration: "none" }}
               >
-                <Image src={item.imgURL} alt={item.label} boxSize="6" mr={4} />
-                <Text fontSize="lg" fontWeight="semibold">
-                  {item.label}
-                </Text>
-              </Flex>
-            </ChakraLink>
-          );
-        })}
+                <Flex
+                  align="center"
+                  p={4}
+                  borderRadius="lg"
+                  bg={isActive ? "primary" : "transparent"}
+                  color={isActive ? activeColor : inactiveColor}
+                >
+                  <Image
+                    src={item.imgURL}
+                    alt={item.label}
+                    boxSize="6"
+                    mr={4}
+                  />
+                  <Text fontSize="lg" fontWeight="semibold">
+                    {item.label?.[language] || item.label.en}
+                  </Text>
+                </Flex>
+              </ChakraLink>
+            );
+          })}
       </VStack>
     </Box>
   );

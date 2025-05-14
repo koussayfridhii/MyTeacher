@@ -44,7 +44,16 @@ export default function SignInForm() {
           password: data.Password,
         }
       );
-
+      if (res.status !== 200) {
+        toast({
+          title: "Sign-in failed",
+          description: res.data?.message || "verify your email",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
       // store token
       localStorage.setItem("token", res.data.token);
 
@@ -53,18 +62,19 @@ export default function SignInForm() {
         import.meta.env.VITE_API_URL + "/auth/profile",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
       );
+
       const walletRes = await axios.get(
         import.meta.env.VITE_API_URL + "/wallet",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
       );
-
+      console.log(profileRes.data);
       const userData = { user: profileRes.data.user, ...walletRes.data };
 
       // dispatch login to Redux
       dispatch(loginAction(userData));
 
       toast({
-        title: `Welcome back! ${userData.firstName} ${userData.lastName}`,
+        title: `Welcome back! ${userData?.user?.firstName} ${userData?.user?.lastName}`,
         description: "Signed in successfully.",
         status: "success",
         duration: 5000,

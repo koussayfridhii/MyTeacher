@@ -14,12 +14,12 @@ const HomeCard = ({
   description,
   handleClick,
   bgColor,
+  role,
 }) => {
   const glassBg = useColorModeValue(
     "rgba(255, 255, 255, 0.2)",
     "rgba(0, 0, 0, 0.2)"
   );
-
   return (
     <Box
       as="section"
@@ -29,7 +29,10 @@ const HomeCard = ({
       px={4}
       py={6}
       minH="260px"
-      maxW={{ base: "100%", xl: "270px" }}
+      maxW={
+        role !== "student" ? { base: "100%", xl: "270px" } : { base: "full" }
+      }
+      w={role !== "student" ? { base: "100%", xl: "270px" } : { base: "50vw" }}
       borderRadius="14px"
       className={className}
       display="flex"

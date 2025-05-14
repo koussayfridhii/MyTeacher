@@ -20,6 +20,10 @@ const UpcomingPage = lazy(() => import("./pages/Upcoming.jsx"));
 const PreviousPage = lazy(() => import("./pages/Previous.jsx"));
 const RecordingsPage = lazy(() => import("./pages/Recordings.jsx"));
 const VideoPlayer = lazy(() => import("./components/VideoPlayer.jsx"));
+const Verify = lazy(() => import("./pages/auth/Verify.jsx"));
+const TopUp = lazy(() => import("./pages/TopUp.jsx"));
+const Teachers = lazy(() => import("./pages/Teachers.jsx"));
+const Students = lazy(() => import("./pages/Students.jsx"));
 
 const router = createBrowserRouter([
   {
@@ -28,6 +32,12 @@ const router = createBrowserRouter([
     children: [
       { path: "signup", element: <SignUp /> },
       { path: "signin", element: <SignIn /> },
+      { path: "auth/verify/:token", element: <Verify /> },
+      { path: "topup", element: <TopUp /> },
+      { path: "teachers", element: <Teachers /> },
+      { path: "myteachers", element: <Teachers /> },
+      { path: "mystudents", element: <Students /> },
+      { path: "students", element: <Students /> },
       {
         path: "/",
         element: (

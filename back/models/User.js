@@ -33,17 +33,17 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       maxlength: 12,
     },
-    // “Title” comes from your form (Parent / Student)
+    // “Title” comes from your form (Parent / Student / Teacher)
     title: {
       type: String,
       enum: ["Parent", "Student", "Teacher", ""],
     },
 
-    // Internal role for RBAC (admin, coordinator, teacher, etc.)
+    // Internal role for RBAC (admin, coordinator, teacher, student, parent)
     role: {
       type: String,
       enum: ["admin", "coordinator", "teacher", "student", "parent"],
-      default: "student", // or whatever makes sense
+      default: "student",
       required: true,
     },
 
@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    // For parent → students (only if title === "Parent")
+    // For parent → students (only if role === "parent")
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -60,14 +60,32 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    // Teachers need approval
+    // Coordinator assignment for teachers and students (optional at creation)
+    coordinator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      validate: {
+        validator: async function (coordId) {
+          if (!coordId) return true; // allow empty initially
+          const User = mongoose.model("User");
+          const coord = await User.findById(coordId);
+          return coord && coord.role === "coordinator";
+        },
+        message: "Coordinator must be a valid user with role 'coordinator'.",
+      },
+    },
+
+    // Approval flag: teachers and students must have a coordinator to be approved
     isApproved: {
       type: Boolean,
       default: function () {
-        return this.role !== "teacher";
+        // auto-approve non-teacher/student roles
+        return !(this.role === "teacher" || this.role === "student");
       },
     },
+
     currentJti: { type: String, default: null },
+
     // Classes the student has paid for and can replay
     attendedClasses: [
       {

@@ -1,4 +1,5 @@
 import CallList from "../components/CallList";
+import { withAuthorization } from "../HOC/Protect";
 
 const UpcomingPage = () => {
   return (
@@ -10,4 +11,9 @@ const UpcomingPage = () => {
   );
 };
 
-export default UpcomingPage;
+export default withAuthorization(UpcomingPage, [
+  "admin",
+  "coordinator",
+  "teacher",
+  "student",
+]);

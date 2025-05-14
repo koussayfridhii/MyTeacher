@@ -2,29 +2,98 @@ export const sidebarLinks = [
   {
     imgURL: "/assets/icons/Home.svg",
     route: "/",
-    label: "Home",
+    label: {
+      ar: "الصفحة الرئيسية",
+      en: "Home",
+      fr: "Accueil",
+    },
+    authorizedRoles: ["admin", "coordinator", "teacher", "student"],
   },
-
   {
     imgURL: "/assets/icons/upcoming.svg",
     route: "/meeting/upcoming",
-    label: "Upcoming",
+    label: {
+      ar: "القادمة",
+      en: "Upcoming",
+      fr: "À venir",
+    },
+    authorizedRoles: ["admin", "coordinator", "teacher"],
   },
   {
     imgURL: "/assets/icons/previous.svg",
     route: "/meeting/previous",
-    label: "Previous",
+    label: {
+      ar: "السابقة",
+      en: "Previous",
+      fr: "Précédent",
+    },
+    authorizedRoles: ["admin", "coordinator", "teacher", "student"],
   },
   {
     imgURL: "/assets/icons/Video.svg",
     route: "/meeting/recordings",
-    label: "Recordings",
+    label: {
+      ar: "التسجيلات",
+      en: "Recordings",
+      fr: "Enregistrements",
+    },
+    authorizedRoles: ["admin", "coordinator", "teacher"],
   },
-  // {
-  //   imgURL: "/assets/icons/add-personal.svg",
-  //   route: "/personal-room",
-  //   label: "Personal Room",
-  // },
+  {
+    imgURL: "/assets/icons/topup.svg",
+    route: "/topup",
+    label: {
+      ar: " شحن",
+      en: "Top Up",
+      fr: "Recharger",
+    },
+
+    authorizedRoles: ["admin", "coordinator"],
+  },
+  {
+    imgURL: "/assets/icons/teacher.svg",
+    route: "/teachers",
+
+    label: {
+      ar: "المعلمين",
+      en: "Teachers",
+      fr: "Enseignants",
+    },
+    authorizedRoles: ["coordinator"],
+  },
+  {
+    imgURL: "/assets/icons/student.svg",
+    route: "/students",
+    label: {
+      ar: "الطلاب",
+      en: "Students",
+      fr: "Étudiants",
+    },
+
+    authorizedRoles: ["coordinator", "admin"],
+  },
+  {
+    imgURL: "/assets/icons/teacher.svg",
+    route: "/myteachers",
+    label: {
+      ar: "معلميني",
+      en: "My Teachers",
+      fr: "Mes Enseignants",
+    },
+
+    authorizedRoles: ["coordinator"],
+  },
+  {
+    imgURL: "/assets/icons/student.svg",
+    route: "/mystudents",
+    label: {
+      ar: "طلابي",
+      en: "My Students",
+      fr: "Mes Étudiants",
+    },
+
+    authorizedRoles: ["coordinator"],
+  },
 ];
 
 export const avatarImages = [

@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { attendClass } from "../redux/userSlice";
+import { login as loginAction, attendClass } from "../redux/userSlice";
 
 const initialValues = {
   dateTime: new Date(),
@@ -153,6 +153,19 @@ const MeetingTypeList = () => {
           status: "warning",
           duration: 4000,
         });
+        const profileRes = await axios.get(
+          import.meta.env.VITE_API_URL + "/auth/profile",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const walletRes = await axios.get(
+          import.meta.env.VITE_API_URL + "/wallet",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const userData = { user: profileRes.data.user, ...walletRes.data };
+
+        // dispatch login to Redux
+        dispatch(loginAction(userData));
       } else {
         // 6) generic failure
         console.error("Failed to buy & join class:", err);
@@ -177,42 +190,65 @@ const MeetingTypeList = () => {
 
   return (
     <Grid
-      templateColumns={{
-        base: "1fr",
-        md: "repeat(2,1fr)",
-        xl: "repeat(4,1fr)",
-      }}
+      templateColumns={
+        user.role !== "student"
+          ? {
+              base: "1fr",
+              md: "repeat(2,1fr)",
+              xl: "repeat(4,1fr)",
+            }
+          : { base: "1fr" }
+      }
       gap={20}
       my={5}
     >
-      <HomeCard
-        img="/assets/icons/add-meeting.svg"
-        title="New Meeting"
-        description="Start an instant meeting"
-        handleClick={() => setMeetingState("instant")}
-        bgColor="primary"
-      />
-      <HomeCard
-        img="/assets/icons/join-meeting.svg"
-        title="Join Meeting"
-        description="Via invitation link"
-        handleClick={() => setMeetingState("join")}
-        bgColor="secondary"
-      />
-      <HomeCard
-        img="/assets/icons/schedule.svg"
-        title="Schedule Meeting"
-        description="Plan your meeting"
-        handleClick={() => setMeetingState("schedule")}
-        bgColor="pink.500"
-      />
-      <HomeCard
-        img="/assets/icons/recordings.svg"
-        title="View Recordings"
-        description="Meeting Recordings"
-        handleClick={() => navigate("/meeting/recordings")}
-        bgColor="green.500"
-      />
+      {user.role !== "student" ? (
+        <>
+          <HomeCard
+            role="other"
+            img="/assets/icons/add-meeting.svg"
+            title="New Meeting"
+            description="Start an instant meeting"
+            handleClick={() => setMeetingState("instant")}
+            bgColor="primary"
+          />
+          <HomeCard
+            role="other"
+            img="/assets/icons/join-meeting.svg"
+            title="Join Meeting"
+            description="Via invitation link"
+            handleClick={() => setMeetingState("join")}
+            bgColor="secondary"
+          />
+          <HomeCard
+            role="other"
+            img="/assets/icons/schedule.svg"
+            title="Schedule Meeting"
+            description="Plan your meeting"
+            handleClick={() => setMeetingState("schedule")}
+            bgColor="pink.500"
+          />
+          <HomeCard
+            role="other"
+            img="/assets/icons/recordings.svg"
+            title="View Recordings"
+            description="Meeting Recordings"
+            handleClick={() => navigate("/meeting/recordings")}
+            bgColor="green.500"
+          />
+        </>
+      ) : (
+        <>
+          <HomeCard
+            img="/assets/icons/join-meeting.svg"
+            title="Join Meeting"
+            description="Via invitation link"
+            handleClick={() => setMeetingState("join")}
+            bgColor="secondary"
+            role="student"
+          />
+        </>
+      )}
 
       {!callDetail ? (
         <MeetingModal

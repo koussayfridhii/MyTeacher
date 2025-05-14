@@ -3,100 +3,128 @@ import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
 import Class from "../models/Class.js";
 
-// @route   POST /api/users/create-student
-// @access  Parent
-export const createStudent = async (req, res, next) => {
+// @route   POST /api/users/create
+// @access  Coordinator (or Admin)
+export const createUser = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    const hashed = await bcrypt.hash(password, 10);
-    const student = new User({
-      email,
-      password: hashed,
-      role: "student",
-      isVerified: true, // parent creates, so auto-verify
-    });
-    await student.save();
+    const { email, password, role, firstName, lastName, mobileNumber, title } =
+      req.body;
 
-    // link to parent
-    req.user.students.push(student._id);
-    await req.user.save();
-
-    // create wallet
-    await Wallet.create({ user: student._id });
-
-    res.status(201).json({ student });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// @route   POST /api/users/create-teacher
-// @access  Coordinator
-export const createTeacher = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    const hashed = await bcrypt.hash(password, 10);
-    const teacher = new User({
-      email,
-      password: hashed,
-      role: "teacher",
-      isVerified: true, // created by coordinator, so verified
-      isApproved: true, // auto-approved when coordinator creates
-    });
-    await teacher.save();
-    await Wallet.create({ user: teacher._id });
-    res.status(201).json({ teacher });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// @route   PATCH /api/users/approve-teacher/:id
-// @access  Coordinator, Admin
-export const approveTeacher = async (req, res, next) => {
-  try {
-    const teacher = await User.findById(req.params.id);
-    if (!teacher || teacher.role !== "teacher") {
-      return res.status(404).json({ error: "Teacher not found" });
+    // Only coordinators (or admins) can create teacher/student
+    if (
+      ["teacher", "student"].includes(role) &&
+      req.user.role !== "coordinator" &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ error: "Insufficient permissions to create this role." });
     }
-    teacher.isApproved = true;
-    await teacher.save();
-    res.json({ message: "Teacher approved", teacher });
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const userData = {
+      email,
+      password: hashed,
+      role,
+      firstName,
+      lastName,
+      mobileNumber,
+      title,
+      // isVerified: false by default
+      // isApproved: false by default for teacher/student by schema
+    };
+
+    // if coordinator is creating a teacher/student, assign them
+    if (
+      ["teacher", "student"].includes(role) &&
+      req.user.role === "coordinator"
+    ) {
+      userData.coordinator = req.user._id;
+      userData.isApproved = true; // optional: immediately approve
+    }
+
+    const user = new User(userData);
+    await user.save();
+
+    // create wallet for applicable roles
+    await Wallet.create({ user: user._id });
+
+    res.status(201).json({ user });
   } catch (err) {
     next(err);
   }
 };
+
+// @route   PATCH /api/users/approve/:id
+// @access  Coordinator, Admin
+export const approveUser = async (req, res, next) => {
+  try {
+    const { approve } = req.body;
+    if (approve == null) {
+      return res.status(400).json({ error: "'approve' boolean is required" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user || !["teacher", "student"].includes(user.role)) {
+      return res
+        .status(404)
+        .json({ error: "User not found or not approvable" });
+    }
+
+    user.isApproved = Boolean(approve);
+
+    if (approve && !user.coordinator && req.user.role === "coordinator") {
+      user.coordinator = req.user._id;
+    }
+
+    await user.save();
+
+    res.json({
+      message: `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} ${
+        approve ? "approved" : "disapproved"
+      }`,
+      user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @route   GET /api/users/my-recordings
+// @access  Authenticated User
 export const myRecordings = async (req, res, next) => {
   try {
-    await req.user.populate("attendedClasses").execPopulate();
+    await req.user.populate("attendedClasses");
     res.json({ recordings: req.user.attendedClasses });
   } catch (err) {
     next(err);
   }
 };
 
+// @route   POST /api/users/add-class
+// @access  Authenticated User
 export const addClassToUser = async (req, res, next) => {
   try {
-    const { classId } = req.body; // this is your meetID
-    console.log(classId);
-    // 1) find the Class document by meetID
+    const { classId } = req.body;
+    if (!classId) {
+      return res.status(400).json({ error: "classId is required" });
+    }
+
     const klass = await Class.findOne({ meetID: classId });
     if (!klass) {
       return res.status(404).json({ error: "Class not found" });
     }
 
-    // 2) load the user's wallet
     const userWallet = await Wallet.findOne({ user: req.user._id });
     if (!userWallet) {
       return res.status(400).json({ error: "Wallet not found for user." });
     }
 
-    // 3) check if already added
     const alreadyAdded = req.user.attendedClasses.some(
       (c) => c.toString() === klass._id.toString()
     );
     if (alreadyAdded) {
-      // success case: user already has the class
       await req.user.populate("attendedClasses");
       return res.json({
         message: "Class already in your list.",
@@ -105,23 +133,22 @@ export const addClassToUser = async (req, res, next) => {
       });
     }
 
-    // 4) check minimum balance constraint
     const newBalance = userWallet.balance - klass.cost;
     if (newBalance < userWallet.minimum) {
       return res.status(400).json({
-        error: `Insufficient funds: you must keep at least ${klass.minimum} in your wallet.`,
+        error: `Insufficient funds: you must keep at least ${userWallet.minimum} in your wallet.`,
       });
     }
 
-    // 5) deduct cost and save wallet instance
-    userWallet.balance = newBalance;
-    await userWallet.save();
+    await userWallet.recordChange({
+      newBalance,
+      changedBy: req.user._id,
+      reason: "addClass",
+    });
 
-    // 6) push the Class’s ObjectId into attendedClasses and save user
     req.user.attendedClasses.push(klass._id);
     await req.user.save();
 
-    // 7) populate and return updated attendedClasses + wallet balance
     await req.user.populate("attendedClasses");
     res.json({
       message: "Class successfully added and cost deducted",
@@ -132,11 +159,44 @@ export const addClassToUser = async (req, res, next) => {
     next(err);
   }
 };
+
+// @route   GET /api/users/classes
+// @access  Authenticated User
 export const getUserClasses = async (req, res, next) => {
   try {
-    // req.user is populated by your auth middleware
     await req.user.populate("attendedClasses");
     res.json({ attendedClasses: req.user.attendedClasses });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @route   GET /api/users
+// @access  Admin
+export const getAllUsers = async (req, res, next) => {
+  try {
+    // populate coordinator's basic info
+    const users = await User.find()
+      .select("-password")
+      .populate("coordinator", "firstName lastName email");
+
+    const userIds = users.map((u) => u._id);
+    const wallets = await Wallet.find({ user: { $in: userIds } });
+    const walletMap = wallets.reduce((acc, w) => {
+      acc[w.user.toString()] = w;
+      return acc;
+    }, {});
+
+    const usersWithWallets = users.map((user) => {
+      const userObj = user.toObject();
+      return {
+        ...userObj,
+        coordinator: userObj.coordinator || null,
+        wallet: walletMap[user._id.toString()] || null,
+      };
+    });
+
+    res.json({ users: usersWithWallets });
   } catch (err) {
     next(err);
   }

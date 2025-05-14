@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
 import MeetingTypeList from "../components/MeetingTypeList";
 import StrealVideoCallProvider from "../providers/StreamClientProvider";
+import { withAuthorization } from "../HOC/Protect";
+import { useSelector } from "react-redux";
 const Home = () => {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
-
+  //TODO: add wallet history diagram
+  const { wallet } = useSelector((state) => state.user);
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
@@ -94,4 +97,9 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default withAuthorization(Home, [
+  "admin",
+  "coordinator",
+  "teacher",
+  "student",
+]);

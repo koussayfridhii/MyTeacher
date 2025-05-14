@@ -14,6 +14,7 @@ import {
 import { useGetCallById } from "../hooks/useGetCallById";
 import MeetingSetup from "../components/MeetingSetup";
 import MeetingRoom from "../components/MeetingRoom";
+import { withAuthorization } from "../HOC/Protect";
 
 const MeetingPage = () => {
   const { id } = useParams();
@@ -82,4 +83,9 @@ const MeetingPage = () => {
   );
 };
 
-export default MeetingPage;
+export default withAuthorization(MeetingPage, [
+  "admin",
+  "coordinator",
+  "teacher",
+  "student",
+]);

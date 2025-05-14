@@ -18,6 +18,8 @@ import {
   MenuList,
   MenuItem,
   Link as ChakraLink,
+  Select,
+  Center,
 } from "@chakra-ui/react";
 import MobileNav from "./MobileNav";
 import axios from "axios";
@@ -30,6 +32,7 @@ const Navbar = ({ home }) => {
   const navigate = useNavigate();
   const bg = useColorModeValue("gray.800", "gray.900");
   const color = useColorModeValue("white", "white");
+
   const handleLogout = async () => {
     await axios
       .post(
@@ -49,13 +52,13 @@ const Navbar = ({ home }) => {
     navigate("/signin");
   };
 
-  const switchLang = () => {
-    dispatch(languageReducer(language === "en" ? "ar" : "en"));
+  const handleLanguageChange = (e) => {
+    dispatch(languageReducer(e.target.value));
   };
+
   return (
     <Box as="header" bg={bg} p={4} color={color} w="full">
       <Flex align="center" justify={{ base: "space-between" }}>
-        {/* <ChakraImage src="/assets/icons/yoom-logo.svg" boxSize={20} m={0} /> */}
         <HStack spacing={5} align="center">
           <Menu bg={bg} color={color}>
             <MenuButton>
@@ -66,7 +69,7 @@ const Navbar = ({ home }) => {
             </MenuButton>
             <MenuList bg={bg} color={color}>
               <MenuItem bg={bg} fontWeight="bold">
-                user :{` ${user?.firstName} ${user?.lastName}`}
+                {`User: ${user?.firstName} ${user?.lastName}`}
               </MenuItem>
               <MenuItem bg={bg} fontWeight="bold">
                 {user?.email}
@@ -74,41 +77,52 @@ const Navbar = ({ home }) => {
               <MenuItem bg={bg} fontWeight="bold">
                 Profile Settings
               </MenuItem>
-              <MenuItem bg={bg}>
-                {" "}
-                <HStack spacing={4}>
-                  <Button size="sm" onClick={switchLang} colorScheme="blue">
-                    {language.toUpperCase()}
+
+              <Center bg={bg} fontWeight="bold" w="full" mt={2} gap={4}>
+                <Select
+                  size="sm"
+                  value={language}
+                  onChange={handleLanguageChange}
+                  w="100px"
+                  sx={{
+                    bg: bg,
+                    color: color,
+                    option: {
+                      bg: bg,
+                      color: color,
+                    },
+                  }}
+                >
+                  <option value="en">English</option>
+                  <option value="ar">العربية</option>
+                  <option value="fr">Français</option>
+                </Select>
+                {token ? (
+                  <Button size="sm" colorScheme="red" onClick={handleLogout}>
+                    Logout
                   </Button>
-                  {token ? (
-                    <>
-                      <Button
-                        size="sm"
-                        colorScheme="red"
-                        onClick={handleLogout}
-                      >
-                        Logout
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="sm"
-                      colorScheme="blue"
-                      onClick={() => navigate("/signin")}
-                    >
-                      Login
-                    </Button>
-                  )}
-                </HStack>
-              </MenuItem>
+                ) : (
+                  <Button
+                    size="sm"
+                    colorScheme="blue"
+                    onClick={() => navigate("/signin")}
+                  >
+                    Login
+                  </Button>
+                )}
+              </Center>
             </MenuList>
           </Menu>
-          <HStack spacing={1} align="center">
-            <Text color="white" fontSize="xl" fontWeight="bold">
-              {wallet?.balance}{" "}
-            </Text>
-            <ChakraImage src="/assets/icons/coin.svg" boxSize={6} />
-          </HStack>
+
+          {["student", "teacher"].includes(user?.role) && (
+            <HStack spacing={1} align="center">
+              <Text color="white" fontSize="xl" fontWeight="bold">
+                {wallet?.balance}{" "}
+              </Text>
+              <ChakraImage src="/assets/icons/coin.svg" boxSize={6} />
+            </HStack>
+          )}
+
           {home && (
             <HStack spacing={1} align="center">
               <ChakraLink
