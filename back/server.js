@@ -11,6 +11,7 @@ import classRoutes from "./routes/classRoutes.js";
 import callRoutes from "./routes/callRoutes.js";
 import recordingRoutes from "./routes/recordingRoutes.js";
 import streamTokenRouter from "./routes/streamTokenRoutes.js";
+import discountRoutes from "./routes/discountRoutes.js";
 connectDB();
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/classes", classRoutes);
 app.use("/api/calls", callRoutes);
 app.use("/api/recordings", recordingRoutes);
 app.use("/api/stream", streamTokenRouter);
+app.use("/api/discount", discountRoutes);
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });

@@ -1,3 +1,7 @@
+/*
+File: src/pages/Students.jsx
+Description: Students list with discount info/actions
+*/
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
@@ -21,6 +25,7 @@ import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { withAuthorization } from "../HOC/Protect";
 import CreateStudentModal from "../components/CreateUserModal";
+import DiscountCreationModal from "../components/DiscountCreationModal";
 
 const Students = () => {
   const token = localStorage.getItem("token");
@@ -47,11 +52,9 @@ const Students = () => {
       createBtn: "Create Student",
       modalTitle: "New Student",
       submit: "Submit",
-      email: "Email",
-      password: "Password",
-      firstName: "First Name",
-      lastName: "Last Name",
-      mobile: "Mobile Number",
+      discountPct: "Discount %",
+      createDiscount: "Create Discount",
+      editDiscount: "Edit Discount",
     },
     fr: {
       title: isMyStudents ? "Mes étudiants" : "Gérer les étudiants",
@@ -69,11 +72,9 @@ const Students = () => {
       createBtn: "Créer un étudiant",
       modalTitle: "Nouvel étudiant",
       submit: "Soumettre",
-      email: "E-mail",
-      password: "Mot de passe",
-      firstName: "Prénom",
-      lastName: "Nom",
-      mobile: "Numéro de mobile",
+      discountPct: "% Remise",
+      createDiscount: "Créer une remise",
+      editDiscount: "Modifier la remise",
     },
     ar: {
       title: isMyStudents ? "طلابي" : "إدارة الطلاب",
@@ -91,21 +92,22 @@ const Students = () => {
       createBtn: "إنشاء طالب",
       modalTitle: "طالب جديد",
       submit: "إرسال",
-      email: "البريد الإلكتروني",
-      password: "كلمة المرور",
-      firstName: "الاسم الأول",
-      lastName: "اسم العائلة",
-      mobile: "رقم الجوال",
+      discountPct: "% الخصم",
+      createDiscount: "إنشاء خصم",
+      editDiscount: "تعديل الخصم",
     },
   };
   const labels = t[language] || t.en;
 
   const [students, setStudents] = useState([]);
+  const [discounts, setDiscounts] = useState({});
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const studentModal = useDisclosure();
+  const discountModal = useDisclosure();
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [existingDiscount, setExistingDiscount] = useState(null);
 
   const fetchStudents = () => {
     axios
@@ -118,6 +120,20 @@ const Students = () => {
           list = list.filter((stu) => stu.coordinator?._id === user._id);
         }
         setStudents(list);
+        // fetch discounts for each
+        list.forEach((stu) => {
+          axios
+            .get(`${import.meta.env.VITE_API_URL}/discount/${stu._id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((dres) => {
+              setDiscounts((prev) => ({ ...prev, [stu._id]: dres.data }));
+            })
+            .catch(() => {
+              setDiscounts((prev) => ({ ...prev, [stu._id]: null }));
+            });
+        });
+        console.log(discounts);
       })
       .catch((err) => console.error(err));
   };
@@ -168,6 +184,13 @@ const Students = () => {
       );
   };
 
+  const openDiscountModal = (stu) => {
+    const ex = discounts[stu._id];
+    setSelectedStudent(stu);
+    setExistingDiscount(ex);
+    discountModal.onOpen();
+  };
+
   return (
     <Box
       p={6}
@@ -178,7 +201,7 @@ const Students = () => {
       <HStack justify="space-between">
         <Heading mb={4}>{labels.title}</Heading>
         {isMyStudents && (
-          <Button onClick={onOpen} colorScheme="blue">
+          <Button onClick={studentModal.onOpen} colorScheme="blue">
             {labels.createBtn}
           </Button>
         )}
@@ -194,8 +217,8 @@ const Students = () => {
       />
 
       <CreateStudentModal
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={studentModal.isOpen}
+        onClose={studentModal.onClose}
         labels={labels}
         onCreate={async (data) => {
           try {
@@ -210,7 +233,7 @@ const Students = () => {
               duration: 3000,
               isClosable: true,
             });
-            onClose();
+            studentModal.onClose();
             fetchStudents();
           } catch {
             toast({
@@ -223,6 +246,16 @@ const Students = () => {
         }}
       />
 
+      <DiscountCreationModal
+        isOpen={discountModal.isOpen}
+        onClose={discountModal.onClose}
+        student={selectedStudent}
+        existingDiscount={existingDiscount}
+        token={token}
+        labels={labels}
+        refresh={fetchStudents}
+      />
+
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -231,47 +264,63 @@ const Students = () => {
             <Th>{labels.balance}</Th>
             <Th>{labels.minimum}</Th>
             <Th>{labels.status}</Th>
+            <Th>{labels.discountPct}</Th>
             {isMyStudents ? <Th>Actions</Th> : <Th>Coordinator</Th>}
           </Tr>
         </Thead>
         <Tbody>
-          {paginated.map((stu, idx) => (
-            <Tr key={stu._id}>
-              <Td>{(page - 1) * itemsPerPage + idx + 1}</Td>
-              <Td>{`${stu.firstName} ${stu.lastName}`}</Td>
-              <Td>{stu.wallet?.balance ?? "-"}</Td>
-              <Td>{stu.wallet?.minimum ?? "-"}</Td>
-              <Td>{stu.isApproved ? "✔️" : "❌"}</Td>
-              {isMyStudents ? (
+          {paginated.map((stu, idx) => {
+            const disc = discounts[stu._id];
+            return (
+              <Tr key={stu._id}>
+                <Td>{(page - 1) * itemsPerPage + idx + 1}</Td>
+                <Td>{`${stu.firstName} ${stu.lastName}`}</Td>
+                <Td>{stu.wallet?.balance ?? "-"}</Td>
+                <Td>{stu.wallet?.minimum ?? "-"}</Td>
+                <Td>{stu.isApproved ? "✔️" : "❌"}</Td>
                 <Td>
-                  <HStack spacing={2}>
-                    <Button
-                      size="sm"
-                      colorScheme="green"
-                      onClick={() => handleApprove(stu._id, true)}
-                      isDisabled={stu.isApproved}
-                    >
-                      {labels.approve}
-                    </Button>
-                    <Button
-                      size="sm"
-                      colorScheme="red"
-                      onClick={() => handleApprove(stu._id, false)}
-                      isDisabled={!stu.isApproved}
-                    >
-                      {labels.disapprove}
-                    </Button>
-                  </HStack>
+                  {disc
+                    ? `${disc.percent}% ${disc?.approved ? "✔️" : "❌"}`
+                    : "-"}{" "}
                 </Td>
-              ) : (
-                <Td>
-                  {stu.coordinator
-                    ? `${stu.coordinator.firstName} ${stu.coordinator.lastName}`
-                    : "-"}
-                </Td>
-              )}
-            </Tr>
-          ))}
+                {isMyStudents ? (
+                  <Td>
+                    <HStack spacing={2}>
+                      <Button
+                        size="sm"
+                        colorScheme="green"
+                        onClick={() => handleApprove(stu._id, true)}
+                        isDisabled={stu.isApproved}
+                      >
+                        {labels.approve}
+                      </Button>
+                      <Button
+                        size="sm"
+                        colorScheme="red"
+                        onClick={() => handleApprove(stu._id, false)}
+                        isDisabled={!stu.isApproved}
+                      >
+                        {labels.disapprove}
+                      </Button>
+                      <Button
+                        size="sm"
+                        colorScheme="purple"
+                        onClick={() => openDiscountModal(stu)}
+                      >
+                        {disc ? labels.editDiscount : labels.createDiscount}
+                      </Button>
+                    </HStack>
+                  </Td>
+                ) : (
+                  <Td>
+                    {stu.coordinator
+                      ? `${stu.coordinator.firstName} ${stu.coordinator.lastName}`
+                      : "-"}
+                  </Td>
+                )}
+              </Tr>
+            );
+          })}
         </Tbody>
       </Table>
       <HStack justify="space-between" mt={4}>
@@ -297,8 +346,4 @@ const Students = () => {
   );
 };
 
-const AuthorizedStudents = withAuthorization(Students, [
-  "admin",
-  "coordinator",
-]);
-export default AuthorizedStudents;
+export default withAuthorization(Students, ["admin", "coordinator"]);
