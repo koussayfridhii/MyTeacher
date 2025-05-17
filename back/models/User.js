@@ -52,6 +52,39 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    // Profile picture URL
+    profilePic: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    // Single subject taught (only for teachers)
+    subject: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: function (val) {
+          // allow empty or only when role is teacher
+          if (!val) return true;
+          return this.role === "teacher";
+        },
+        message: 'Subject can only be assigned to users with role "teacher".',
+      },
+    },
+
+    // Programs taught (only for teachers)
+    programs: {
+      type: [String],
+      validate: {
+        validator: function (val) {
+          if (!val || val.length === 0) return true;
+          return this.role === "teacher";
+        },
+        message: 'Programs can only be assigned to users with role "teacher".',
+      },
+    },
+
     // For parent → students (only if role === "parent")
     parent: [
       {

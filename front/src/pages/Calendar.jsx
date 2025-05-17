@@ -68,12 +68,11 @@ const CalendarPage = () => {
 
   // Filter students
   const studentOptions = isAdminOrCoord
-    ? users.filter((s) => s.coordinator?._id === user._id)
+    ? users.filter((s) => s?.coordinator?._id === user?._id)
     : [];
   const [selectedUserId, setSelectedUserId] = useState(
     isAdminOrCoord ? studentOptions[0]?._id || "" : user._id
   );
-
   // Combine events
   useEffect(() => {
     const evs = [];
@@ -103,7 +102,7 @@ const CalendarPage = () => {
     availabilities?.data?.forEach((a) => {
       const isTeacherOrStudent =
         user.role === "teacher" || user.role === "student";
-      const isOwner = a.user._id === user._id;
+      const isOwner = a.user?._id === user._id;
       let color;
       if (isAdminOrCoord) {
         color = a.user?.role === "student" ? "#7AE2CF" : "#ACC572";
@@ -113,7 +112,7 @@ const CalendarPage = () => {
         color = "#7AE2CF";
       }
       const title = isAdminOrCoord
-        ? `${a.user.role}: ${a.user.firstName} ${a.user.lastName}`
+        ? `${a.user?.role}: ${a.user?.firstName} ${a.user?.lastName}`
         : a.title || "Availability";
       evs.push({
         id: a._id,
@@ -203,7 +202,6 @@ const CalendarPage = () => {
   return (
     <Box p={2}>
       <FullCalendar
-        padding="20px"
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
         headerToolbar={{

@@ -12,7 +12,6 @@ import {
   Input,
   HStack,
   Text,
-  useColorModeValue,
   useToast,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -58,6 +57,11 @@ const Students = () => {
       discountPct: "Discount %",
       createDiscount: "Create Discount",
       editDiscount: "Edit Discount",
+      password: "Mot de passe",
+      firstName: "Prénom",
+      lastName: "Nom",
+      mobile: "Numéro de mobile",
+      email: "E-mail",
     },
     fr: {
       title: isMyStudents ? "Mes étudiants" : "Gérer les étudiants",
@@ -78,6 +82,11 @@ const Students = () => {
       discountPct: "% Remise",
       createDiscount: "Créer une remise",
       editDiscount: "Modifier la remise",
+      email: "E-mail",
+      password: "Mot de passe",
+      firstName: "Prénom",
+      lastName: "Nom",
+      mobile: "Numéro de mobile",
     },
     ar: {
       title: isMyStudents ? "طلابي" : "إدارة الطلاب",
@@ -98,6 +107,11 @@ const Students = () => {
       discountPct: "% الخصم",
       createDiscount: "إنشاء خصم",
       editDiscount: "تعديل الخصم",
+      email: "البريد الإلكتروني",
+      password: "كلمة المرور",
+      firstName: "الاسم الأول",
+      lastName: "اسم العائلة",
+      mobile: "رقم الجوال",
     },
   };
   const labels = t[language] || t.en;
@@ -209,12 +223,7 @@ const Students = () => {
   if (isLoading) return <Text>Loading...</Text>;
 
   return (
-    <Box
-      p={6}
-      bg={useColorModeValue("white", "gray.800")}
-      color={useColorModeValue("black", "white")}
-      borderRadius="md"
-    >
+    <Box p={6} bg={"white"} color={"black"} borderRadius="md">
       <HStack justify="space-between">
         <Heading mb={4}>{labels.title}</Heading>
         {isMyStudents && (
@@ -293,13 +302,15 @@ const Students = () => {
                       >
                         {labels.disapprove}
                       </Button>
-                      <Button
-                        size="sm"
-                        colorScheme="purple"
-                        onClick={() => openDiscountModal(stu)}
-                      >
-                        {disc ? labels.editDiscount : labels.createDiscount}
-                      </Button>
+                      {user.role === "admin" && (
+                        <Button
+                          size="sm"
+                          colorScheme="purple"
+                          onClick={() => openDiscountModal(stu)}
+                        >
+                          {disc ? labels.editDiscount : labels.createDiscount}
+                        </Button>
+                      )}
                     </HStack>
                   </Td>
                 ) : (

@@ -36,12 +36,9 @@ const sendVerificationEmail = async (user, res, verify = false) => {
     ? res
         .status(201)
         .json({ message: "Verification email resent! Check your inbox." })
-    : res
-        .status(200)
-        .json({
-          message:
-            "Signup successful! Check your email to verify your account.",
-        });
+    : res.status(200).json({
+        message: "Signup successful! Check your email to verify your account.",
+      });
 };
 
 // @route   POST /api/auth/signup
@@ -113,11 +110,9 @@ export const verifyEmail = async (req, res, next) => {
           return;
         }
       }
-      return res
-        .status(400)
-        .json({
-          error: "Verification link expired. A new email has been sent.",
-        });
+      return res.status(400).json({
+        error: "Verification link expired. A new email has been sent.",
+      });
     }
     return res
       .status(400)
@@ -222,5 +217,122 @@ export const getProfile = async (req, res, next) => {
     return res
       .status(500)
       .json({ error: "Server error during profile retrieval" });
+  }
+};
+export const editProfile = async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      mobileNumber,
+      title,
+      profilePic,
+      oldPassword,
+      newPassword,
+    } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // Handle password change if requested
+    if (newPassword) {
+      if (!oldPassword) {
+        return res
+          .status(400)
+          .json({ error: "Old password is required to set a new password" });
+      }
+      const match = await bcrypt.compare(oldPassword, user.password);
+      if (!match) {
+        return res.status(401).json({ error: "Old password is incorrect" });
+      }
+      user.password = await bcrypt.hash(newPassword, 10);
+      // Invalidate sessions
+      user.currentJti = null;
+    }
+
+    // Update profile fields
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (mobileNumber) user.mobileNumber = mobileNumber;
+    if (profilePic) user.profilePic = profilePic;
+    if (title) {
+      user.title = title;
+      user.role = title.toLowerCase();
+    }
+
+    await user.save();
+    const profile = user.toObject();
+    delete profile.password;
+    delete profile.currentJti;
+
+    return res.status(200).json({ user: profile });
+  } catch (err) {
+    console.error("EditProfile error:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error during profile update" });
+  }
+};
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    // Always respond success to prevent email enumeration
+    if (user) {
+      const resetToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_RESET_SECRET,
+        { expiresIn: "1h" }
+      );
+      const resetUrl = `${process.env.FRONT_URL}/auth/reset-password/${resetToken}`;
+      const emailHtml = `
+        <div style="max-width:600px; margin:0 auto; font-family:Arial;">
+          <p>You requested a password reset. Click below to set a new password:</p>
+          <p><a href="${resetUrl}" style="padding:10px 20px; background:#004080; color:#fff; border-radius:4px; text-decoration:none;">Reset Password</a></p>
+          <p>If you didn’t request this, ignore this email.</p>
+        </div>
+      `;
+      await sendMail(user.email, "My Teacher — Reset Your Password", emailHtml);
+    }
+    return res.status(200).json({
+      message: "If that email is registered, a reset link has been sent.",
+    });
+  } catch (err) {
+    console.error("forgotPassword error:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error during password reset request" });
+  }
+};
+
+// @route   POST /api/auth/reset-password/:token
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+    if (!newPassword)
+      return res.status(400).json({ error: "New password is required" });
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_RESET_SECRET);
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
+    const user = await User.findById(payload.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.currentJti = null;
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ message: "Password has been reset. Please sign in." });
+  } catch (err) {
+    console.error("resetPassword error:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error during password reset" });
   }
 };

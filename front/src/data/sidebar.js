@@ -59,7 +59,7 @@ export const sidebarLinks = [
       fr: "Recharger",
     },
 
-    authorizedRoles: ["admin", "coordinator"],
+    authorizedRoles: ["admin"],
   },
   {
     imgURL: "/assets/icons/teacher.svg",

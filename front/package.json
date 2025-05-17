@@ -30,6 +30,7 @@
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
+    "firebase": "^11.7.3",
     "framer-motion": "^12.9.2",
     "lucide-react": "^0.507.0",
     "postcss": "^8.5.3",

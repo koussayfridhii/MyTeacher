@@ -14,21 +14,23 @@ import {
   Text,
   useToast,
   useDisclosure,
+  Center,
+  Spinner,
 } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
 import { withAuthorization } from "../HOC/Protect";
 import CreateTeacherModal from "../components/CreateUserModal";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useGetUsers, useApproveUser } from "../hooks/useGetUsers";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 const Teachers = () => {
   const language = useSelector((state) => state.language.language);
+  const user = useSelector((state) => state.user.user);
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const location = useLocation();
-  const isMyTeachers = location.pathname.includes("teachers");
+  const isMyTeachers = user.role === "admin";
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
 
@@ -37,6 +39,8 @@ const Teachers = () => {
       title: "Manage Teachers",
       search: "Search...",
       balance: "Balance",
+      subject: "Subject",
+      program: "Program",
       approve: "Approve",
       disapprove: "Disapprove",
       status: "Status",
@@ -58,6 +62,8 @@ const Teachers = () => {
       title: "Gérer les enseignants",
       search: "Rechercher...",
       balance: "Solde",
+      subject: "Matière",
+      program: "Programme",
       approve: "Approuver",
       disapprove: "Désapprouver",
       status: "Statut",
@@ -79,6 +85,8 @@ const Teachers = () => {
       title: "إدارة المعلمين",
       search: "ابحث...",
       balance: "الرصيد",
+      subject: "المادة",
+      program: "البرنامج",
       approve: "الموافقة",
       disapprove: "رفض",
       status: "الحالة",
@@ -103,21 +111,17 @@ const Teachers = () => {
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
 
-  // React Query hooks: now generic users
   const { data: users = [], isLoading } = useGetUsers();
   const approveMutation = useApproveUser();
 
-  // Filter only teachers from the users list
   const teachers = useMemo(
     () => users.filter((u) => u.role === "teacher"),
     [users]
   );
-
-  // Filtering & pagination on teachers
   const filtered = useMemo(
     () =>
-      teachers.filter((t) =>
-        `${t.firstName} ${t.lastName}`
+      teachers.filter((tchr) =>
+        `${tchr.firstName} ${tchr.lastName}`
           .toLowerCase()
           .includes(search.toLowerCase())
       ),
@@ -168,24 +172,26 @@ const Teachers = () => {
       onClose();
       queryClient.invalidateQueries({ queryKey: ["users"] });
     } catch {
-      toast({
-        title: labels.errorMsg,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: labels.errorMsg, status: "error", duration: 3000 });
     }
   };
 
-  if (isLoading) return <Text>Loading...</Text>;
+  if (isLoading)
+    return (
+      <Center w="full" height="100vh">
+        <Spinner size="xl" />
+      </Center>
+    );
 
   return (
-    <Box p={6} bg={"white"} color={"black"} borderRadius="md">
+    <Box p={6} bg="white" color="black" borderRadius="md">
       <HStack justify="space-between">
         <Heading mb={4}>{labels.title}</Heading>
-        <Button onClick={onOpen} colorScheme="blue">
-          {labels.createBtn}
-        </Button>
+        {isMyTeachers && (
+          <Button onClick={onOpen} colorScheme="blue">
+            {labels.createBtn}
+          </Button>
+        )}
       </HStack>
       <Input
         placeholder={labels.search}
@@ -202,6 +208,7 @@ const Teachers = () => {
         onClose={onClose}
         labels={labels}
         onCreate={handleCreate}
+        showTeacherFields
       />
 
       <Table variant="simple">
@@ -209,9 +216,11 @@ const Teachers = () => {
           <Tr>
             <Th>#</Th>
             <Th>Name</Th>
-            <Th>{labels.balance}</Th>
+            {isMyTeachers && <Th>{labels.balance}</Th>}
+            <Th>{labels.subject}</Th>
+            <Th>{labels.program}</Th>
             <Th>{labels.status}</Th>
-            <Th>{isMyTeachers ? "Actions" : "Coordinator"}</Th>
+            {isMyTeachers && <Th>Actions</Th>}
           </Tr>
         </Thead>
         <Tbody>
@@ -220,12 +229,18 @@ const Teachers = () => {
               <Td>{(page - 1) * itemsPerPage + idx + 1}</Td>
               <Td>
                 <Link
-                  to={tchr._id}
+                  to={`/profile/${tchr._id}`}
                 >{`${tchr.firstName} ${tchr.lastName}`}</Link>
               </Td>
-              <Td>{tchr.wallet?.balance ?? "-"}</Td>
+              {isMyTeachers && <Td>{tchr.wallet?.balance ?? "-"}</Td>}
+              <Td>{tchr.subject ?? "-"}</Td>
+              <Td>
+                {Array.isArray(tchr.programs)
+                  ? tchr.programs.join(", ")
+                  : tchr.programs ?? "-"}
+              </Td>
               <Td>{tchr.isApproved ? "✔️" : "❌"}</Td>
-              {isMyTeachers ? (
+              {isMyTeachers && (
                 <Td>
                   <HStack spacing={2}>
                     <Button
@@ -246,10 +261,6 @@ const Teachers = () => {
                     </Button>
                   </HStack>
                 </Td>
-              ) : tchr.coordinator ? (
-                <Td>{`\${tchr.coordinator.firstName} \${tchr.coordinator.lastName}`}</Td>
-              ) : (
-                <Td>-</Td>
               )}
             </Tr>
           ))}

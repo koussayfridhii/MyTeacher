@@ -8,7 +8,7 @@ export const withAuthorization = (Component, requiredRoles) => {
     const user = useSelector((state) => state.user);
     useEffect(() => {
       if (!user.isLoggedIn) {
-        navigate("/login");
+        navigate("/signin");
         return;
       }
 

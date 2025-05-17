@@ -23,7 +23,7 @@ const VideoPlayer = lazy(() => import("./components/VideoPlayer.jsx"));
 const Verify = lazy(() => import("./pages/auth/Verify.jsx"));
 const TopUp = lazy(() => import("./pages/TopUp.jsx"));
 const Teachers = lazy(() => import("./pages/Teachers.jsx"));
-const Teacher = lazy(() => import("./pages/Teacher.jsx"));
+const Profile = lazy(() => import("./pages/Profile.jsx"));
 const Students = lazy(() => import("./pages/Students.jsx"));
 const Calendar = lazy(() => import("./pages/Calendar.jsx"));
 
@@ -39,16 +39,11 @@ const router = createBrowserRouter([
       { path: "calendar", element: <Calendar /> },
       {
         path: "teachers",
-        children: [
-          {
-            path: "/teachers",
-            element: <Teachers />,
-          },
-          {
-            path: "/teachers/:id",
-            element: <Teacher />,
-          },
-        ],
+        element: <Teachers />,
+      },
+      {
+        path: "profile/:id",
+        element: <Profile />,
       },
       { path: "myteachers", element: <Teachers /> },
       { path: "mystudents", element: <Students /> },

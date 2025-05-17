@@ -64,7 +64,7 @@ const Navbar = ({ home }) => {
             <MenuButton>
               <Avatar
                 name={`${user?.firstName} ${user?.lastName}`}
-                src={"/assets/images/avatar-5.png"}
+                src={user?.profilePic || "/assets/images/avatar-1.jpeg"}
               />
             </MenuButton>
             <MenuList bg={bg} color={color}>
@@ -75,7 +75,7 @@ const Navbar = ({ home }) => {
                 {user?.email}
               </MenuItem>
               <MenuItem bg={bg} fontWeight="bold">
-                Profile Settings
+                <Link to={`/profile/${user._id}`}>Profile settings</Link>
               </MenuItem>
 
               <Center bg={bg} fontWeight="bold" w="full" mt={2} gap={4}>

@@ -101,7 +101,7 @@ const CallList = ({ type }) => {
       list = list.filter(
         (c) =>
           c.topic.toLowerCase().includes(searchTerm) ||
-          `${c.teacher.firstName} ${c.teacher.lastName}`
+          `${c.teacher?.firstName} ${c.teacher?.lastName}`
             .toLowerCase()
             .includes(searchTerm)
       );
@@ -156,8 +156,8 @@ const CallList = ({ type }) => {
                     : "/assets/icons/upcoming.svg"
                 }
                 title={meeting.topic}
-                teacher={`${meeting.teacher.firstName} ${meeting.teacher.lastName}`}
-                students={meeting.students.length}
+                teacher={`${meeting.teacher?.firstName} ${meeting.teacher?.lastName}`}
+                students={meeting.students?.length}
                 date={date}
                 isPreviousMeeting={type === "ended"}
                 link={meeting.meetID}

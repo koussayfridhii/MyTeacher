@@ -62,7 +62,6 @@ export default function SignInForm() {
         import.meta.env.VITE_API_URL + "/auth/profile",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
       );
-
       const walletRes = await axios.get(
         import.meta.env.VITE_API_URL + "/wallet",
         { headers: { Authorization: `Bearer ${res.data.token}` } }
