@@ -1,9 +1,4 @@
-/*
-File: src/pages/Students.jsx
-Description: Students list with discount info/actions
-*/
-import React, { useEffect, useState, useMemo } from "react";
-import axios from "axios";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Heading,
@@ -26,6 +21,9 @@ import { useLocation } from "react-router-dom";
 import { withAuthorization } from "../HOC/Protect";
 import CreateStudentModal from "../components/CreateUserModal";
 import DiscountCreationModal from "../components/DiscountCreationModal";
+import { useGetUsers, useApproveUser } from "../hooks/useGetUsers";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 const Students = () => {
   const token = localStorage.getItem("token");
@@ -34,7 +32,12 @@ const Students = () => {
   const toast = useToast();
   const location = useLocation();
   const isMyStudents = location.pathname.includes("mystudents");
-
+  const queryClient = useQueryClient();
+  const { data: users = [], isLoading } = useGetUsers();
+  const approveMutation = useApproveUser();
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 5;
   const t = {
     en: {
       title: isMyStudents ? "My Students" : "Manage Students",
@@ -99,49 +102,47 @@ const Students = () => {
   };
   const labels = t[language] || t.en;
 
-  const [students, setStudents] = useState([]);
+  // filter for students
+  const allStudents = useMemo(
+    () => users.filter((u) => u.role === "student"),
+    [users]
+  );
+  // apply coordinator filter
+  const students = useMemo(
+    () =>
+      isMyStudents && user?._id
+        ? allStudents.filter((s) => s.coordinator?._id === user._id)
+        : allStudents,
+    [allStudents, isMyStudents, user]
+  );
+
+  // discounts state
   const [discounts, setDiscounts] = useState({});
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 5;
   const studentModal = useDisclosure();
   const discountModal = useDisclosure();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [existingDiscount, setExistingDiscount] = useState(null);
 
-  const fetchStudents = () => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        let list = res.data.users.filter((u) => u.role === "student");
-        if (isMyStudents && user?._id) {
-          list = list.filter((stu) => stu.coordinator?._id === user._id);
-        }
-        setStudents(list);
-        // fetch discounts for each
-        list.forEach((stu) => {
-          axios
-            .get(`${import.meta.env.VITE_API_URL}/discount/${stu._id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .then((dres) => {
-              setDiscounts((prev) => ({ ...prev, [stu._id]: dres.data }));
-            })
-            .catch(() => {
-              setDiscounts((prev) => ({ ...prev, [stu._id]: null }));
-            });
-        });
-        console.log(discounts);
-      })
-      .catch((err) => console.error(err));
+  // fetch discounts on demand
+  const openDiscountModal = (stu) => {
+    const ex = discounts[stu._id];
+    setSelectedStudent(stu);
+    setExistingDiscount(ex);
+    discountModal.onOpen();
+    // fetch if not present
+    if (ex === undefined) {
+      axios
+        .get(`${import.meta.env.VITE_API_URL}/discount/${stu._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) =>
+          setDiscounts((prev) => ({ ...prev, [stu._id]: res.data }))
+        )
+        .catch(() => setDiscounts((prev) => ({ ...prev, [stu._id]: null })));
+    }
   };
 
-  useEffect(() => {
-    fetchStudents();
-  }, [token, location.pathname]);
-
+  // search + pagination
   const filtered = useMemo(
     () =>
       students.filter((stu) =>
@@ -151,7 +152,6 @@ const Students = () => {
       ),
     [students, search]
   );
-
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = useMemo(
     () => filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage),
@@ -159,37 +159,54 @@ const Students = () => {
   );
 
   const handleApprove = (id, approve) => {
-    axios
-      .patch(
-        `${import.meta.env.VITE_API_URL}/users/approve/${id}`,
-        { approve },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(() => {
-        toast({
-          title: approve ? labels.approvedMsg : labels.disapprovedMsg,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        fetchStudents();
-      })
-      .catch(() =>
-        toast({
-          title: labels.errorMsg,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        })
-      );
+    approveMutation.mutate(
+      { id, approve },
+      {
+        onSuccess: () => {
+          toast({
+            title: approve ? labels.approvedMsg : labels.disapprovedMsg,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        },
+        onError: () =>
+          toast({
+            title: labels.errorMsg,
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          }),
+      }
+    );
   };
 
-  const openDiscountModal = (stu) => {
-    const ex = discounts[stu._id];
-    setSelectedStudent(stu);
-    setExistingDiscount(ex);
-    discountModal.onOpen();
+  const handleCreate = async (data) => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/create`,
+        { ...data, role: "student" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast({
+        title: "Student created",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      studentModal.onClose();
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    } catch {
+      toast({
+        title: labels.errorMsg,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
+
+  if (isLoading) return <Text>Loading...</Text>;
 
   return (
     <Box
@@ -215,37 +232,12 @@ const Students = () => {
           setPage(1);
         }}
       />
-
       <CreateStudentModal
         isOpen={studentModal.isOpen}
         onClose={studentModal.onClose}
         labels={labels}
-        onCreate={async (data) => {
-          try {
-            await axios.post(
-              `${import.meta.env.VITE_API_URL}/users/create`,
-              { ...data, role: "student" },
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            toast({
-              title: "Student created",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-            studentModal.onClose();
-            fetchStudents();
-          } catch {
-            toast({
-              title: labels.errorMsg,
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
-        }}
+        onCreate={handleCreate}
       />
-
       <DiscountCreationModal
         isOpen={discountModal.isOpen}
         onClose={discountModal.onClose}
@@ -253,9 +245,8 @@ const Students = () => {
         existingDiscount={existingDiscount}
         token={token}
         labels={labels}
-        refresh={fetchStudents}
+        refresh={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
       />
-
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -265,7 +256,7 @@ const Students = () => {
             <Th>{labels.minimum}</Th>
             <Th>{labels.status}</Th>
             <Th>{labels.discountPct}</Th>
-            {isMyStudents ? <Th>Actions</Th> : <Th>Coordinator</Th>}
+            <Th>{isMyStudents ? "Actions" : "Coordinator"}</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -280,8 +271,8 @@ const Students = () => {
                 <Td>{stu.isApproved ? "✔️" : "❌"}</Td>
                 <Td>
                   {disc
-                    ? `${disc.percent}% ${disc?.approved ? "✔️" : "❌"}`
-                    : "-"}{" "}
+                    ? `${disc.percent}% ${disc.approved ? "✔️" : "❌"}`
+                    : "-"}
                 </Td>
                 {isMyStudents ? (
                   <Td>
@@ -290,7 +281,7 @@ const Students = () => {
                         size="sm"
                         colorScheme="green"
                         onClick={() => handleApprove(stu._id, true)}
-                        isDisabled={stu.isApproved}
+                        disabled={stu.isApproved}
                       >
                         {labels.approve}
                       </Button>
@@ -298,7 +289,7 @@ const Students = () => {
                         size="sm"
                         colorScheme="red"
                         onClick={() => handleApprove(stu._id, false)}
-                        isDisabled={!stu.isApproved}
+                        disabled={!stu.isApproved}
                       >
                         {labels.disapprove}
                       </Button>

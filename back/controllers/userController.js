@@ -105,6 +105,7 @@ export const myRecordings = async (req, res, next) => {
 // @route   POST /api/users/add-class
 // @access  Authenticated User
 export const addClassToUser = async (req, res, next) => {
+  console.log(req.body);
   try {
     const { classId } = req.body;
     if (!classId) {
@@ -114,6 +115,16 @@ export const addClassToUser = async (req, res, next) => {
     const klass = await Class.findOne({ meetID: classId });
     if (!klass) {
       return res.status(404).json({ error: "Class not found" });
+    }
+
+    // New check: ensure this user is listed in klass.students
+    const isEnrolled = klass.students.some(
+      (studentId) => studentId.toString() === req.user._id.toString()
+    );
+    if (!isEnrolled) {
+      return res.status(403).json({
+        error: "You are not enrolled in this class.",
+      });
     }
 
     const userWallet = await Wallet.findOne({ user: req.user._id });

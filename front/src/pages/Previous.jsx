@@ -1,13 +1,16 @@
+import { Flex, Text } from "@chakra-ui/react";
 import CallList from "../components/CallList";
 import { withAuthorization } from "../HOC/Protect";
 
 const PreviousPage = () => {
   return (
-    <section className="flex size-full flex-col gap-10 text-white">
-      <h1 className="text-3xl font-bold">Previous Calls</h1>
+    <Flex spacing={4} w="full" flexDir="column" p={4}>
+      <Text fontWeight="bold" fontSize="3xl" color="text">
+        Previous Calls
+      </Text>
 
       <CallList type="ended" />
-    </section>
+    </Flex>
   );
 };
 

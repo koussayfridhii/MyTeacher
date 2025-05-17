@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
@@ -7,12 +6,12 @@ import {
   CancelCallButton,
   useCall,
 } from "@stream-io/video-react-sdk";
-import { useIsMeetingOwner } from "../hooks/useIsMeetingOwner";
 import { Flex, Button, useToast } from "@chakra-ui/react";
+import { useSelector } from "react-redux";
 
 export default function CustomCallControls({ onLeave }) {
   const call = useCall();
-  const isOwner = useIsMeetingOwner();
+  const user = useSelector((state) => state.user.user);
   const toast = useToast();
 
   if (!call) {
@@ -42,13 +41,15 @@ export default function CustomCallControls({ onLeave }) {
 
   return (
     <Flex gap={4} justifyContent="center" alignItems="center" p={4} wrap="wrap">
-      <Button onClick={copyInvite} bg="primary" color="white" rounded="full">
-        Invite
-      </Button>
+      {user.role === "teacher" && (
+        <Button onClick={copyInvite} bg="primary" color="white" rounded="full">
+          Invite
+        </Button>
+      )}
       <ToggleAudioPublishingButton />
       <ToggleVideoPublishingButton />
       <ScreenShareButton />
-      {isOwner && <RecordCallButton />}
+      {user.role === "teacher" && <RecordCallButton />}
       <CancelCallButton onClick={onLeave} />
     </Flex>
   );

@@ -9,8 +9,8 @@ import {
   Avatar,
   useClipboard,
   useToast,
+  HStack,
 } from "@chakra-ui/react";
-import { avatarImages } from "../data/sidebar";
 
 const MeetingCard = ({
   icon,
@@ -21,6 +21,9 @@ const MeetingCard = ({
   buttonText,
   handleClick,
   link,
+  teacher,
+  students,
+  role,
 }) => {
   const { onCopy } = useClipboard(link);
   const toast = useToast();
@@ -43,6 +46,7 @@ const MeetingCard = ({
       display="flex"
       flexDirection="column"
       justifyContent="space-between"
+      color="white"
     >
       <Box>
         <ChakraImage src={icon} alt="meeting icon" boxSize="28px" mb={4} />
@@ -51,19 +55,25 @@ const MeetingCard = ({
             <Text fontSize="2xl" fontWeight="bold">
               {title}
             </Text>
+            <Text fontSize="xl" fontWeight="bold">
+              teacher : {teacher}
+            </Text>
             <Text fontSize="md" color="gray.300">
               {date}
             </Text>
+            <HStack>
+              <Text fontSize="md" fontWeight="bold" color="gray.300">
+                {students}
+              </Text>
+              <Text fontSize="md" color="gray.300">
+                students
+              </Text>
+            </HStack>
           </Box>
         </Flex>
       </Box>
 
       <Flex align="center" justify="space-between">
-        <AvatarGroup size="md" max={4} spacing={-3}>
-          {avatarImages.map((src, idx) => (
-            <Avatar key={idx} src={src} />
-          ))}
-        </AvatarGroup>
         {!isPreviousMeeting && (
           <Flex>
             <Button
@@ -79,10 +89,16 @@ const MeetingCard = ({
             >
               {buttonText}
             </Button>
-            <Button onClick={handleCopy} variant="outline">
-              <ChakraImage src="/assets/icons/copy.svg" boxSize="20px" mr={2} />
-              Copy Link
-            </Button>
+            {(role === "coordinator" || role === "admin") && (
+              <Button onClick={handleCopy} variant="outline" colorScheme="blue">
+                <ChakraImage
+                  src="/assets/icons/copy.svg"
+                  boxSize="20px"
+                  mr={2}
+                />
+                Copy Link
+              </Button>
+            )}
           </Flex>
         )}
       </Flex>

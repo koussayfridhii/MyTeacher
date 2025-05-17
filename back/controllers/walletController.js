@@ -110,7 +110,7 @@ export const setMinimum = async (req, res, next) => {
     if (!wallet) return res.status(404).json({ error: "Wallet not found" });
 
     // record change on minimum field
-    wallet.minimum = minimum;
+    wallet.minimum = -minimum;
     await wallet.save();
 
     res.json({ wallet });

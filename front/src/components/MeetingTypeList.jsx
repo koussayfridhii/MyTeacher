@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HomeCard from "./HomeCard";
 import MeetingModal from "./MeetingModal";
@@ -9,23 +9,20 @@ import {
   Grid,
   Box,
   Input,
-  Textarea,
+  Select,
+  Text,
   useToast,
   Spinner,
   Center,
 } from "@chakra-ui/react";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { login as loginAction, attendClass } from "../redux/userSlice";
+import { useGetUsers } from "../hooks/useGetUsers";
+import axios from "axios";
+import ReactSelect from "react-select";
 
-const initialValues = {
-  dateTime: new Date(),
-  description: "",
-  link: "",
-};
 const baseURL = import.meta.env.VITE_API_URL;
-// Custom input for ReactDatePicker using Chakra UI Input
-const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
+const CustomDateInput = React.forwardRef(({ value, onClick }, ref) => (
   <Input
     ref={ref}
     value={value}
@@ -34,71 +31,84 @@ const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
     cursor="pointer"
   />
 ));
-const allowedRoles = ["admin", "teacher", "coordinator"];
+const allowedRoles = ["admin", "coordinator"];
 
 const MeetingTypeList = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
-  const wallet = useSelector((state) => state.user.wallet);
-  const user = useSelector((state) => state.user.user);
-  const [meetingState, setMeetingState] = useState();
-  const [values, setValues] = useState(initialValues);
-  const [callDetail, setCallDetail] = useState();
-  const client = useStreamVideoClient();
   const toast = useToast();
+  const client = useStreamVideoClient();
+
+  const token = localStorage.getItem("token");
+  const user = useSelector((s) => s.user.user);
+
+  const { data: users = [], isLoading } = useGetUsers();
+
+  const [meetingState, setMeetingState] = useState();
+  const [callDetail, setCallDetail] = useState();
+  const [values, setValues] = useState({
+    topic: "",
+    teacherId: "",
+    studentIds: [],
+    dateTime: new Date(),
+    link: "",
+    id: "",
+  });
+
+  const myUsers = users.filter((u) => u.coordinator?._id === user._id);
+  const teachers = users.filter((u) => u.role === "teacher");
+  const students = myUsers.filter((u) => u.role === "student");
+
+  const studentOptions = students.map((s) => ({
+    value: s._id,
+    label: `${s.firstName} ${s.lastName}`,
+  }));
+
   const createMeeting = async () => {
     if (!client || !token) return;
-    if (!values.dateTime) {
+    if (!values.dateTime || !values.teacherId || values.studentIds.length < 1) {
       toast({
-        title: "Please select a date and time",
+        title: "Topic, teacher & at least 1 student required",
         status: "warning",
         duration: 3000,
       });
       return;
     }
+    if (!allowedRoles.includes(user.role)) {
+      toast({
+        title: "You are not allowed to create meetings",
+        status: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
     try {
-      if (!allowedRoles.includes(user.role)) {
-        toast({
-          title:
-            "Failed to create Meeting , you are not allowed to create a meeting",
-          status: "error",
-          duration: 3000,
-        });
-        return;
-      }
       const id = crypto.randomUUID();
       const call = client.call("default", id);
-      if (!call) throw new Error("Failed to create meeting");
-
       await call.getOrCreate({
         data: {
           starts_at: values.dateTime.toISOString(),
-          custom: { description: values.description || "Instant Meeting" },
+          custom: { topic: values.topic },
         },
       });
       setCallDetail(call);
       toast({ title: "Meeting Created", status: "success", duration: 3000 });
-      await axios
-        .post(
-          `${baseURL}/classes`,
-          {
-            meetID: call.id,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-        .then((res) => {
-          console.log(res);
-        });
-      if (!values.description) {
-        navigate(`/meeting/${call.id}`);
-      }
-    } catch (error) {
-      console.error(error);
+
+      await axios.post(
+        `${baseURL}/classes`,
+        {
+          meetID: call.id,
+          teacher: values.teacherId,
+          students: values.studentIds,
+          topic: values.topic,
+          date: values.dateTime.toISOString(),
+          recordingUrl: values.link || "",
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error(err);
       toast({
         title: "Failed to create Meeting",
         status: "error",
@@ -106,79 +116,53 @@ const MeetingTypeList = () => {
       });
     }
   };
+
   const handleJoinMeeting = async () => {
-    if (!client || !token) return;
-
-    if (wallet?.balance - 10 < wallet?.minimum) {
-      toast({
-        title: "Insufficient balance",
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
-    try {
-      // 1) hit the purchase-and-enroll endpoint
-      const { data } = await axios.post(
-        `${baseURL}/users/push-class`, // <-- your purchase endpoint
-        { classId: values.link }, // pass the meetID
-        {
-          headers: { Authorization: `Bearer ${token}` },
+    if (user.role === "student") {
+      try {
+        const { data } = await axios.post(
+          `${baseURL}/users/push-class`,
+          { classId: values.id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        dispatch(
+          attendClass({
+            attendedClasses: data.attendedClasses,
+            balance: data.walletBalance,
+          })
+        );
+        navigate(`/meeting/${values.id}`);
+      } catch (err) {
+        console.log(err);
+        if (err.response?.status === 400) {
+          toast({
+            title: "Not enough points",
+            status: "warning",
+            duration: 4000,
+          });
+          const [p, w] = await Promise.all([
+            axios.get(`${baseURL}/auth/profile`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get(`${baseURL}/wallet`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
+          dispatch(loginAction({ user: p.data.user, ...w.data }));
+        } else if (err.response?.status === 403) {
+          toast({
+            title: "You are not enrolled in this class.",
+            status: "error",
+            duration: 3000,
+          });
+        } else {
+          toast({ title: "Failed to join", status: "error", duration: 3000 });
         }
-      );
-
-      // 2) unpack
-      const { attendedClasses, walletBalance } = data;
-      console.log("Joined class; server replied:", data);
-
-      // 3) update Redux
-      dispatch(
-        attendClass({
-          attendedClasses,
-          balance: walletBalance,
-        })
-      );
-
-      // 4) navigate into the meeting
-      navigate(`/meeting/${values.link}`);
-    } catch (err) {
-      // 5) if it’s a 400-insufficient-funds from the server...
-      if (
-        err.response?.status === 400 &&
-        err.response.data.error?.toLowerCase().includes("insufficient")
-      ) {
-        toast({
-          title: "Not enough points in your wallet.",
-          description: "Please top up before joining this meeting.",
-          status: "warning",
-          duration: 4000,
-        });
-        const profileRes = await axios.get(
-          import.meta.env.VITE_API_URL + "/auth/profile",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const walletRes = await axios.get(
-          import.meta.env.VITE_API_URL + "/wallet",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        const userData = { user: profileRes.data.user, ...walletRes.data };
-
-        // dispatch login to Redux
-        dispatch(loginAction(userData));
-      } else {
-        // 6) generic failure
-        console.error("Failed to buy & join class:", err);
-        toast({
-          title: "Failed to join Meeting",
-          description: err.response?.data?.error || err.message,
-          status: "error",
-          duration: 3000,
-        });
       }
-    }
+    } else navigate(`/meeting/${values.link}`);
   };
-  if (!client || !token) {
+
+  if (!client || !token || isLoading) {
     return (
       <Center h="200px">
         <Spinner size="xl" />
@@ -192,11 +176,7 @@ const MeetingTypeList = () => {
     <Grid
       templateColumns={
         user.role !== "student"
-          ? {
-              base: "1fr",
-              md: "repeat(2,1fr)",
-              xl: "repeat(4,1fr)",
-            }
+          ? { base: "1fr", md: "repeat(2,1fr)", xl: "repeat(4,1fr)" }
           : { base: "1fr" }
       }
       gap={20}
@@ -238,18 +218,17 @@ const MeetingTypeList = () => {
           />
         </>
       ) : (
-        <>
-          <HomeCard
-            img="/assets/icons/join-meeting.svg"
-            title="Join Meeting"
-            description="Via invitation link"
-            handleClick={() => setMeetingState("join")}
-            bgColor="secondary"
-            role="student"
-          />
-        </>
+        <HomeCard
+          img="/assets/icons/join-meeting.svg"
+          title="Join Meeting"
+          description="Via invitation link"
+          handleClick={() => setMeetingState("join")}
+          bgColor="secondary"
+          role="student"
+        />
       )}
 
+      {/* Schedule / Create Modal */}
       {!callDetail ? (
         <MeetingModal
           isOpen={meetingState === "schedule"}
@@ -258,19 +237,65 @@ const MeetingTypeList = () => {
           handleClick={createMeeting}
         >
           <Box mb={4}>
-            <Textarea
-              placeholder="Add a description"
-              value={values.description}
+            <Input
+              placeholder="Topic"
+              value={values.topic}
               onChange={(e) =>
-                setValues({ ...values, description: e.target.value })
+                setValues((v) => ({ ...v, topic: e.target.value }))
               }
               focusBorderColor="blue.300"
             />
           </Box>
+          <Box mb={4}>
+            <Select
+              placeholder="Select a teacher"
+              value={values.teacherId}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, teacherId: e.target.value }))
+              }
+              focusBorderColor="blue.300"
+            >
+              {teachers.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.firstName} {t.lastName}
+                </option>
+              ))}
+            </Select>
+          </Box>
+          <Box mb={4}>
+            <Text mb={2}>Select students (1–8)</Text>
+            <ReactSelect
+              isMulti
+              options={studentOptions}
+              value={studentOptions.filter((opt) =>
+                values.studentIds.includes(opt.value)
+              )}
+              onChange={(selected) => {
+                const ids = (selected || []).map((o) => o.value);
+                if (ids.length <= 8) {
+                  setValues((v) => ({ ...v, studentIds: ids }));
+                }
+              }}
+              placeholder="Type to search…"
+              closeMenuOnSelect={false}
+              isClearable
+              styles={{ container: (base) => ({ ...base, minWidth: "200px" }) }}
+            />
+            {values.studentIds.length === 0 && (
+              <Text color="red.500" fontSize="sm" mt={1}>
+                Please select at least one student.
+              </Text>
+            )}
+            {values.studentIds.length > 8 && (
+              <Text color="red.500" fontSize="sm" mt={1}>
+                You can only select up to 8 students.
+              </Text>
+            )}
+          </Box>
           <Box>
             <ReactDatePicker
               selected={values.dateTime}
-              onChange={(date) => setValues({ ...values, dateTime: date })}
+              onChange={(date) => setValues((v) => ({ ...v, dateTime: date }))}
               showTimeSelect
               timeFormat="HH:mm"
               timeIntervals={30}
@@ -295,6 +320,7 @@ const MeetingTypeList = () => {
         />
       )}
 
+      {/* Join Modal */}
       <MeetingModal
         isOpen={meetingState === "join"}
         onClose={() => setMeetingState(undefined)}
@@ -305,12 +331,13 @@ const MeetingTypeList = () => {
       >
         <Input
           placeholder="Meeting link"
-          value={values.link}
-          onChange={(e) => setValues({ ...values, link: e.target.value })}
+          value={values.id}
+          onChange={(e) => setValues((v) => ({ ...v, id: e.target.value }))}
           focusBorderColor="blue.300"
         />
       </MeetingModal>
 
+      {/* Instant Modal */}
       <MeetingModal
         isOpen={meetingState === "instant"}
         onClose={() => setMeetingState(undefined)}

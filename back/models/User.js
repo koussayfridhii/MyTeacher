@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema(
     },
 
     // For parent → students (only if role === "parent")
-    students: [
+    parent: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -82,6 +82,10 @@ const userSchema = new mongoose.Schema(
         // auto-approve non-teacher/student roles
         return !(this.role === "teacher" || this.role === "student");
       },
+    },
+    isAssigned: {
+      type: Boolean,
+      default: false,
     },
 
     currentJti: { type: String, default: null },

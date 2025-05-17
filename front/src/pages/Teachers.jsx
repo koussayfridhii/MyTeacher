@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
-import axios from "axios";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Heading,
@@ -13,22 +12,25 @@ import {
   Input,
   HStack,
   Text,
-  useColorModeValue,
   useToast,
   useDisclosure,
 } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
 import { withAuthorization } from "../HOC/Protect";
 import CreateTeacherModal from "../components/CreateUserModal";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useGetUsers, useApproveUser } from "../hooks/useGetUsers";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 const Teachers = () => {
-  const token = localStorage.getItem("token");
   const language = useSelector((state) => state.language.language);
   const toast = useToast();
-  const locations = useLocation();
-  const isMyTeachers = locations.pathname.includes("myteachers");
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const location = useLocation();
+  const isMyTeachers = location.pathname.includes("teachers");
+  const queryClient = useQueryClient();
+  const token = localStorage.getItem("token");
 
   const t = {
     en: {
@@ -97,37 +99,30 @@ const Teachers = () => {
   };
   const labels = t[language] || t.en;
 
-  const [teachers, setTeachers] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
 
-  const fetchTeachers = () => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        const list = res.data.users.filter((u) => u.role === "teacher");
-        setTeachers(list);
-      })
-      .catch((err) => console.error(err));
-  };
+  // React Query hooks: now generic users
+  const { data: users = [], isLoading } = useGetUsers();
+  const approveMutation = useApproveUser();
 
-  useEffect(() => {
-    fetchTeachers();
-  }, [token]);
+  // Filter only teachers from the users list
+  const teachers = useMemo(
+    () => users.filter((u) => u.role === "teacher"),
+    [users]
+  );
 
+  // Filtering & pagination on teachers
   const filtered = useMemo(
     () =>
-      teachers.filter((tchr) =>
-        `${tchr.firstName} ${tchr.lastName}`
+      teachers.filter((t) =>
+        `${t.firstName} ${t.lastName}`
           .toLowerCase()
           .includes(search.toLowerCase())
       ),
     [teachers, search]
   );
-
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = useMemo(
     () => filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage),
@@ -135,38 +130,57 @@ const Teachers = () => {
   );
 
   const handleApprove = (id, approve) => {
-    axios
-      .patch(
-        `${import.meta.env.VITE_API_URL}/users/approve/${id}`,
-        { approve },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(() => {
-        toast({
-          title: approve ? labels.approvedMsg : labels.disapprovedMsg,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        fetchTeachers();
-      })
-      .catch(() =>
-        toast({
-          title: labels.errorMsg,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        })
-      );
+    approveMutation.mutate(
+      { id, approve },
+      {
+        onSuccess: () => {
+          toast({
+            title: approve ? labels.approvedMsg : labels.disapprovedMsg,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        },
+        onError: () =>
+          toast({
+            title: labels.errorMsg,
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          }),
+      }
+    );
   };
 
+  const handleCreate = async (data) => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/create`,
+        { ...data, role: "teacher" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast({
+        title: "Teacher created",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      onClose();
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    } catch {
+      toast({
+        title: labels.errorMsg,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  if (isLoading) return <Text>Loading...</Text>;
+
   return (
-    <Box
-      p={6}
-      bg={useColorModeValue("white", "gray.800")}
-      color={useColorModeValue("black", "white")}
-      borderRadius="md"
-    >
+    <Box p={6} bg={"white"} color={"black"} borderRadius="md">
       <HStack justify="space-between">
         <Heading mb={4}>{labels.title}</Heading>
         <Button onClick={onOpen} colorScheme="blue">
@@ -187,30 +201,7 @@ const Teachers = () => {
         isOpen={isOpen}
         onClose={onClose}
         labels={labels}
-        onCreate={async (data) => {
-          try {
-            await axios.post(
-              `${import.meta.env.VITE_API_URL}/users/create`,
-              { ...data, role: "teacher" },
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            toast({
-              title: "Teacher created",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-            onClose();
-            fetchTeachers();
-          } catch {
-            toast({
-              title: labels.errorMsg,
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
-        }}
+        onCreate={handleCreate}
       />
 
       <Table variant="simple">
@@ -220,14 +211,18 @@ const Teachers = () => {
             <Th>Name</Th>
             <Th>{labels.balance}</Th>
             <Th>{labels.status}</Th>
-            {isMyTeachers ? <Th>Actions</Th> : <Th>Coordinator</Th>}
+            <Th>{isMyTeachers ? "Actions" : "Coordinator"}</Th>
           </Tr>
         </Thead>
         <Tbody>
           {paginated.map((tchr, idx) => (
             <Tr key={tchr._id}>
               <Td>{(page - 1) * itemsPerPage + idx + 1}</Td>
-              <Td>{`${tchr.firstName} ${tchr.lastName}`}</Td>
+              <Td>
+                <Link
+                  to={tchr._id}
+                >{`${tchr.firstName} ${tchr.lastName}`}</Link>
+              </Td>
               <Td>{tchr.wallet?.balance ?? "-"}</Td>
               <Td>{tchr.isApproved ? "✔️" : "❌"}</Td>
               {isMyTeachers ? (
@@ -252,7 +247,7 @@ const Teachers = () => {
                   </HStack>
                 </Td>
               ) : tchr.coordinator ? (
-                <Td>{`${tchr.coordinator.firstName} ${tchr.coordinator.lastName}`}</Td>
+                <Td>{`\${tchr.coordinator.firstName} \${tchr.coordinator.lastName}`}</Td>
               ) : (
                 <Td>-</Td>
               )}
@@ -260,6 +255,7 @@ const Teachers = () => {
           ))}
         </Tbody>
       </Table>
+
       <HStack justify="space-between" mt={4}>
         <Button
           size="sm"
@@ -283,8 +279,4 @@ const Teachers = () => {
   );
 };
 
-const AuthorizedTeachers = withAuthorization(Teachers, [
-  "admin",
-  "coordinator",
-]);
-export default AuthorizedTeachers;
+export default withAuthorization(Teachers, ["admin", "coordinator"]);

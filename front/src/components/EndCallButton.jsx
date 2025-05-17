@@ -2,15 +2,13 @@
 import { Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useCall } from "@stream-io/video-react-sdk";
-import { useIsMeetingOwner } from "../hooks/useIsMeetingOwner";
 
-const EndCallButton = () => {
+const EndCallButton = ({ role }) => {
   const call = useCall();
   const navigate = useNavigate();
-  const isMeetingOwner = useIsMeetingOwner();
 
   // only owners get a button
-  if (!isMeetingOwner) return null;
+  if (role === "student") return null;
 
   const endCall = async () => {
     await call.endCall();

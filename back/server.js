@@ -12,6 +12,7 @@ import callRoutes from "./routes/callRoutes.js";
 import recordingRoutes from "./routes/recordingRoutes.js";
 import streamTokenRouter from "./routes/streamTokenRoutes.js";
 import discountRoutes from "./routes/discountRoutes.js";
+import availabilityRoutes from "./routes/availabilityRoutes.js";
 connectDB();
 
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api/calls", callRoutes);
 app.use("/api/recordings", recordingRoutes);
 app.use("/api/stream", streamTokenRouter);
 app.use("/api/discount", discountRoutes);
+app.use("/api/availability", availabilityRoutes);
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });

@@ -25,8 +25,9 @@ const Sidebar = () => {
       position="sticky"
       top={0}
       left={0}
-      h="100vh"
-      w={{ base: "0", lg: "64" }}
+      minH={"100vh"}
+      // h="fit-content"
+      w={{ base: "0", lg: "fit-content" }}
       bg={bgColor}
       color="white"
       p={6}

@@ -10,6 +10,17 @@ export const sidebarLinks = [
     authorizedRoles: ["admin", "coordinator", "teacher", "student"],
   },
   {
+    imgURL: "/assets/icons/student.svg",
+    route: "/calendar",
+    label: {
+      ar: "اليومية",
+      en: "Calendar",
+      fr: "Calendrier",
+    },
+
+    authorizedRoles: ["coordinator", "admin", "teacher", "student"],
+  },
+  {
     imgURL: "/assets/icons/upcoming.svg",
     route: "/meeting/upcoming",
     label: {
@@ -17,7 +28,7 @@ export const sidebarLinks = [
       en: "Upcoming",
       fr: "À venir",
     },
-    authorizedRoles: ["admin", "coordinator", "teacher"],
+    authorizedRoles: ["admin", "coordinator", "teacher", "student"],
   },
   {
     imgURL: "/assets/icons/previous.svg",
@@ -37,7 +48,7 @@ export const sidebarLinks = [
       en: "Recordings",
       fr: "Enregistrements",
     },
-    authorizedRoles: ["admin", "coordinator", "teacher"],
+    authorizedRoles: ["admin", "coordinator"],
   },
   {
     imgURL: "/assets/icons/topup.svg",
@@ -72,17 +83,18 @@ export const sidebarLinks = [
 
     authorizedRoles: ["coordinator", "admin"],
   },
-  {
-    imgURL: "/assets/icons/teacher.svg",
-    route: "/myteachers",
-    label: {
-      ar: "معلميني",
-      en: "My Teachers",
-      fr: "Mes Enseignants",
-    },
 
-    authorizedRoles: ["coordinator"],
-  },
+  // {
+  //   imgURL: "/assets/icons/teacher.svg",
+  //   route: "/myteachers",
+  //   label: {
+  //     ar: "معلميني",
+  //     en: "My Teachers",
+  //     fr: "Mes Enseignants",
+  //   },
+
+  //   authorizedRoles: ["coordinator"],
+  // },
   {
     imgURL: "/assets/icons/student.svg",
     route: "/mystudents",
