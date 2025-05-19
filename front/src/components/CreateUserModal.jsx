@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import {
@@ -12,6 +12,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Select,
   Button,
   VStack,
   FormErrorMessage,
@@ -27,6 +28,7 @@ import { useSelector } from "react-redux";
  * @param {function} onCreate
  * @param {object} labels
  * @param {boolean} showTeacherFields - explicitly show fields for teachers
+ * @param {Array} coordinators - list of { _id, firstName, lastName } to select for assigning student
  */
 const CreateUserModal = ({
   isOpen,
@@ -34,13 +36,17 @@ const CreateUserModal = ({
   onCreate,
   labels,
   showTeacherFields = false,
+  coordinators = [],
 }) => {
   const language = useSelector((state) => state.language.language);
+  const user = useSelector((state) => state.user.user);
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm();
 
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -60,7 +66,6 @@ const CreateUserModal = ({
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
-    // Replace <YOUR_UPLOAD_PRESET> and <YOUR_CLOUD_NAME>
     formData.append("upload_preset", "react_preset");
 
     try {
@@ -90,6 +95,10 @@ const CreateUserModal = ({
         .split(",")
         .map((p) => p.trim())
         .filter(Boolean);
+    }
+    // if admin and creating student, include coordinatorId
+    if (user.role === "admin" && !showTeacherFields && data.coordinatorId) {
+      data.coordinator = data.coordinatorId;
     }
     await onCreate(data);
     handleClose();
@@ -172,6 +181,28 @@ const CreateUserModal = ({
               </FormErrorMessage>
             </FormControl>
 
+            {/* Coordinator select for admin when creating student */}
+            {user.role === "admin" && !showTeacherFields && (
+              <FormControl isInvalid={errors.coordinatorId}>
+                <FormLabel>{labels.coordinator || "Coordinator"}</FormLabel>
+                <Select
+                  placeholder={labels.coordinator || "Select coordinator"}
+                  {...register("coordinatorId", {
+                    required: "Coordinator is required",
+                  })}
+                >
+                  {coordinators.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.firstName} {c.lastName}
+                    </option>
+                  ))}
+                </Select>
+                <FormErrorMessage>
+                  {errors.coordinatorId?.message}
+                </FormErrorMessage>
+              </FormControl>
+            )}
+
             {/* Profile Picture Upload */}
             <FormControl>
               <FormLabel>Profile Picture</FormLabel>
@@ -185,6 +216,11 @@ const CreateUserModal = ({
             {/* Teacher-only fields */}
             {showTeacherFields && (
               <>
+                <FormControl isInvalid={errors.rib}>
+                  <FormLabel>rib</FormLabel>
+                  <Input {...register("rib")} />
+                  <FormErrorMessage>{errors.rib?.message}</FormErrorMessage>
+                </FormControl>
                 <FormControl isInvalid={errors.subject}>
                   <FormLabel>{labels.subject}</FormLabel>
                   <Input {...register("subject")} />

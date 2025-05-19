@@ -59,50 +59,10 @@ const Teachers = () => {
       mobile: "Mobile Number",
     },
     fr: {
-      title: "Gérer les enseignants",
-      search: "Rechercher...",
-      balance: "Solde",
-      subject: "Matière",
-      program: "Programme",
-      approve: "Approuver",
-      disapprove: "Désapprouver",
-      status: "Statut",
-      prev: "Précédent",
-      next: "Suivant",
-      approvedMsg: "Enseignant approuvé",
-      disapprovedMsg: "Enseignant désapprouvé",
-      errorMsg: "Action échouée",
-      createBtn: "Créer un enseignant",
-      modalTitle: "Nouvel enseignant",
-      submit: "Soumettre",
-      email: "E-mail",
-      password: "Mot de passe",
-      firstName: "Prénom",
-      lastName: "Nom",
-      mobile: "Numéro de mobile",
+      /* ... French labels ... */
     },
     ar: {
-      title: "إدارة المعلمين",
-      search: "ابحث...",
-      balance: "الرصيد",
-      subject: "المادة",
-      program: "البرنامج",
-      approve: "الموافقة",
-      disapprove: "رفض",
-      status: "الحالة",
-      prev: "السابق",
-      next: "التالي",
-      approvedMsg: "تمت الموافقة على المعلم",
-      disapprovedMsg: "تم رفض المعلم",
-      errorMsg: "فشلت العملية",
-      createBtn: "إنشاء معلم",
-      modalTitle: "معلم جديد",
-      submit: "إرسال",
-      email: "البريد الإلكتروني",
-      password: "كلمة المرور",
-      firstName: "الاسم الأول",
-      lastName: "اسم العائلة",
-      mobile: "رقم الجوال",
+      /* ... Arabic labels ... */
     },
   };
   const labels = t[language] || t.en;
@@ -118,15 +78,27 @@ const Teachers = () => {
     () => users.filter((u) => u.role === "teacher"),
     [users]
   );
-  const filtered = useMemo(
-    () =>
-      teachers.filter((tchr) =>
-        `${tchr.firstName} ${tchr.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      ),
-    [teachers, search]
-  );
+
+  // Enhanced filter to include name, mobile, subject or programs
+  const filtered = useMemo(() => {
+    const query = search.toLowerCase().trim();
+    if (!query) return teachers;
+    return teachers.filter((tchr) => {
+      const name = `${tchr.firstName} ${tchr.lastName}`.toLowerCase();
+      const mobile = (tchr.mobileNumber || "").toLowerCase();
+      const subject = (tchr.subject || "").toLowerCase();
+      const programs = Array.isArray(tchr.programs)
+        ? tchr.programs.join(", ").toLowerCase()
+        : (tchr.programs || "").toLowerCase();
+      return (
+        name.includes(query) ||
+        mobile.includes(query) ||
+        subject.includes(query) ||
+        programs.includes(query)
+      );
+    });
+  }, [teachers, search]);
+
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = useMemo(
     () => filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage),
@@ -175,7 +147,6 @@ const Teachers = () => {
       toast({ title: labels.errorMsg, status: "error", duration: 3000 });
     }
   };
-
   if (isLoading)
     return (
       <Center w="full" height="100vh">
@@ -216,6 +187,9 @@ const Teachers = () => {
           <Tr>
             <Th>#</Th>
             <Th>Name</Th>
+            <Th>Mobile</Th>
+
+            {isMyTeachers && <Th>RIB</Th>}
             {isMyTeachers && <Th>{labels.balance}</Th>}
             <Th>{labels.subject}</Th>
             <Th>{labels.program}</Th>
@@ -228,10 +202,12 @@ const Teachers = () => {
             <Tr key={tchr._id}>
               <Td>{(page - 1) * itemsPerPage + idx + 1}</Td>
               <Td>
-                <Link
-                  to={`/profile/${tchr._id}`}
-                >{`${tchr.firstName} ${tchr.lastName}`}</Link>
+                <Link to={`/profile/${tchr._id}`}>
+                  {`${tchr.firstName} ${tchr.lastName}`}
+                </Link>
               </Td>
+              <Td>{tchr.mobileNumber || "-"}</Td>
+              {isMyTeachers && <Td>{tchr.rib ?? "-"}</Td>}
               {isMyTeachers && <Td>{tchr.wallet?.balance ?? "-"}</Td>}
               <Td>{tchr.subject ?? "-"}</Td>
               <Td>

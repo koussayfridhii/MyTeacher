@@ -5,6 +5,7 @@ import {
   addPoints,
   attendClass,
   getMyWallet,
+  getWalletHistory,
   setMinimum,
 } from "../controllers/walletController.js";
 
@@ -21,5 +22,6 @@ router.patch("/set-minimum", auth, role("admin", "coordinator"), setMinimum);
 
 // Student attends a class (deduct points + grant recording)
 router.post("/attend-class", auth, role("student"), attendClass);
+router.get("/history", auth, role("student", "admin"), getWalletHistory);
 
 export default router;

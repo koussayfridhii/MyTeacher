@@ -25,7 +25,7 @@ export const getMyWallet = async (req, res, next) => {
  */
 export const addPoints = async (req, res, next) => {
   try {
-    const { id: userId, amount } = req.body;
+    const { id: userId, amount, reason } = req.body;
     if (!userId || amount == null) {
       return res.status(400).json({ error: "userId and amount are required" });
     }
@@ -36,7 +36,7 @@ export const addPoints = async (req, res, next) => {
     await wallet.recordChange({
       newBalance: wallet.balance + amount,
       changedBy: req.user._id,
-      reason: amount > 0 ? "addPoints" : "deductPoints",
+      reason,
     });
 
     res.json({ wallet });
@@ -114,6 +114,62 @@ export const setMinimum = async (req, res, next) => {
     await wallet.save();
 
     res.json({ wallet });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @desc   Get current user's wallet history and totals
+ * @route  GET /api/wallet/history
+ * @access Authenticated
+ */
+export const getWalletHistory = async (req, res, next) => {
+  try {
+    // find the wallet for current user
+    const wallet = await Wallet.findOne({ user: req.body._id });
+    if (!wallet) return res.status(404).json({ error: "Wallet not found" });
+
+    // extract history entries
+    const history = wallet.history || [];
+
+    // initialize totals
+    const totals = {
+      topup: 0, // total amount added via top-ups
+      addClass: 0, // total points spent on classes
+      bonus: 0, // total bonus points added
+      freePoints: 0, // total free points awarded
+    };
+
+    // accumulate totals by reason
+    history.forEach((entry) => {
+      const amount = entry.newBalance - entry.oldBalance;
+      const reason = entry.reason;
+
+      switch (reason) {
+        case "topup":
+          totals.topup += amount;
+          break;
+        case "addClass":
+          // deductions are stored as negative amounts
+          totals.addClass += amount;
+          break;
+        case "bonus":
+          totals.bonus += amount;
+          break;
+        case "free points":
+          totals.freePoints += amount;
+          break;
+        default:
+          break;
+      }
+    });
+
+    // respond with history and computed totals
+    res.json({
+      history,
+      totals,
+    });
   } catch (err) {
     next(err);
   }

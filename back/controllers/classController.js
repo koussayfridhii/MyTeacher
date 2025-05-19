@@ -96,3 +96,35 @@ export const myClasses = async (req, res, next) => {
     next(err);
   }
 };
+export const deleteClass = async (req, res, next) => {
+  const { role, _id: id } = req.user;
+  const classId = req.params.id;
+  try {
+    // allow only admins and coordinators
+    if (!["admin", "coordinator"].includes(role)) {
+      return res.status(403).json({ message: "Access denied for this role." });
+    }
+
+    // fetch the class
+    const classObj = await Class.findById(classId);
+    if (!classObj) {
+      return res.status(404).json({ message: "Class not found." });
+    }
+
+    // only allow deletion of future classes
+    const now = new Date();
+    if (new Date(classObj.date) <= now) {
+      return res
+        .status(400)
+        .json({
+          message: "Only classes scheduled in the future can be deleted.",
+        });
+    }
+
+    // delete the class
+    await classObj.deleteOne();
+    return res.json({ success: true, message: "Class deleted successfully." });
+  } catch (err) {
+    next(err);
+  }
+};

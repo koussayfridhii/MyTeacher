@@ -120,6 +120,9 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    rib: {
+      type: String,
+    },
 
     currentJti: { type: String, default: null },
 

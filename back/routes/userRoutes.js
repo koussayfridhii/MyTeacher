@@ -13,7 +13,7 @@ import {
 const router = express.Router();
 
 // Coordinator creates teacher and student
-router.post("/create", auth, role("coordinator"), createUser);
+router.post("/create", auth, role("coordinator", "admin"), createUser);
 
 //add class to user
 router.post("/push-class", auth, addClassToUser);

@@ -30,17 +30,24 @@ const Students = () => {
   const user = useSelector((state) => state.user.user);
   const toast = useToast();
   const location = useLocation();
-  const isMyStudents = location.pathname.includes("mystudents");
+  const isMyStudentsRoute = location.pathname.includes("mystudents");
   const queryClient = useQueryClient();
   const { data: users = [], isLoading } = useGetUsers();
   const approveMutation = useApproveUser();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
+
+  // modal controls
+  const studentModal = useDisclosure();
+  const discountModal = useDisclosure();
+
   const t = {
     en: {
-      title: isMyStudents ? "My Students" : "Manage Students",
+      title: isMyStudentsRoute ? "My Students" : "Manage Students",
       search: "Search...",
+      name: "Name",
+      mobile: "Mobile",
       balance: "Balance",
       minimum: "Minimum",
       approve: "Approve",
@@ -57,15 +64,16 @@ const Students = () => {
       discountPct: "Discount %",
       createDiscount: "Create Discount",
       editDiscount: "Edit Discount",
-      password: "Mot de passe",
-      firstName: "Prénom",
-      lastName: "Nom",
-      mobile: "Numéro de mobile",
       email: "E-mail",
+      password: "Password",
+      firstName: "First Name",
+      lastName: "Last Name",
     },
     fr: {
-      title: isMyStudents ? "Mes étudiants" : "Gérer les étudiants",
+      title: isMyStudentsRoute ? "Mes étudiants" : "Gérer les étudiants",
       search: "Rechercher...",
+      name: "Nom",
+      mobile: "Numéro de mobile",
       balance: "Solde",
       minimum: "Minimum",
       approve: "Approuver",
@@ -86,11 +94,12 @@ const Students = () => {
       password: "Mot de passe",
       firstName: "Prénom",
       lastName: "Nom",
-      mobile: "Numéro de mobile",
     },
     ar: {
-      title: isMyStudents ? "طلابي" : "إدارة الطلاب",
+      title: isMyStudentsRoute ? "طلابي" : "إدارة الطلاب",
       search: "ابحث...",
+      name: "الاسم",
+      mobile: "رقم الجوال",
       balance: "الرصيد",
       minimum: "الحد الأدنى",
       approve: "موافقة",
@@ -111,7 +120,6 @@ const Students = () => {
       password: "كلمة المرور",
       firstName: "الاسم الأول",
       lastName: "اسم العائلة",
-      mobile: "رقم الجوال",
     },
   };
   const labels = t[language] || t.en;
@@ -121,40 +129,14 @@ const Students = () => {
     () => users.filter((u) => u.role === "student"),
     [users]
   );
-  // apply coordinator filter
-  const students = useMemo(
-    () =>
-      isMyStudents && user?._id
-        ? allStudents.filter((s) => s.coordinator?._id === user._id)
-        : allStudents,
-    [allStudents, isMyStudents, user]
-  );
 
-  // discounts state
-  const [discounts, setDiscounts] = useState({});
-  const studentModal = useDisclosure();
-  const discountModal = useDisclosure();
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [existingDiscount, setExistingDiscount] = useState(null);
-
-  // fetch discounts on demand
-  const openDiscountModal = (stu) => {
-    const ex = discounts[stu._id];
-    setSelectedStudent(stu);
-    setExistingDiscount(ex);
-    discountModal.onOpen();
-    // fetch if not present
-    if (ex === undefined) {
-      axios
-        .get(`${import.meta.env.VITE_API_URL}/discount/${stu._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) =>
-          setDiscounts((prev) => ({ ...prev, [stu._id]: res.data }))
-        )
-        .catch(() => setDiscounts((prev) => ({ ...prev, [stu._id]: null })));
-    }
-  };
+  // show all students for admin, or filter by coordinator when on "My Students"
+  const students = useMemo(() => {
+    if (user.role === "admin") return allStudents;
+    if (isMyStudentsRoute && user?._id)
+      return allStudents.filter((s) => s.coordinator?._id === user._id);
+    return allStudents;
+  }, [allStudents, isMyStudentsRoute, user]);
 
   // search + pagination
   const filtered = useMemo(
@@ -203,7 +185,7 @@ const Students = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast({
-        title: "Student created",
+        title: labels.createBtn + "d",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -219,14 +201,14 @@ const Students = () => {
       });
     }
   };
-
+  const coordinators = users.filter((u) => u.role === "coordinator");
   if (isLoading) return <Text>Loading...</Text>;
 
   return (
     <Box p={6} bg={"white"} color={"black"} borderRadius="md">
       <HStack justify="space-between">
         <Heading mb={4}>{labels.title}</Heading>
-        {isMyStudents && (
+        {(isMyStudentsRoute || user.role === "admin") && (
           <Button onClick={studentModal.onOpen} colorScheme="blue">
             {labels.createBtn}
           </Button>
@@ -245,84 +227,63 @@ const Students = () => {
         isOpen={studentModal.isOpen}
         onClose={studentModal.onClose}
         labels={labels}
+        coordinators={coordinators}
+        showTeacherFields={false}
         onCreate={handleCreate}
       />
-      <DiscountCreationModal
-        isOpen={discountModal.isOpen}
-        onClose={discountModal.onClose}
-        student={selectedStudent}
-        existingDiscount={existingDiscount}
-        token={token}
-        labels={labels}
-        refresh={() => queryClient.invalidateQueries({ queryKey: ["users"] })}
-      />
+
       <Table variant="simple">
         <Thead>
           <Tr>
             <Th>#</Th>
-            <Th>Name</Th>
+            <Th>{labels.name}</Th>
+            <Th>{labels.mobile}</Th>
             <Th>{labels.balance}</Th>
             <Th>{labels.minimum}</Th>
             <Th>{labels.status}</Th>
-            <Th>{labels.discountPct}</Th>
-            <Th>{isMyStudents ? "Actions" : "Coordinator"}</Th>
+            {((isMyStudentsRoute && user.role === "coordinator") ||
+              (!isMyStudentsRoute && user.role === "admin")) && (
+              <Th>Actions</Th>
+            )}
+            <Th>{!isMyStudentsRoute && "Coordinator"}</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {paginated.map((stu, idx) => {
-            const disc = discounts[stu._id];
-            return (
-              <Tr key={stu._id}>
-                <Td>{(page - 1) * itemsPerPage + idx + 1}</Td>
-                <Td>{`${stu.firstName} ${stu.lastName}`}</Td>
-                <Td>{stu.wallet?.balance ?? "-"}</Td>
-                <Td>{stu.wallet?.minimum ?? "-"}</Td>
-                <Td>{stu.isApproved ? "✔️" : "❌"}</Td>
+          {paginated.map((stu, idx) => (
+            <Tr key={stu._id}>
+              <Td>{(page - 1) * itemsPerPage + idx + 1}</Td>
+              <Td>{`${stu.firstName} ${stu.lastName}`}</Td>
+              <Td>{stu.mobileNumber}</Td>
+              <Td>{stu.wallet?.balance ?? "-"}</Td>
+              <Td>{stu.wallet?.minimum ?? "-"}</Td>
+              <Td>{stu.isApproved ? "✔️" : "❌"}</Td>
+              {(isMyStudentsRoute || user.role === "admin") && (
                 <Td>
-                  {disc
-                    ? `${disc.percent}% ${disc.approved ? "✔️" : "❌"}`
-                    : "-"}
+                  <HStack spacing={2}>
+                    <Button
+                      size="sm"
+                      colorScheme="green"
+                      onClick={() => handleApprove(stu._id, true)}
+                      disabled={stu.isApproved}
+                    >
+                      {labels.approve}
+                    </Button>
+                    <Button
+                      size="sm"
+                      colorScheme="red"
+                      onClick={() => handleApprove(stu._id, false)}
+                      disabled={!stu.isApproved}
+                    >
+                      {labels.disapprove}
+                    </Button>
+                  </HStack>
                 </Td>
-                {isMyStudents ? (
-                  <Td>
-                    <HStack spacing={2}>
-                      <Button
-                        size="sm"
-                        colorScheme="green"
-                        onClick={() => handleApprove(stu._id, true)}
-                        disabled={stu.isApproved}
-                      >
-                        {labels.approve}
-                      </Button>
-                      <Button
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => handleApprove(stu._id, false)}
-                        disabled={!stu.isApproved}
-                      >
-                        {labels.disapprove}
-                      </Button>
-                      {user.role === "admin" && (
-                        <Button
-                          size="sm"
-                          colorScheme="purple"
-                          onClick={() => openDiscountModal(stu)}
-                        >
-                          {disc ? labels.editDiscount : labels.createDiscount}
-                        </Button>
-                      )}
-                    </HStack>
-                  </Td>
-                ) : (
-                  <Td>
-                    {stu.coordinator
-                      ? `${stu.coordinator.firstName} ${stu.coordinator.lastName}`
-                      : "-"}
-                  </Td>
-                )}
-              </Tr>
-            );
-          })}
+              )}
+              {(user.role === "admin" || !isMyStudentsRoute) && (
+                <Td>{`${stu.coordinator.firstName} ${stu.coordinator.lastName}`}</Td>
+              )}
+            </Tr>
+          ))}
         </Tbody>
       </Table>
       <HStack justify="space-between" mt={4}>

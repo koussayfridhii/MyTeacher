@@ -88,6 +88,6 @@ export const updateAvailability = asyncHandler(async (req, res) => {
 // @access  Owner, Admin, Coordinator
 export const deleteAvailability = asyncHandler(async (req, res) => {
   const availability = await fetchAvailability(req.params.id, req.user);
-  await availability.remove();
+  await availability.deleteOne();
   res.json({ success: true, message: "Availability deleted" });
 });

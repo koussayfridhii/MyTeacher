@@ -5,7 +5,8 @@ import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  SimpleGrid,
+  List,
+  ListItem,
   Text,
   Spinner,
   Center,
@@ -16,11 +17,11 @@ import {
   Button,
   Alert,
   AlertIcon,
+  Divider,
 } from "@chakra-ui/react";
 import debounce from "lodash/debounce";
 import dayjs from "dayjs";
 import useFetchCourses from "../hooks/useFetchCourses";
-import MeetingCard from "./MeetingCard";
 
 // -- Search & Sort Component --
 const SearchSort = React.memo(
@@ -144,30 +145,42 @@ const CallList = ({ type }) => {
       />
 
       {paged.length > 0 ? (
-        <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={5}>
+        <List spacing={4}>
           {paged.map((meeting) => {
-            const date = dayjs(meeting.date).format("YYYY-MM-DD HH:mm");
+            const dateStr = dayjs(meeting.date).format("YYYY-MM-DD HH:mm");
             return (
-              <MeetingCard
-                key={meeting._id}
-                icon={
-                  type === "ended"
-                    ? "/assets/icons/previous.svg"
-                    : "/assets/icons/upcoming.svg"
-                }
-                title={meeting.topic}
-                teacher={`${meeting.teacher?.firstName} ${meeting.teacher?.lastName}`}
-                students={meeting.students?.length}
-                date={date}
-                isPreviousMeeting={type === "ended"}
-                link={meeting.meetID}
-                buttonText={type === "ended" ? "View" : "Start"}
-                handleClick={() => navigate(`/meeting/${meeting.meetID}`)}
-                role={meeting.role}
-              />
+              <ListItem key={meeting._id}>
+                <Flex
+                  align="center"
+                  justify="space-between"
+                  p={4}
+                  bg="gray.50"
+                  borderRadius={8}
+                >
+                  <Box>
+                    <Text fontWeight="bold">{meeting.topic}</Text>
+                    <Text fontSize="sm">
+                      Teacher: {meeting.teacher?.firstName}{" "}
+                      {meeting.teacher?.lastName}
+                    </Text>
+                    <Text fontSize="sm">
+                      Students: {meeting.students?.length || 0}
+                    </Text>
+                    <Text fontSize="sm">Date: {dateStr}</Text>
+                  </Box>
+                  {type === "upcoming" && (
+                    <Button
+                      onClick={() => navigate(`/meeting/${meeting.meetID}`)}
+                      colorScheme={type === "ended" ? "blue" : "teal"}
+                    >
+                      Start
+                    </Button>
+                  )}
+                </Flex>
+              </ListItem>
             );
           })}
-        </SimpleGrid>
+        </List>
       ) : (
         <Center py={10}>
           <Text fontSize="2xl" fontWeight="bold" color="gray.800">

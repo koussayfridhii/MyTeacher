@@ -1,5 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { Box, Heading, useDisclosure, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  useDisclosure,
+  Text,
+  Center,
+  Spinner,
+} from "@chakra-ui/react";
 import { useSelector } from "react-redux";
 import UserTable from "../components/UserTable";
 import ActionModal from "../components/ActionModal";
@@ -14,7 +21,6 @@ const getAuthConfig = () => ({
 });
 
 const TopUp = () => {
-  const user = useSelector((state) => state.user.user);
   const language = useSelector((state) => state.language.language);
   const labels = topUpData[language] || topUpData.en;
 
@@ -38,34 +44,28 @@ const TopUp = () => {
   const [teachPage, setTeachPage] = useState(1);
   const itemsPerPage = 5;
 
-  // filter by coordinator relationship
-  const filteredUsers = useMemo(
-    () => users.filter((u) => u.coordinator?._id === user._id),
-    [users, user]
-  );
-
   const students = useMemo(
     () =>
-      filteredUsers.filter(
+      users.filter(
         (u) =>
           u.role === "student" &&
           `${u.firstName} ${u.lastName}`
             .toLowerCase()
             .includes(studentSearch.toLowerCase())
       ),
-    [filteredUsers, studentSearch]
+    [users, studentSearch]
   );
 
   const teachers = useMemo(
     () =>
-      filteredUsers.filter(
+      users.filter(
         (u) =>
           u.role === "teacher" &&
           `${u.firstName} ${u.lastName}`
             .toLowerCase()
             .includes(teacherSearch.toLowerCase())
       ),
-    [filteredUsers, teacherSearch]
+    [users, teacherSearch]
   );
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -76,22 +76,23 @@ const TopUp = () => {
     onOpen();
   };
 
-  const handleConfirm = (inputValue) => {
+  // now receives amount and reason
+  const handleConfirm = (amount, reason) => {
     const { user: sel, action } = modalProps;
     let endpoint, payload;
 
     switch (action) {
       case "add":
         endpoint = "/wallet/add-points";
-        payload = { id: sel._id, amount: inputValue };
+        payload = { id: sel._id, amount, reason };
         break;
       case "deduct":
         endpoint = "/wallet/add-points";
-        payload = { id: sel._id, amount: -inputValue };
+        payload = { id: sel._id, amount: -amount, reason };
         break;
       case "setMin":
         endpoint = "/wallet/set-minimum";
-        payload = { id: sel._id, minBalance: inputValue };
+        payload = { id: sel._id, minBalance: amount };
         break;
       default:
         return;
@@ -100,8 +101,13 @@ const TopUp = () => {
     patchWallet({ endpoint, payload });
     onClose();
   };
-
-  if (isLoading) return <Text>Loading...</Text>;
+  if (isLoading)
+    return (
+      <Center w="full" h="100vh">
+        {" "}
+        <Spinner size="xl" />
+      </Center>
+    );
 
   return (
     <Box p={6}>

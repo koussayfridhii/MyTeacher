@@ -50,7 +50,13 @@ const UserTable = ({
             <Th>#</Th>
             <Th>Name</Th>
             <Th>{labels.balance}</Th>
+            {!isTeacher && <Th>{labels.total}</Th>}
+            {!isTeacher && <Th>{labels.free}</Th>}
+            {!isTeacher && <Th>{labels.bonus}</Th>}
             {!isTeacher && <Th>{labels.minimum}</Th>}
+            {!isTeacher && <Th>{labels.paid}</Th>}
+            {!isTeacher && <Th>{labels.totalHours}</Th>}
+            {!isTeacher && <Th>{labels.others}</Th>}
             <Th>Actions</Th>
           </Tr>
         </Thead>
@@ -60,7 +66,13 @@ const UserTable = ({
               <Td>{start + idx + 1}</Td>
               <Td>{`${u.firstName} ${u.lastName}`}</Td>
               <Td>{u.wallet?.balance ?? "-"}</Td>
+              {!isTeacher && <Td>{u.wallet?.totals?.topup ?? "-"}</Td>}
+              {!isTeacher && <Td>{u.wallet?.totals?.freePoints ?? "-"}</Td>}
+              {!isTeacher && <Td>{u.wallet?.totals?.bonus ?? "-"}</Td>}
               {!isTeacher && <Td>{u.wallet?.minimum ?? "-"}</Td>}
+              {!isTeacher && <Td>{-u.wallet?.totals?.addClass}</Td>}
+              {!isTeacher && <Td>{u.attendedClasses.length * 2}</Td>}
+              {!isTeacher && <Td>{u.wallet?.totals?.others}</Td>}
               <Td>
                 <HStack spacing={2}>
                   <Button

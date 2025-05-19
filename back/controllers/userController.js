@@ -18,6 +18,8 @@ export const createUser = async (req, res, next) => {
       profilePic,
       subject,
       programs,
+      coordinator,
+      rib,
     } = req.body;
 
     // Only coordinators or admins can create teacher/student
@@ -41,6 +43,8 @@ export const createUser = async (req, res, next) => {
       lastName,
       mobileNumber,
       title,
+      coordinator: coordinator || null,
+      rib,
       // default flags set by schema
     };
 
@@ -214,18 +218,59 @@ export const getUserClasses = async (req, res, next) => {
 // @access  Admin
 export const getAllUsers = async (req, res, next) => {
   try {
-    // Populate coordinator's basic info
+    // Fetch users without passwords
     const users = await User.find()
       .select("-password")
       .populate("coordinator", "firstName lastName email");
 
+    // Fetch wallets for all users
     const userIds = users.map((u) => u._id);
     const wallets = await Wallet.find({ user: { $in: userIds } });
-    const walletMap = wallets.reduce((acc, w) => {
-      acc[w.user.toString()] = w;
+
+    // Build wallet map and compute totals per wallet
+    const walletMap = wallets.reduce((acc, wallet) => {
+      const history = wallet.history || [];
+      const totals = {
+        topup: 0,
+        addClass: 0,
+        bonus: 0,
+        freePoints: 0,
+        others: 0,
+      };
+
+      history.forEach((entry) => {
+        const { reason } = entry;
+        const amount = entry.newBalance - entry.oldBalance;
+        switch (reason) {
+          case "topup":
+            totals.topup += amount;
+            break;
+          case "attendClass":
+          case "addClass":
+            totals.addClass += amount;
+            break;
+          case "bonus":
+            totals.bonus += amount;
+            break;
+          case "free points":
+            totals.freePoints += amount;
+            break;
+          default:
+            totals.others += amount;
+            break;
+        }
+      });
+
+      acc[wallet.user.toString()] = {
+        balance: wallet.balance,
+        minimum: wallet.minimum,
+        history,
+        totals,
+      };
       return acc;
     }, {});
 
+    // Merge users and wallets
     const usersWithWallets = users.map((user) => {
       const userObj = user.toObject();
       return {

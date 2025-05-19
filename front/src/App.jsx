@@ -36,7 +36,14 @@ const router = createBrowserRouter([
       { path: "signin", element: <SignIn /> },
       { path: "auth/verify/:token", element: <Verify /> },
       { path: "topup", element: <TopUp /> },
-      { path: "calendar", element: <Calendar /> },
+      {
+        path: "calendar",
+        element: (
+          <StreamClientProvider>
+            <Calendar />
+          </StreamClientProvider>
+        ),
+      },
       {
         path: "teachers",
         element: <Teachers />,
