@@ -25,10 +25,10 @@ export const useGetUsers = () => {
 };
 
 // Mutation for approve/disapprove
-const approveUser = async ({ id, approve }) => {
+const approveUser = async ({ id, approve, coordinatorId }) => {
   await axios.patch(
     `${import.meta.env.VITE_API_URL}/users/approve/${id}`,
-    { approve },
+    { approve, coordinator: coordinatorId },
     getAuthConfig()
   );
 };

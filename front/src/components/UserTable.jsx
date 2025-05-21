@@ -56,7 +56,7 @@ const UserTable = ({
             {!isTeacher && <Th>{labels.minimum}</Th>}
             {!isTeacher && <Th>{labels.paid}</Th>}
             {!isTeacher && <Th>{labels.totalHours}</Th>}
-            {!isTeacher && <Th>{labels.others}</Th>}
+            {!isTeacher && <Th>{labels.refund}</Th>}
             <Th>Actions</Th>
           </Tr>
         </Thead>
@@ -72,7 +72,7 @@ const UserTable = ({
               {!isTeacher && <Td>{u.wallet?.minimum ?? "-"}</Td>}
               {!isTeacher && <Td>{-u.wallet?.totals?.addClass}</Td>}
               {!isTeacher && <Td>{u.attendedClasses.length * 2}</Td>}
-              {!isTeacher && <Td>{u.wallet?.totals?.others}</Td>}
+              {!isTeacher && <Td>{-u.wallet?.totals?.refund}</Td>}
               <Td>
                 <HStack spacing={2}>
                   <Button

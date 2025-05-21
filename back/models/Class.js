@@ -21,6 +21,12 @@ const classSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    presentStudents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     date: { type: Date, default: Date.now },
     recordingUrl: { type: String },
   },

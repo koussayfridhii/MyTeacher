@@ -271,23 +271,54 @@ const CalendarPage = () => {
 
   // delete availability click
   const handleEventClick = (info) => {
-    if (["#CF0F47"].includes(info.event.backgroundColor)) {
+    if (
+      ["coordinator", "student", "teacher"].includes(user.role) &&
+      info.event.title === "Availability"
+    ) {
+      setDelEvent({
+        id: info.event.id,
+        title: info.event.title,
+        bg: info.event.backgroundColor,
+      });
+      openDel();
+    } else if (["admin"].includes(user.role)) {
+      setDelEvent({
+        id: info.event.id,
+        title: info.event.title,
+        bg: info.event.backgroundColor,
+      });
+      openDel();
+    } else if (user.role === "coordinator") {
+      const endPlusDay = dayjs(info.event._instance.range.end).add(24, "hour");
+      const now = dayjs();
+
+      // Compare now with end + 24h
+      if (now.isAfter(endPlusDay)) {
+        toast({
+          title: info.event.title,
+          description: `${info.event?._instance?.range?.start} to ${info.event?._instance?.range?.end} if you want to delete it contact administrator`,
+          status: "info",
+        });
+      } else {
+        setDelEvent({
+          id: info.event.id,
+          title: info.event.title,
+          bg: info.event.backgroundColor,
+        });
+        openDel();
+      }
+    } else {
       toast({
         title: info.event.title,
-        description: `started ${info.event._instance.range.start} ended ${info.event._instance.range.end}`,
-        status: "success",
+        description: `${info.event?._instance?.range?.start} to ${info.event?._instance?.range?.end}`,
+        status: "info",
       });
-      return;
     }
-    setDelEvent({
-      id: info.event.id,
-      title: info.event.title,
-      bg: info.event.backgroundColor,
-    });
-    openDel();
   };
   const confirmDelete = async () => {
-    const eventType = delEvent.bg === "#FFD63A" ? "classes" : "availability";
+    const eventType = ["#CF0F47", "#FFD63A"].includes(delEvent.bg)
+      ? "classes"
+      : "availability";
     try {
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/${eventType}/${delEvent.id}`,
@@ -312,7 +343,7 @@ const CalendarPage = () => {
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
         }}
-        initialView="dayGridMonth"
+        initialView="timeGridWeek"
         selectable
         select={handleSelect}
         events={events}

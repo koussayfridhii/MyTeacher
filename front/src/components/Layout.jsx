@@ -29,7 +29,15 @@ const Layout = () => {
       {user && <Navbar home={!sideBarVisible} />}
       <Flex>
         {sideBarVisible && <Sidebar />}
-        <Box flex="1" p={0}>
+        <Box
+          flex="1"
+          p={
+            location.pathname.includes("/signin") ||
+            location.pathname.includes("/signup")
+              ? 0
+              : 2
+          }
+        >
           <Outlet />
         </Box>
       </Flex>

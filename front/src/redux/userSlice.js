@@ -21,6 +21,7 @@ const userSlice = createSlice({
       state.isLoggedIn = true;
       state.user = action.payload.user;
       state.wallet = action.payload.wallet;
+      state.totals = action.payload.totals;
     },
     logout(state) {
       state.isLoggedIn = false;

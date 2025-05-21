@@ -14,36 +14,35 @@ async function fetchAndFilterClasses({ queryKey }) {
 
   const { data } = await apiClient.get(path);
   const now = dayjs();
+
+  // normalize attended IDs
+  const attendedIds = Array.isArray(user.attendedClasses)
+    ? user.attendedClasses.map((id) => id.toString())
+    : [];
+
   return data.filter((course) => {
     const start = dayjs(course.date);
     const end = start.add(2, "hour");
 
-    // classify by type
-    const isUpcoming = now.isBefore(start);
-    const isOngoing = now.isAfter(start) && now.isBefore(end);
-    const isEnded = now.isAfter(end);
+    // upcoming vs ended
+    const isUpcoming = now.isBefore(end);
+    const meetsType = type === "upcoming" ? isUpcoming : !isUpcoming;
 
-    let meetsType;
-    if (type === "upcoming") {
-      meetsType = isUpcoming;
-    } else if (type === "now") {
-      meetsType = isOngoing;
-    } else {
-      meetsType = isEnded;
+    // students only see ended classes they attended
+    let studentEndedFilter = true;
+    if (type === "ended" && user.role === "student") {
+      const courseId = course._id.toString();
+      studentEndedFilter = attendedIds.includes(courseId);
     }
 
-    // students only see ended classes they attended or were enrolled in
-    const studentFilter =
-      type === "ended" && user.role === "student"
-        ? user.attendedClasses.includes(course._id) ||
-          course.students.includes(user._id)
+    // coordinators only see their classes
+    const coordFilter =
+      user.role === "coordinator"
+        ? course.coordinator === user._id ||
+          course.coordinator === user._id.toString()
         : true;
 
-    // coordinators only see their own classes
-    const coordFilter =
-      user.role === "coordinator" ? course.coordinator._id === user._id : true;
-
-    return meetsType && studentFilter && coordFilter;
+    return meetsType && studentEndedFilter && coordFilter;
   });
 }
 

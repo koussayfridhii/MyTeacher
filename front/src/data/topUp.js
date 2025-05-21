@@ -8,7 +8,7 @@ export const topUpData = {
     bonus: "Bonus",
     totalHours: "total Hours",
     paid: "Paid",
-    others: "Others",
+    refund: "Refund",
     free: "Free",
     total: "Total",
     add: "Add Points",

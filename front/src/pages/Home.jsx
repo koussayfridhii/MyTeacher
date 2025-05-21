@@ -9,12 +9,16 @@ import {
   Center,
   Alert,
   AlertIcon,
+  Heading,
 } from "@chakra-ui/react";
 import MeetingTypeList from "../components/MeetingTypeList";
 import { withAuthorization } from "../HOC/Protect";
 import useFetchCourses from "../hooks/useFetchCourses";
 import dayjs from "dayjs";
 import { useSelector } from "react-redux";
+import CoordinatorsRankChart from "../components/CoordinatorsRankChart";
+import IncomesChart from "../components/IncomesChart";
+import Game from "../components/MAthGame";
 
 const translations = {
   en: {
@@ -42,6 +46,7 @@ const Home = () => {
   const [date, setDate] = useState("");
   const { courses, isLoading, error } = useFetchCourses("upcoming");
   const language = useSelector((state) => state.language.language) || "en";
+  const user = useSelector((state) => state.user.user) || "en";
   const t = translations[language] || translations.en;
 
   // Update clock display
@@ -160,7 +165,25 @@ const Home = () => {
           </Box>
         </Flex>
       </Box>
-      <MeetingTypeList />
+      {["teacher", "student"].includes(user.role) && <Game />}
+
+      {["admin"].includes(user.role) && (
+        <>
+          <Heading color="primary" textDecor="underline">
+            Incomes
+          </Heading>
+          <IncomesChart />
+        </>
+      )}
+      {["admin", "coordinator"].includes(user.role) && (
+        <>
+          <Heading color="primary" textDecor="underline">
+            Coordinators
+          </Heading>
+          <CoordinatorsRankChart />
+        </>
+      )}
+      {/* <MeetingTypeList /> */}
     </Flex>
   );
 };

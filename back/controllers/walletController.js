@@ -12,7 +12,40 @@ export const getMyWallet = async (req, res, next) => {
   try {
     const wallet = await Wallet.findOne({ user: req.user._id });
     if (!wallet) return res.status(404).json({ error: "Wallet not found" });
-    res.json({ wallet });
+    const history = wallet.history || [];
+
+    // initialize totals
+    const totals = {
+      topup: 0,
+      addClass: 0,
+      bonus: 0,
+      freePoints: 0,
+    };
+
+    // accumulate totals by reason
+    history.forEach((entry) => {
+      const amount = entry.newBalance - entry.oldBalance;
+      const reason = entry.reason;
+
+      switch (reason) {
+        case "topup":
+          totals.topup += amount;
+          break;
+        case "addClass":
+          totals.addClass += amount;
+          break;
+        case "bonus":
+          totals.bonus += amount;
+          break;
+        case "free points":
+          totals.freePoints += amount;
+          break;
+        default:
+          break;
+      }
+    });
+
+    res.json({ wallet, totals });
   } catch (err) {
     next(err);
   }
@@ -126,8 +159,10 @@ export const setMinimum = async (req, res, next) => {
  */
 export const getWalletHistory = async (req, res, next) => {
   try {
-    // find the wallet for current user
-    const wallet = await Wallet.findOne({ user: req.body._id });
+    // find the wallet for current user and populate user to access role
+    const wallet = await Wallet.findOne({ user: req.user._id }).populate(
+      "user"
+    );
     if (!wallet) return res.status(404).json({ error: "Wallet not found" });
 
     // extract history entries
@@ -135,10 +170,10 @@ export const getWalletHistory = async (req, res, next) => {
 
     // initialize totals
     const totals = {
-      topup: 0, // total amount added via top-ups
-      addClass: 0, // total points spent on classes
-      bonus: 0, // total bonus points added
-      freePoints: 0, // total free points awarded
+      topup: 0,
+      addClass: 0,
+      bonus: 0,
+      freePoints: 0,
     };
 
     // accumulate totals by reason
@@ -151,7 +186,6 @@ export const getWalletHistory = async (req, res, next) => {
           totals.topup += amount;
           break;
         case "addClass":
-          // deductions are stored as negative amounts
           totals.addClass += amount;
           break;
         case "bonus":
@@ -169,6 +203,105 @@ export const getWalletHistory = async (req, res, next) => {
     res.json({
       history,
       totals,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAllStats = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const stats = await Wallet.aggregate([
+      { $unwind: "$history" },
+      {
+        $project: {
+          reason: "$history.reason",
+          amount: { $subtract: ["$history.newBalance", "$history.oldBalance"] },
+          createdAt: "$history.createdAt",
+          year: { $year: "$history.createdAt" },
+          month: { $month: "$history.createdAt" },
+          day: { $dayOfMonth: "$history.createdAt" },
+        },
+      },
+      {
+        $facet: {
+          totalStats: [
+            {
+              $group: {
+                _id: "$reason",
+                total: { $sum: "$amount" },
+              },
+            },
+          ],
+          monthlyBreakdown: [
+            { $match: { createdAt: { $gte: startOfYear } } },
+            {
+              $group: {
+                _id: { month: "$month", reason: "$reason" },
+                total: { $sum: "$amount" },
+              },
+            },
+          ],
+          dailyBreakdown: [
+            { $match: { createdAt: { $gte: startOfMonth } } },
+            {
+              $group: {
+                _id: { day: "$day", reason: "$reason" },
+                total: { $sum: "$amount" },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const { totalStats, monthlyBreakdown, dailyBreakdown } = stats[0];
+
+    // Convert totals to object and apply refund/mistake adjustment
+    const formattedTotals = {};
+    totalStats.forEach(({ _id, total }) => {
+      formattedTotals[_id] = total;
+    });
+
+    // ✅ Adjust topup: subtract refund and mistake amounts
+    formattedTotals.topup =
+      (formattedTotals.topup || 0) -
+      (formattedTotals.refund || 0) -
+      (formattedTotals.mistake || 0);
+
+    // Remove mistake from totals if not needed
+    delete formattedTotals.mistake;
+
+    // Format time series (monthly and daily)
+    const formatTimeSeries = (arr, timeKey) => {
+      const result = {};
+      arr.forEach(({ _id, total }) => {
+        const time = _id[timeKey];
+        const reason = _id.reason;
+        if (!result[time]) result[time] = {};
+        result[time][reason] = total;
+      });
+
+      // Adjust topup in time series too
+      Object.keys(result).forEach((key) => {
+        const data = result[key];
+        data.topup =
+          (data.topup || 0) - (data.refund || 0) - (data.mistake || 0 || 0);
+        delete data.mistake;
+      });
+
+      return result;
+    };
+
+    res.status(200).json({
+      success: true,
+      totals: formattedTotals,
+      monthlyBreakdown: formatTimeSeries(monthlyBreakdown, "month"),
+      dailyBreakdown: formatTimeSeries(dailyBreakdown, "day"),
     });
   } catch (err) {
     next(err);

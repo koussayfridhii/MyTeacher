@@ -21,7 +21,7 @@ export const useGetCalls = ({ allUsers = false } = {}) => {
       }
       // if user is not teacher or coordinator or admin, return empty
       if (
-        !user?.role?.includes("teacher") &&
+        // !user?.role?.includes("teacher") &&
         !user?.role?.includes("coordinator") &&
         !user?.role?.includes("admin")
       ) {

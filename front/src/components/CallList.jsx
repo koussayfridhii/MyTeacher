@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 "use strict";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,10 +18,13 @@ import {
   Alert,
   AlertIcon,
   Divider,
+  Badge,
+  Tooltip,
 } from "@chakra-ui/react";
 import debounce from "lodash/debounce";
 import dayjs from "dayjs";
 import useFetchCourses from "../hooks/useFetchCourses";
+import { useSelector } from "react-redux";
 
 // -- Search & Sort Component --
 const SearchSort = React.memo(
@@ -77,7 +80,7 @@ const CallList = ({ type }) => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
-
+  const user = useSelector((state) => state.user.user);
   // Debounced search
   const debouncedSearch = useMemo(
     () => debounce((val) => setSearchTerm(val), 300),
@@ -118,7 +121,6 @@ const CallList = ({ type }) => {
   // Pagination
   const totalPages = Math.ceil(displayed.length / itemsPerPage);
   const paged = displayed.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-
   if (isLoading)
     return (
       <Center py={10}>
@@ -148,6 +150,7 @@ const CallList = ({ type }) => {
         <List spacing={4}>
           {paged.map((meeting) => {
             const dateStr = dayjs(meeting.date).format("YYYY-MM-DD HH:mm");
+            console.log(meeting);
             return (
               <ListItem key={meeting._id}>
                 <Flex
@@ -163,12 +166,45 @@ const CallList = ({ type }) => {
                       Teacher: {meeting.teacher?.firstName}{" "}
                       {meeting.teacher?.lastName}
                     </Text>
-                    <Text fontSize="sm">
-                      Students: {meeting.students?.length || 0}
-                    </Text>
+                    <Tooltip
+                      label={meeting.students.map(
+                        (s) => `${s.firstName} ${s.lastName}, `
+                      )}
+                      aria-label="A tooltip"
+                      cursor="pointer"
+                    >
+                      <Text fontSize="sm">
+                        Students: {meeting.students?.length || 0}
+                      </Text>
+                    </Tooltip>
+                    {type === "ended" &&
+                      ["admin", "coordinator"].includes(user.role) && (
+                        <Tooltip
+                          label={meeting.presentStudents?.map(
+                            (s) => `${s.firstName} ${s.lastName},`
+                          )}
+                          aria-label="A tooltip"
+                          cursor="pointer"
+                        >
+                          <Text fontWeight="semibold">
+                            Present Students {meeting.presentStudents.length}
+                          </Text>
+                        </Tooltip>
+                      )}
+                    {user.role === "student" &&
+                      type === "ended" &&
+                      (meeting?.presentStudents?.includes(user._id) ? (
+                        <Badge colorScheme="green" variant="solid">
+                          Present{" "}
+                        </Badge>
+                      ) : (
+                        <Badge colorScheme="red" variant="solid">
+                          Absent{" "}
+                        </Badge>
+                      ))}
                     <Text fontSize="sm">Date: {dateStr}</Text>
                   </Box>
-                  {type === "upcoming" && (
+                  {["now"].includes(type) && (
                     <Button
                       onClick={() => navigate(`/meeting/${meeting.meetID}`)}
                       colorScheme={type === "ended" ? "blue" : "teal"}

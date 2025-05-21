@@ -41,7 +41,7 @@ const StreamVideoProvider = ({ children }) => {
         id: user?._id,
         name: `${user?.firstName} ${user?.lastName}`,
         image:
-          user?.profileImage ||
+          user?.profilePic ||
           "https://cdn-icons-png.flaticon.com/512/149/149071.png",
       },
       tokenProvider: fetchStreamToken,

@@ -8,6 +8,8 @@ import {
   getAllUsers,
   createUser,
   approveUser,
+  deleteAttendedClass,
+  getCoordinators,
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -17,12 +19,19 @@ router.post("/create", auth, role("coordinator", "admin"), createUser);
 
 //add class to user
 router.post("/push-class", auth, addClassToUser);
+router.post("/delete-class", auth, role("admin"), deleteAttendedClass);
 router.get("/userClasses", auth, getUserClasses);
 
 // Coordinator or Admin approve teacher signup
 router.patch("/approve-teacher/:id", auth, role("coordinator"), approveUser);
-router.patch("/approve/:id", auth, role("coordinator"), approveUser);
+router.patch("/approve/:id", auth, role("admin"), approveUser);
 router.get("/my-recordings", auth, role("student"), myRecordings);
 router.get("/", auth, role("coordinator", "admin"), getAllUsers);
+router.get(
+  "/coordinators",
+  auth,
+  role("coordinator", "admin"),
+  getCoordinators
+);
 
 export default router;

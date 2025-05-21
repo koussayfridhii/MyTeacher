@@ -10,7 +10,7 @@ export const sidebarLinks = [
     authorizedRoles: ["admin", "coordinator", "teacher", "student"],
   },
   {
-    imgURL: "/assets/icons/student.svg",
+    imgURL: "/assets/icons/calendar.svg",
     route: "/calendar",
     label: {
       ar: "اليومية",
@@ -19,6 +19,16 @@ export const sidebarLinks = [
     },
 
     authorizedRoles: ["coordinator", "admin", "teacher", "student"],
+  },
+  {
+    imgURL: "/assets/icons/now.svg",
+    route: "/meeting/now",
+    label: {
+      ar: "القادمة",
+      en: "Now",
+      fr: "Maintenant",
+    },
+    authorizedRoles: ["admin", "coordinator", "teacher", "student"],
   },
   {
     imgURL: "/assets/icons/upcoming.svg",
@@ -105,6 +115,17 @@ export const sidebarLinks = [
     },
 
     authorizedRoles: ["coordinator"],
+  },
+  {
+    imgURL: "/assets/icons/coordinators.svg",
+    route: "/coordinators",
+    label: {
+      ar: "المنسقين",
+      en: "Coordinators",
+      fr: "cordinateurs",
+    },
+
+    authorizedRoles: ["admin"],
   },
 ];
 

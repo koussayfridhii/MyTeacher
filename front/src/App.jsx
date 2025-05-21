@@ -25,7 +25,9 @@ const TopUp = lazy(() => import("./pages/TopUp.jsx"));
 const Teachers = lazy(() => import("./pages/Teachers.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
 const Students = lazy(() => import("./pages/Students.jsx"));
+const Coordinators = lazy(() => import("./pages/Coordinators.jsx"));
 const Calendar = lazy(() => import("./pages/Calendar.jsx"));
+const GoingOn = lazy(() => import("./pages/GoingOn.jsx"));
 
 const router = createBrowserRouter([
   {
@@ -47,6 +49,10 @@ const router = createBrowserRouter([
       {
         path: "teachers",
         element: <Teachers />,
+      },
+      {
+        path: "coordinators",
+        element: <Coordinators />,
       },
       {
         path: "profile/:id",
@@ -80,6 +86,14 @@ const router = createBrowserRouter([
             element: (
               <StreamClientProvider>
                 <PreviousPage />
+              </StreamClientProvider>
+            ),
+          },
+          {
+            path: "/meeting/now",
+            element: (
+              <StreamClientProvider>
+                <GoingOn />
               </StreamClientProvider>
             ),
           },

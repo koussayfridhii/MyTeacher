@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Modal,
   ModalOverlay,
@@ -23,31 +24,97 @@ import {
  * @param {function} onClose
  * @param {object} labels
  * @param {object} modalProps { user, action }
- * @param {function} onConfirm(amount, reason)
+ * @param {function} onConfirm(amount, reason, sessionId)
  */
 const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
-  const { action } = modalProps;
+  const { action, user } = modalProps;
   const [amount, setAmount] = useState(0);
   const [reason, setReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const [selectedSession, setSelectedSession] = useState("");
 
+  // Reset modal state on open or action change
   useEffect(() => {
     if (isOpen) {
       setAmount(0);
       setReason("");
       setCustomReason("");
+      setSelectedSession("");
     }
   }, [isOpen, action]);
 
-  const addReasons = ["bonus", "free points", "topup", "other"];
-  const deductReasons = ["mistake", "unfinished session", "other"];
+  const addReasons = [
+    "bonus",
+    "free points",
+    "topup",
+    "unfinished session",
+    "other",
+  ];
+  const deductReasons = ["mistake", "refund", "other"];
   const options =
     action === "add" ? addReasons : action === "deduct" ? deductReasons : [];
 
-  const handleConfirm = () => {
+  // Attended sessions
+  const sessions = user?.attendedClasses || [];
+
+  // Auto-fill session & amount when 'unfinished session' selected
+  const handleReasonChange = (e) => {
+    const val = e.target.value;
+    setReason(val);
+    setCustomReason("");
+
+    if (val === "unfinished session" && sessions.length > 0) {
+      const firstId = sessions[0]._id;
+      setSelectedSession(firstId);
+      setAmount(sessions[0].cost || 0);
+    } else {
+      setSelectedSession("");
+      setAmount(0);
+    }
+  };
+
+  // When a different session is manually selected
+  useEffect(() => {
+    if (reason === "unfinished session" && selectedSession) {
+      const session = sessions.find(
+        (s) => String(s._id) === String(selectedSession)
+      );
+      if (session?.cost != null) setAmount(session.cost);
+    }
+  }, [selectedSession, sessions, reason]);
+
+  const handleConfirm = async () => {
     const finalReason = reason === "other" ? customReason.trim() : reason;
-    onConfirm(amount, finalReason);
+    const sessionId = reason === "unfinished session" ? selectedSession : null;
+
+    if (sessionId) {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/users/delete-class`,
+          { userId: user._id, class: sessionId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        console.log(res);
+      } catch (error) {
+        console.error("Failed to delete class:", error);
+      }
+    }
+
+    onConfirm(amount, finalReason, sessionId);
     onClose();
+  };
+
+  const isConfirmDisabled =
+    (amount <= 0 && action !== "setMin") ||
+    ((action === "add" || action === "deduct") && !reason) ||
+    (reason === "other" && !customReason.trim()) ||
+    (reason === "unfinished session" && !selectedSession);
+
+  // Format session label
+  const formatSessionLabel = (session) => {
+    const date = new Date(session.date).toLocaleDateString();
+    return [session.topic, session.teacher, date].filter(Boolean).join(" — ");
   };
 
   return (
@@ -70,6 +137,7 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
                 min={0}
                 value={amount}
                 onChange={(_, val) => setAmount(val)}
+                isReadOnly={reason === "unfinished session"}
               >
                 <NumberInputField />
               </NumberInput>
@@ -82,7 +150,7 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
                   <Select
                     placeholder={labels.selectReason}
                     value={reason}
-                    onChange={(e) => setReason(e.target.value)}
+                    onChange={handleReasonChange}
                   >
                     {options.map((opt) => (
                       <option key={opt} value={opt}>
@@ -91,6 +159,23 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
                     ))}
                   </Select>
                 </FormControl>
+
+                {reason === "unfinished session" && (
+                  <FormControl isRequired>
+                    <FormLabel>{labels.selectSession}</FormLabel>
+                    <Select
+                      value={selectedSession}
+                      onChange={(e) => setSelectedSession(e.target.value)}
+                    >
+                      {sessions.map((session) => (
+                        <option key={session._id} value={session._id}>
+                          {formatSessionLabel(session)}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+
                 {reason === "other" && (
                   <FormControl isRequired>
                     <FormLabel>{labels.otherReason}</FormLabel>
@@ -112,11 +197,7 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
           <Button
             colorScheme="blue"
             onClick={handleConfirm}
-            isDisabled={
-              (amount <= 0 && action !== "setMin") ||
-              ((action === "add" || action === "deduct") && !reason) ||
-              (reason === "other" && !customReason.trim())
-            }
+            isDisabled={isConfirmDisabled}
           >
             {labels.confirm}
           </Button>

@@ -1,12 +1,15 @@
-import CallList from "../components/CallList";
+import { Text } from "@chakra-ui/react";
+import RecordingsList from "../components/RecordingsList";
 import { withAuthorization } from "../HOC/Protect";
 
 const PreviousPage = () => {
   return (
     <section className="flex size-full flex-col gap-10 text-white">
-      <h1 className="text-3xl font-bold">Recordings</h1>
+      <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+        Reordings
+      </Text>
 
-      <CallList type="recordings" />
+      <RecordingsList type="recordings" />
     </section>
   );
 };

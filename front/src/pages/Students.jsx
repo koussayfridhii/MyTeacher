@@ -14,12 +14,14 @@ import {
   Text,
   useToast,
   useDisclosure,
+  Center,
+  Spinner,
+  Select,
 } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { withAuthorization } from "../HOC/Protect";
 import CreateStudentModal from "../components/CreateUserModal";
-import DiscountCreationModal from "../components/DiscountCreationModal";
 import { useGetUsers, useApproveUser } from "../hooks/useGetUsers";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -40,8 +42,8 @@ const Students = () => {
 
   // modal controls
   const studentModal = useDisclosure();
-  const discountModal = useDisclosure();
 
+  // translations
   const t = {
     en: {
       title: isMyStudentsRoute ? "My Students" : "Manage Students",
@@ -130,7 +132,7 @@ const Students = () => {
     [users]
   );
 
-  // show all students for admin, or filter by coordinator when on "My Students"
+  // show all students for admin, or filter by coordinator on "My Students"
   const students = useMemo(() => {
     if (user.role === "admin") return allStudents;
     if (isMyStudentsRoute && user?._id)
@@ -142,7 +144,7 @@ const Students = () => {
   const filtered = useMemo(
     () =>
       students.filter((stu) =>
-        `${stu.firstName} ${stu.lastName}`
+        `${stu?.firstName} ${stu?.lastName}`
           .toLowerCase()
           .includes(search.toLowerCase())
       ),
@@ -154,29 +156,33 @@ const Students = () => {
     [filtered, page]
   );
 
-  const handleApprove = (id, approve) => {
-    approveMutation.mutate(
-      { id, approve },
-      {
-        onSuccess: () => {
-          toast({
-            title: approve ? labels.approvedMsg : labels.disapprovedMsg,
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-        },
-        onError: () =>
-          toast({
-            title: labels.errorMsg,
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          }),
-      }
-    );
+  // approve handler with optional coordinator
+  const handleApprove = (id, approve, coordinatorId = null) => {
+    const payload = { id, approve };
+    if (coordinatorId) payload.coordinatorId = coordinatorId;
+    console.log(payload);
+
+    approveMutation.mutate(payload, {
+      onSuccess: () => {
+        toast({
+          title: approve ? labels.approvedMsg : labels.disapprovedMsg,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+      },
+      onError: () =>
+        toast({
+          title: labels.errorMsg,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        }),
+    });
   };
 
+  // create student
   const handleCreate = async (data) => {
     try {
       await axios.post(
@@ -201,11 +207,18 @@ const Students = () => {
       });
     }
   };
+
   const coordinators = users.filter((u) => u.role === "coordinator");
-  if (isLoading) return <Text>Loading...</Text>;
+
+  if (isLoading)
+    return (
+      <Center w="full" h="100vh">
+        <Spinner size="xl" />
+      </Center>
+    );
 
   return (
-    <Box p={6} bg={"white"} color={"black"} borderRadius="md">
+    <Box p={6} bg="white" color="black" borderRadius="md">
       <HStack justify="space-between">
         <Heading mb={4}>{labels.title}</Heading>
         {(isMyStudentsRoute || user.role === "admin") && (
@@ -241,11 +254,10 @@ const Students = () => {
             <Th>{labels.balance}</Th>
             <Th>{labels.minimum}</Th>
             <Th>{labels.status}</Th>
-            {((isMyStudentsRoute && user.role === "coordinator") ||
-              (!isMyStudentsRoute && user.role === "admin")) && (
-              <Th>Actions</Th>
+            {user.role === "admin" && !isMyStudentsRoute && <Th>Actions</Th>}
+            {(user.role === "admin" || !isMyStudentsRoute) && (
+              <Th>Coordinator</Th>
             )}
-            <Th>{!isMyStudentsRoute && "Coordinator"}</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -257,40 +269,65 @@ const Students = () => {
               <Td>{stu.wallet?.balance ?? "-"}</Td>
               <Td>{stu.wallet?.minimum ?? "-"}</Td>
               <Td>{stu.isApproved ? "✔️" : "❌"}</Td>
-              {(isMyStudentsRoute || user.role === "admin") && (
+
+              {/* Actions for admin on manage page */}
+              {user.role === "admin" && !isMyStudentsRoute && (
                 <Td>
-                  <HStack spacing={2}>
-                    <Button
+                  {!stu.coordinator?._id ? (
+                    <Select
+                      placeholder={labels.approve}
                       size="sm"
-                      colorScheme="green"
-                      onClick={() => handleApprove(stu._id, true)}
-                      disabled={stu.isApproved}
+                      onChange={(e) =>
+                        handleApprove(stu._id, true, e.target.value)
+                      }
                     >
-                      {labels.approve}
-                    </Button>
-                    <Button
-                      size="sm"
-                      colorScheme="red"
-                      onClick={() => handleApprove(stu._id, false)}
-                      disabled={!stu.isApproved}
-                    >
-                      {labels.disapprove}
-                    </Button>
-                  </HStack>
+                      {coordinators.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {`${c.firstName} ${c.lastName}`}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <HStack spacing={2}>
+                      <Button
+                        size="sm"
+                        colorScheme="green"
+                        onClick={() => handleApprove(stu._id, true)}
+                        disabled={stu.isApproved}
+                      >
+                        {labels.approve}
+                      </Button>
+                      <Button
+                        size="sm"
+                        colorScheme="red"
+                        onClick={() => handleApprove(stu._id, false)}
+                        disabled={!stu.isApproved}
+                      >
+                        {labels.disapprove}
+                      </Button>
+                    </HStack>
+                  )}
                 </Td>
               )}
+
+              {/* Coordinator column */}
               {(user.role === "admin" || !isMyStudentsRoute) && (
-                <Td>{`${stu.coordinator.firstName} ${stu.coordinator.lastName}`}</Td>
+                <Td>
+                  {stu.coordinator
+                    ? `${stu.coordinator.firstName} ${stu.coordinator.lastName}`
+                    : "-"}
+                </Td>
               )}
             </Tr>
           ))}
         </Tbody>
       </Table>
+
       <HStack justify="space-between" mt={4}>
         <Button
           size="sm"
           disabled={page === 1}
-          onClick={() => setPage(page - 1)}
+          onClick={() => setPage((p) => p - 1)}
         >
           {labels.prev}
         </Button>
@@ -300,7 +337,7 @@ const Students = () => {
         <Button
           size="sm"
           disabled={page >= totalPages}
-          onClick={() => setPage(page + 1)}
+          onClick={() => setPage((p) => p + 1)}
         >
           {labels.next}
         </Button>

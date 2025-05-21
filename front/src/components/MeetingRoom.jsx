@@ -39,7 +39,7 @@ export default function MeetingRoom() {
   const dispatch = useDispatch();
 
   const token = localStorage.getItem("token");
-  const user = useSelector((state) => state.user.user);
+  const { user, wallet } = useSelector((state) => state.user);
   const isPersonal = new URLSearchParams(location.search).get("personal");
 
   // Video call control hooks
@@ -62,11 +62,13 @@ export default function MeetingRoom() {
         dispatch(
           attendClass({
             attendedClasses: data.attendedClasses,
-            balance: data.walletBalance,
+            balance: data.walletBalance || wallet.balance,
           })
         );
         setCanJoin(true);
+        setLoading(false);
       } catch (err) {
+        console.log(err);
         if (err.response?.status === 400) {
           toast({
             title: "Not enough points",
@@ -99,7 +101,7 @@ export default function MeetingRoom() {
     };
 
     checkUser();
-  }, [location.pathname, token, user.role, dispatch, toast]);
+  }, [location.pathname]);
 
   // Join/leave video call when ready
   useEffect(() => {

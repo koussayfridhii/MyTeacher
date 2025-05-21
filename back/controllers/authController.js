@@ -69,12 +69,11 @@ export const signup = async (req, res, next) => {
       mobileNumber,
       title,
       role,
+      isAssigned: true,
     });
     await user.save();
 
-    if (["student", "teacher"].includes(role)) {
-      await Wallet.create({ user: user._id });
-    }
+    await Wallet.create({ user: user._id });
 
     await sendVerificationEmail(user, res);
   } catch (err) {

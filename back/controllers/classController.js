@@ -1,4 +1,6 @@
 import Class from "../models/Class.js";
+import User from "../models/User.js";
+import Wallet from "../models/Wallet.js";
 
 // @route   POST /api/classes
 // @access  admin, coordinator
@@ -62,7 +64,10 @@ export const createClass = async (req, res, next) => {
 export const listClasses = async (req, res, next) => {
   try {
     const classes = await Class.find()
-      .populate("teacher", "firstName lastName") // ← populate teacher
+      .populate("teacher", "firstName lastName")
+      .populate("coordinator", "_id firstName lastName")
+      .populate("students", "_id firstName lastName") // populate students array
+      .populate("presentStudents", "_id firstName lastName") // populate presentStudents array
       .exec();
 
     res.json(classes);
@@ -97,33 +102,69 @@ export const myClasses = async (req, res, next) => {
   }
 };
 export const deleteClass = async (req, res, next) => {
-  const { role, _id: id } = req.user;
+  const { role } = req.user;
   const classId = req.params.id;
+
   try {
-    // allow only admins and coordinators
+    // 1) Only admins & coordinators can delete a class.
     if (!["admin", "coordinator"].includes(role)) {
       return res.status(403).json({ message: "Access denied for this role." });
     }
 
-    // fetch the class
+    // 2) Fetch the class.
     const classObj = await Class.findById(classId);
     if (!classObj) {
       return res.status(404).json({ message: "Class not found." });
     }
 
-    // only allow deletion of future classes
-    const now = new Date();
-    if (new Date(classObj.date) <= now) {
-      return res
-        .status(400)
-        .json({
-          message: "Only classes scheduled in the future can be deleted.",
-        });
-    }
+    // 3) Find all users that have this class in their attendedClasses list.
+    const users = await User.find({ attendedClasses: classId });
 
-    // delete the class
+    // 4) For each user, find their wallet and record the change.
+    await Promise.all(
+      users.map(async (user) => {
+        const wallet = await Wallet.findOne({ user: user._id });
+        if (!wallet) {
+          // Depending on your design you might want to throw here or log for diagnostic purposes.
+          console.warn(
+            `Wallet not found for user ${user._id}. Skipping wallet update.`
+          );
+          return;
+        }
+
+        // Calculate the new wallet balance. Here, we assume that deleting the class
+        // refunds the class cost and that recordChange both logs the change and, if needed,
+        // updates the wallet's internal balance.
+        const newBalance = wallet.balance + classObj.cost;
+
+        // Record the change. Note that we’ve replaced your unnamed parameter with an
+        // explicit key 'reason' containing a description.
+        await wallet.recordChange({
+          newBalance,
+          changedBy: req.user._id,
+          reason: "unfinished session",
+        });
+
+        // Optionally, update and persist the wallet balance
+        wallet.balance = newBalance;
+        await wallet.save();
+      })
+    );
+
+    // 5) Delete the class document.
     await classObj.deleteOne();
-    return res.json({ success: true, message: "Class deleted successfully." });
+
+    // 6) Remove this classId from all users' attendedClasses.
+    await User.updateMany(
+      { attendedClasses: classId },
+      { $pull: { attendedClasses: classId } }
+    );
+
+    return res.json({
+      success: true,
+      message:
+        "Class deleted, removed from users' attendedClasses, and wallet changes recorded.",
+    });
   } catch (err) {
     next(err);
   }
