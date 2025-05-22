@@ -1,7 +1,7 @@
 export const sidebarLinks = [
   {
     imgURL: "/assets/icons/Home.svg",
-    route: "/",
+    route: "/dashboard",
     label: {
       ar: "الصفحة الرئيسية",
       en: "Home",
@@ -11,7 +11,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/calendar.svg",
-    route: "/calendar",
+    route: "/dashboard/calendar",
     label: {
       ar: "اليومية",
       en: "Calendar",
@@ -22,7 +22,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/now.svg",
-    route: "/meeting/now",
+    route: "/dashboard/meeting/now",
     label: {
       ar: "القادمة",
       en: "Now",
@@ -32,7 +32,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/upcoming.svg",
-    route: "/meeting/upcoming",
+    route: "/dashboard/meeting/upcoming",
     label: {
       ar: "القادمة",
       en: "Upcoming",
@@ -42,7 +42,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/previous.svg",
-    route: "/meeting/previous",
+    route: "/dashboard/meeting/previous",
     label: {
       ar: "السابقة",
       en: "Previous",
@@ -52,7 +52,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/Video.svg",
-    route: "/meeting/recordings",
+    route: "/dashboard/meeting/recordings",
     label: {
       ar: "التسجيلات",
       en: "Recordings",
@@ -62,7 +62,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/topup.svg",
-    route: "/topup",
+    route: "/dashboard/topup",
     label: {
       ar: " شحن",
       en: "Top Up",
@@ -73,7 +73,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/teacher.svg",
-    route: "/teachers",
+    route: "/dashboard/teachers",
 
     label: {
       ar: "المعلمين",
@@ -84,7 +84,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/student.svg",
-    route: "/students",
+    route: "/dashboard/students",
     label: {
       ar: "الطلاب",
       en: "Students",
@@ -96,7 +96,7 @@ export const sidebarLinks = [
 
   // {
   //   imgURL: "/assets/icons/teacher.svg",
-  //   route: "/myteachers",
+  //   route: "/dashboard/myteachers",
   //   label: {
   //     ar: "معلميني",
   //     en: "My Teachers",
@@ -107,7 +107,7 @@ export const sidebarLinks = [
   // },
   {
     imgURL: "/assets/icons/student.svg",
-    route: "/mystudents",
+    route: "/dashboard/mystudents",
     label: {
       ar: "طلابي",
       en: "My Students",
@@ -118,7 +118,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/icons/coordinators.svg",
-    route: "/coordinators",
+    route: "/dashboard/coordinators",
     label: {
       ar: "المنسقين",
       en: "Coordinators",

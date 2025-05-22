@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import StreamClientProvider from "./providers/StreamClientProvider.jsx";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
+import Landing from "./pages/landing/Landing.jsx";
 
 const SignUp = lazy(() => import("./pages/auth/SignUp.jsx"));
 const SignIn = lazy(() => import("./pages/auth/SignIn.jsx"));
@@ -32,99 +33,95 @@ const GoingOn = lazy(() => import("./pages/GoingOn.jsx"));
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />,
     children: [
+      { index: true, element: <Landing /> },
       { path: "signup", element: <SignUp /> },
       { path: "signin", element: <SignIn /> },
       { path: "auth/verify/:token", element: <Verify /> },
-      { path: "topup", element: <TopUp /> },
       {
-        path: "calendar",
-        element: (
-          <StreamClientProvider>
-            <Calendar />
-          </StreamClientProvider>
-        ),
-      },
-      {
-        path: "teachers",
-        element: <Teachers />,
-      },
-      {
-        path: "coordinators",
-        element: <Coordinators />,
-      },
-      {
-        path: "profile/:id",
-        element: <Profile />,
-      },
-      { path: "myteachers", element: <Teachers /> },
-      { path: "mystudents", element: <Students /> },
-      { path: "students", element: <Students /> },
-      {
-        path: "/",
-        element: (
-          <StreamClientProvider>
-            <Home />
-          </StreamClientProvider>
-        ),
-        index: true,
-      },
-      {
-        path: "/meeting",
+        path: "dashboard",
+        element: <Layout />,
         children: [
           {
-            path: "/meeting/upcoming",
+            index: true,
             element: (
               <StreamClientProvider>
-                <UpcomingPage />
+                <Home />
               </StreamClientProvider>
             ),
           },
+          { path: "topup", element: <TopUp /> },
           {
-            path: "/meeting/previous",
+            path: "calendar",
             element: (
               <StreamClientProvider>
-                <PreviousPage />
+                <Calendar />
               </StreamClientProvider>
             ),
           },
+          { path: "teachers", element: <Teachers /> },
+          { path: "coordinators", element: <Coordinators /> },
+          { path: "profile/:id", element: <Profile /> },
+          { path: "myteachers", element: <Teachers /> },
+          { path: "mystudents", element: <Students /> },
+          { path: "students", element: <Students /> },
           {
-            path: "/meeting/now",
-            element: (
-              <StreamClientProvider>
-                <GoingOn />
-              </StreamClientProvider>
-            ),
-          },
-          {
-            path: "/meeting/recordings",
+            path: "meeting",
             children: [
               {
-                path: "/meeting/recordings",
+                path: "upcoming",
                 element: (
                   <StreamClientProvider>
-                    <RecordingsPage />
+                    <UpcomingPage />
                   </StreamClientProvider>
                 ),
               },
               {
-                path: "/meeting/recordings/:id",
+                path: "previous",
                 element: (
                   <StreamClientProvider>
-                    <VideoPlayer />
+                    <PreviousPage />
+                  </StreamClientProvider>
+                ),
+              },
+              {
+                path: "now",
+                element: (
+                  <StreamClientProvider>
+                    <GoingOn />
+                  </StreamClientProvider>
+                ),
+              },
+              {
+                path: "recordings",
+                children: [
+                  {
+                    index: true,
+                    element: (
+                      <StreamClientProvider>
+                        <RecordingsPage />
+                      </StreamClientProvider>
+                    ),
+                  },
+                  {
+                    path: ":id",
+                    element: (
+                      <StreamClientProvider>
+                        <VideoPlayer />
+                      </StreamClientProvider>
+                    ),
+                  },
+                ],
+              },
+              {
+                path: ":id",
+                element: (
+                  <StreamClientProvider>
+                    <MeetingPage />
                   </StreamClientProvider>
                 ),
               },
             ],
-          },
-          {
-            path: ":id",
-            element: (
-              <StreamClientProvider>
-                <MeetingPage />
-              </StreamClientProvider>
-            ),
           },
         ],
       },
