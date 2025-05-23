@@ -75,7 +75,9 @@ const Navbar = ({ home }) => {
                 {user?.email}
               </MenuItem>
               <MenuItem bg={bg} fontWeight="bold">
-                <Link to={`/profile/${user._id}`}>Profile settings</Link>
+                <Link to={`/dashboard/profile/${user._id}`}>
+                  Profile settings
+                </Link>
               </MenuItem>
 
               <Center bg={bg} fontWeight="bold" w="full" mt={2} gap={4}>

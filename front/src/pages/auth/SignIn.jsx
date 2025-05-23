@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Flex, Text } from "@chakra-ui/react";
-import SignInForm from "@/components/SignInForm";
+import SignInForm from "../../components/SignInForm";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 const SignIn = () => {

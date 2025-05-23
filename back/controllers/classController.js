@@ -1,12 +1,14 @@
 import Class from "../models/Class.js";
 import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
+import Plan from "../models/Plan.js";
 
 // @route   POST /api/classes
 // @access  admin, coordinator
 export const createClass = async (req, res, next) => {
   try {
-    const { meetID, recordingUrl, students, teacher, date, topic } = req.body;
+    const { meetID, recordingUrl, students, teacher, date, topic, groupe } =
+      req.body;
     // 1) Basic required‑fields chog(recks
     if (!meetID) {
       return res.status(400).json({ error: "meetID is required" });
@@ -31,16 +33,9 @@ export const createClass = async (req, res, next) => {
     if (isNaN(startsAt)) {
       return res.status(400).json({ error: "Invalid date format" });
     }
-
-    // 3) Tariff lookup
-    const tarif = {
-      1: 50,
-      2: 25,
-      4: 20,
-      8: 12.5,
-    };
+    const plan = await Plan.findById(groupe);
     // if exact match not found, fall back to 10 per student
-    const cost = tarif[students.length];
+    const cost = plan.cost;
 
     // 4) Create the class
     const newClass = await Class.create({
@@ -110,7 +105,7 @@ export const deleteClass = async (req, res, next) => {
     if (!["admin", "coordinator"].includes(role)) {
       return res.status(403).json({ message: "Access denied for this role." });
     }
-
+    console.log(classId);
     // 2) Fetch the class.
     const classObj = await Class.findById(classId);
     if (!classObj) {
@@ -169,3 +164,5 @@ export const deleteClass = async (req, res, next) => {
     next(err);
   }
 };
+//TODO:
+export const disapproveClass = async (req, res, next) => {};

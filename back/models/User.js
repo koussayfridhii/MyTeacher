@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
+    about: {
+      type: String,
+      maxlength: 100,
+    },
     email: {
       type: String,
       required: true,
@@ -84,14 +88,6 @@ const userSchema = new mongoose.Schema(
         message: 'Programs can only be assigned to users with role "teacher".',
       },
     },
-
-    // For parent → students (only if role === "parent")
-    parent: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
 
     // Coordinator assignment for teachers and students (optional at creation)
     coordinator: {

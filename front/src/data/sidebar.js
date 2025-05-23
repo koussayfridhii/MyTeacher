@@ -127,6 +127,17 @@ export const sidebarLinks = [
 
     authorizedRoles: ["admin"],
   },
+  {
+    imgURL: "/assets/icons/plan.svg",
+    route: "/dashboard/plan",
+    label: {
+      ar: "الخطط",
+      en: "Plans",
+      fr: "Plans",
+    },
+
+    authorizedRoles: ["admin", "coordinator"],
+  },
 ];
 
 export const avatarImages = [

@@ -23,11 +23,12 @@ import {
   InputGroup,
   InputRightElement,
   useDisclosure,
+  Textarea,
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGetUsers } from "./../hooks/useGetUsers";
 import { logout, login as loginAction } from "../redux/userSlice";
 import axios from "axios";
@@ -41,11 +42,13 @@ export default function ProfileCard() {
   const [user, setUser] = useState({});
   const { data: users = [], isLoading } = useGetUsers();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const token = localStorage.getItem("token");
 
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    about: "",
     mobileNumber: "",
     oldPassword: "",
     newPassword: "",
@@ -55,6 +58,7 @@ export default function ProfileCard() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (pathId === connectedUser._id) {
@@ -80,6 +84,7 @@ export default function ProfileCard() {
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       email: user.email || "",
+      about: user.about || "",
       mobileNumber: user.mobileNumber || "",
       oldPassword: "",
       newPassword: "",
@@ -87,7 +92,24 @@ export default function ProfileCard() {
     setFile(null);
     setUploadProgress(0);
   }, [user]);
+  const handleLogout = async () => {
+    await axios
+      .post(
+        import.meta.env.VITE_API_URL + "/auth/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then(() => {
+        dispatch(logout());
+        localStorage.removeItem("token");
+      });
 
+    navigate("/signin");
+  };
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -201,6 +223,9 @@ export default function ProfileCard() {
               </Badge>
             ))}
           </Stack>
+          <Text textAlign="center" color="gray.700" px={3}>
+            <Text color="blue.400">{user.about}</Text>
+          </Text>
           <Stack align="center" justify="start" direction="row" mt={6}>
             <ChakraImage boxSize="6" src="/assets/icons/email.gif" />
             <Text>{user.email}</Text>
@@ -231,6 +256,7 @@ export default function ProfileCard() {
                 }
                 _hover={{ bg: "red.500" }}
                 _focus={{ bg: "red.500" }}
+                onClick={handleLogout}
               >
                 Logout
               </Button>
@@ -336,6 +362,14 @@ export default function ProfileCard() {
                     </Button>
                   </InputRightElement>
                 </InputGroup>
+              </FormControl>
+              <FormControl mb={3}>
+                <FormLabel>About</FormLabel>
+                <Textarea
+                  name="about"
+                  value={formData.about}
+                  onChange={handleChange}
+                />
               </FormControl>
             </ModalBody>
 

@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import { startOfMonth, format } from "date-fns";
 import Wallet from "../models/Wallet.js";
 import User from "../models/User.js";
 import Class from "../models/Class.js";
@@ -159,50 +159,82 @@ export const setMinimum = async (req, res, next) => {
  */
 export const getWalletHistory = async (req, res, next) => {
   try {
-    // find the wallet for current user and populate user to access role
     const wallet = await Wallet.findOne({ user: req.user._id }).populate(
       "user"
     );
     if (!wallet) return res.status(404).json({ error: "Wallet not found" });
 
-    // extract history entries
     const history = wallet.history || [];
 
-    // initialize totals
     const totals = {
       topup: 0,
       addClass: 0,
       bonus: 0,
       freePoints: 0,
+      refund: 0,
+      netChange: 0,
     };
 
-    // accumulate totals by reason
+    const monthlyStats = {};
+
     history.forEach((entry) => {
       const amount = entry.newBalance - entry.oldBalance;
       const reason = entry.reason;
+      const date = new Date(entry.date || entry.createdAt || Date.now()); // fallback
+      const monthKey = format(startOfMonth(date), "yyyy-MM");
+
+      if (!monthlyStats[monthKey]) {
+        monthlyStats[monthKey] = {
+          topup: 0,
+          addClass: 0,
+          bonus: 0,
+          freePoints: 0,
+          refund: 0,
+          netChange: 0,
+        };
+      }
+
+      // Monthly net change
+      monthlyStats[monthKey].netChange += amount;
+
+      // Global net change
+      totals.netChange += amount;
 
       switch (reason) {
         case "topup":
+        case "mistake":
           totals.topup += amount;
+          monthlyStats[monthKey].topup += amount;
           break;
+        case "attendClass":
         case "addClass":
           totals.addClass += amount;
+          monthlyStats[monthKey].addClass += amount;
           break;
         case "bonus":
           totals.bonus += amount;
+          monthlyStats[monthKey].bonus += amount;
           break;
         case "free points":
           totals.freePoints += amount;
+          monthlyStats[monthKey].freePoints += amount;
+          break;
+        case "refund":
+          totals.topup += amount; // refund adds balance
+          totals.refund += amount;
+          monthlyStats[monthKey].topup += amount;
+          monthlyStats[monthKey].refund += amount;
           break;
         default:
+          // Ignore unknown reasons
           break;
       }
     });
 
-    // respond with history and computed totals
     res.json({
       history,
       totals,
+      monthlyStats,
     });
   } catch (err) {
     next(err);

@@ -10,6 +10,7 @@ import {
   approveUser,
   deleteAttendedClass,
   getCoordinators,
+  getStudents,
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -33,5 +34,6 @@ router.get(
   role("coordinator", "admin"),
   getCoordinators
 );
+router.get("/students", auth, role("admin"), getStudents);
 
 export default router;

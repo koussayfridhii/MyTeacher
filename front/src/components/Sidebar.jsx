@@ -41,7 +41,6 @@ const Sidebar = () => {
             const isActive =
               location.pathname === item.route ||
               location.pathname.startsWith(`${item.route}/`);
-
             return (
               <ChakraLink
                 as={NavLink}

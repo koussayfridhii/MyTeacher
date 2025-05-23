@@ -57,6 +57,7 @@ export const createUser = async (req, res, next) => {
       programs,
       coordinator,
       rib,
+      about,
     } = req.body;
 
     // Only coordinators or admins can create teacher/student
@@ -82,6 +83,7 @@ export const createUser = async (req, res, next) => {
       title,
       coordinator: coordinator || null,
       rib,
+      about: about || "",
       isAssigned: req.user.role === "admin",
       // default flags set by schema
     };
@@ -618,6 +620,46 @@ export const getCoordinators = async (req, res, next) => {
       status: "success",
       results: result.length,
       data: { coordinators: result },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getStudents = async (req, res, next) => {
+  try {
+    // Total number of students
+    const totalStudents = await User.countDocuments({ role: "student" });
+
+    // Monthly breakdown of students
+    const studentsPerMonth = await User.aggregate([
+      {
+        $match: { role: "student" },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 },
+      },
+    ]);
+
+    // Format the result
+    const statsByMonth = studentsPerMonth.map((entry) => ({
+      month: `${entry._id.month}/${entry._id.year}`,
+      count: entry.count,
+    }));
+
+    res.status(200).json({
+      success: true,
+      totalStudents,
+      statsByMonth,
     });
   } catch (error) {
     next(error);

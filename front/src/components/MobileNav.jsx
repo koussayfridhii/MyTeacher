@@ -73,11 +73,11 @@ const MobileNav = () => {
                     >
                       <ChakraImage
                         src={item.imgURL}
-                        alt={item.label}
+                        alt={item.label[language]}
                         boxSize="5"
                         mr={4}
                       />
-                      <Text fontWeight="semibold">{item.label}</Text>
+                      <Text fontWeight="semibold">{item.label[language]}</Text>
                     </Flex>
                   </NavLink>
                 );

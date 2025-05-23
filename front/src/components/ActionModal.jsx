@@ -1,3 +1,4 @@
+// ActionModal.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -18,14 +19,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-/**
- * ActionModal
- * @param {boolean} isOpen
- * @param {function} onClose
- * @param {object} labels
- * @param {object} modalProps { user, action }
- * @param {function} onConfirm(amount, reason, sessionId)
- */
 const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
   const { action, user } = modalProps;
   const [amount, setAmount] = useState(0);
@@ -33,7 +26,6 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
   const [customReason, setCustomReason] = useState("");
   const [selectedSession, setSelectedSession] = useState("");
 
-  // Reset modal state on open or action change
   useEffect(() => {
     if (isOpen) {
       setAmount(0);
@@ -43,21 +35,32 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
     }
   }, [isOpen, action]);
 
-  const addReasons = [
+  const studentAddReasons = [
     "bonus",
     "free points",
     "topup",
     "unfinished session",
     "other",
   ];
-  const deductReasons = ["mistake", "refund", "other"];
-  const options =
-    action === "add" ? addReasons : action === "deduct" ? deductReasons : [];
+  const studentDeductReasons = ["mistake", "refund", "other"];
+  const teacherAddReasons = ["bonus", "approved class", "other"];
+  const teacherDeductReasons = ["mistake", "cash_out", "other"];
 
-  // Attended sessions
+  const isStudent = user?.role === "student";
+
+  const options =
+    action === "add"
+      ? isStudent
+        ? studentAddReasons
+        : teacherAddReasons
+      : action === "deduct"
+      ? isStudent
+        ? studentDeductReasons
+        : teacherDeductReasons
+      : [];
+
   const sessions = user?.attendedClasses || [];
 
-  // Auto-fill session & amount when 'unfinished session' selected
   const handleReasonChange = (e) => {
     const val = e.target.value;
     setReason(val);
@@ -73,7 +76,6 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
     }
   };
 
-  // When a different session is manually selected
   useEffect(() => {
     if (reason === "unfinished session" && selectedSession) {
       const session = sessions.find(
@@ -90,12 +92,11 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
     if (sessionId) {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.post(
+        await axios.post(
           `${import.meta.env.VITE_API_URL}/users/delete-class`,
           { userId: user._id, class: sessionId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        console.log(res);
       } catch (error) {
         console.error("Failed to delete class:", error);
       }
@@ -111,7 +112,6 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
     (reason === "other" && !customReason.trim()) ||
     (reason === "unfinished session" && !selectedSession);
 
-  // Format session label
   const formatSessionLabel = (session) => {
     const date = new Date(session.date).toLocaleDateString();
     return [session.topic, session.teacher, date].filter(Boolean).join(" — ");

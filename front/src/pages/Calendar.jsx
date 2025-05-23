@@ -75,10 +75,12 @@ const CalendarPage = () => {
   // Meeting scheduling
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [callDetail, setCallDetail] = useState(null);
+  const [plans, setPlans] = useState([]);
   const [meetingValues, setMeetingValues] = useState({
     topic: "",
     teacherId: "",
     studentIds: [],
+    groupe: "",
     dateTime: new Date(),
   });
 
@@ -99,7 +101,16 @@ const CalendarPage = () => {
   } = useDisclosure();
 
   // meeting user lists
-
+  const fetchPlans = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/plans`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.success) setPlans(res.data.plans);
+    } catch (err) {
+      toast({ title: "Failed to fetch plans", status: "error" });
+    }
+  };
   const teachers = users.filter((u) => u.role === "teacher");
   const studentOptions = users
     .filter((u) => u.role === "student")
@@ -213,7 +224,9 @@ const CalendarPage = () => {
       closeAvail();
     }
   };
-
+  useEffect(() => {
+    fetchPlans();
+  }, []);
   // create meeting
   const createMeeting = async () => {
     if (
@@ -245,6 +258,7 @@ const CalendarPage = () => {
           teacher: meetingValues.teacherId,
           students: meetingValues.studentIds,
           topic: meetingValues.topic,
+          groupe: meetingValues.groupe,
           date: meetingValues.dateTime.toISOString(),
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -493,6 +507,21 @@ const CalendarPage = () => {
                   setMeetingValues((v) => ({ ...v, topic: e.target.value }))
                 }
               />
+            </Box>
+            <Box mb={4}>
+              <Select
+                placeholder="Select a Plan"
+                value={meetingValues.groupe}
+                onChange={(e) =>
+                  setMeetingValues((v) => ({ ...v, groupe: e.target.value }))
+                }
+              >
+                {plans.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
             </Box>
             <Box mb={4}>
               <Select

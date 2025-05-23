@@ -119,7 +119,7 @@ const CallList = ({ type }) => {
   }, [courses, searchTerm, sortOrder]);
 
   // Pagination
-  const totalPages = Math.ceil(displayed.length / itemsPerPage);
+  const totalPages = Math.ceil(displayed?.length / itemsPerPage);
   const paged = displayed.slice((page - 1) * itemsPerPage, page * itemsPerPage);
   if (isLoading)
     return (
@@ -146,7 +146,7 @@ const CallList = ({ type }) => {
         onSortChange={handleSortChange}
       />
 
-      {paged.length > 0 ? (
+      {paged?.length > 0 ? (
         <List spacing={4}>
           {paged.map((meeting) => {
             const dateStr = dayjs(meeting.date).format("YYYY-MM-DD HH:mm");
@@ -187,7 +187,7 @@ const CallList = ({ type }) => {
                           cursor="pointer"
                         >
                           <Text fontWeight="semibold">
-                            Present Students {meeting.presentStudents.length}
+                            Present Students {meeting.presentStudents?.length}
                           </Text>
                         </Tooltip>
                       )}

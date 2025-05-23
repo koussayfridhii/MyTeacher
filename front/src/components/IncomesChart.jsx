@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import Chart from "react-apexcharts";
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Box,
+  Spinner,
+  Text,
+} from "@chakra-ui/react";
 import apiClient from "../hooks/apiClient";
 
 const monthNames = [
@@ -17,73 +28,78 @@ const monthNames = [
   "Dec",
 ];
 
-const IncomesChart = () => {
-  const [series, setSeries] = useState([
-    { name: "Topup", data: Array(12).fill(0) },
-    { name: "Refund", data: Array(12).fill(0) }, // Added Refund series
-  ]);
-  const [options, setOptions] = useState({
-    chart: { height: 500, type: "line", zoom: { enabled: true } },
-    dataLabels: { enabled: false },
-    stroke: { curve: "smooth" },
-    title: { text: "Monthly Topups and Refunds", align: "left" },
-    grid: {
-      row: { colors: ["#f3f3f3", "transparent"], opacity: 0.5 },
-    },
-    xaxis: { categories: monthNames },
-    tooltip: {
-      theme: "dark", // <--- This sets the tooltip dark theme
-    },
-    legend: {
-      position: "top",
-      horizontalAlign: "right",
-    },
-  });
+const MonthlyIncomeTable = () => {
+  const [monthlyData, setMonthlyData] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await apiClient.get("/wallet/totals");
         const mb = res.data.monthlyBreakdown || {};
-
-        const topupData = monthNames.map((_, idx) => {
-          const monthKey = String(idx + 1);
-          return mb[monthKey]?.topup ?? 0;
-        });
-
-        const refundData = monthNames.map((_, idx) => {
-          const monthKey = String(idx + 1);
-          return mb[monthKey]?.refund ?? 0;
-        });
-        const unfinishedSessionsData = monthNames.map((_, idx) => {
-          const monthKey = String(idx + 1);
-          return mb[monthKey]?.["unfinished session"] ?? 0;
-        });
-
-        setSeries([
-          { name: "Topup", data: topupData },
-          { name: "Refund", data: refundData },
-          { name: "unfinished session", data: unfinishedSessionsData },
-        ]);
+        setMonthlyData(mb);
       } catch (err) {
         console.error("Failed to load stats:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStats();
   }, []);
 
+  const keys = Array.from(
+    new Set(
+      Object.values(monthlyData).flatMap((monthObj) => Object.keys(monthObj))
+    )
+  );
+
   return (
-    <div>
-      <Chart
-        options={options}
-        series={series}
-        type="line"
-        height={500}
-        width={1000}
-      />
-    </div>
+    <Box p={4} w="full">
+      <Text fontSize="xl" mb={4} fontWeight="bold" color="primary">
+        Monthly Income Breakdown
+      </Text>
+
+      {loading ? (
+        <Spinner />
+      ) : (
+        <TableContainer overflowX="auto">
+          <Table
+            variant="striped"
+            colorScheme="blue"
+            color="gray.800"
+            size="sm"
+          >
+            <Thead bg="gray.100">
+              <Tr>
+                <Th>Month</Th>
+                {keys.map((key) => (
+                  <Th key={key} textTransform="capitalize">
+                    {key}
+                  </Th>
+                ))}
+              </Tr>
+            </Thead>
+            <Tbody>
+              {monthNames.map((name, idx) => {
+                const monthKey = String(idx + 1);
+                const row = monthlyData[monthKey] || {};
+
+                return (
+                  <Tr key={monthKey}>
+                    <Td fontWeight="medium">{name}</Td>
+                    {keys.map((key) => (
+                      <Td key={key}>{row[key] !== undefined ? row[key] : 0}</Td>
+                    ))}
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
   );
 };
 
-export default IncomesChart;
+export default MonthlyIncomeTable;

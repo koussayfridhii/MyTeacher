@@ -10,7 +10,6 @@ import {
 } from "@chakra-ui/react";
 import StreamClientProvider from "./providers/StreamClientProvider.jsx";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
-import Landing from "./pages/landing/Landing.jsx";
 
 const SignUp = lazy(() => import("./pages/auth/SignUp.jsx"));
 const SignIn = lazy(() => import("./pages/auth/SignIn.jsx"));
@@ -29,6 +28,8 @@ const Students = lazy(() => import("./pages/Students.jsx"));
 const Coordinators = lazy(() => import("./pages/Coordinators.jsx"));
 const Calendar = lazy(() => import("./pages/Calendar.jsx"));
 const GoingOn = lazy(() => import("./pages/GoingOn.jsx"));
+const Plan = lazy(() => import("./pages/Plan.jsx"));
+const Landing = lazy(() => import("./pages/landing/Landing.jsx"));
 
 const router = createBrowserRouter([
   {
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
           { path: "profile/:id", element: <Profile /> },
           { path: "myteachers", element: <Teachers /> },
           { path: "mystudents", element: <Students /> },
+          { path: "plan", element: <Plan /> },
           { path: "students", element: <Students /> },
           {
             path: "meeting",

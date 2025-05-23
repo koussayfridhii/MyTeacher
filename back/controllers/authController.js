@@ -59,7 +59,6 @@ export const signup = async (req, res, next) => {
     }
 
     const hashed = await bcrypt.hash(Password, 10);
-    const role = title.toLowerCase();
 
     const user = new User({
       firstName,
@@ -67,8 +66,7 @@ export const signup = async (req, res, next) => {
       email: Email.toLowerCase().trim(),
       password: hashed,
       mobileNumber,
-      title,
-      role,
+      role: "student",
       isAssigned: true,
     });
     await user.save();
@@ -228,6 +226,7 @@ export const editProfile = async (req, res) => {
       profilePic,
       oldPassword,
       newPassword,
+      about,
     } = req.body;
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -250,13 +249,10 @@ export const editProfile = async (req, res) => {
 
     // Update profile fields
     if (firstName) user.firstName = firstName;
+    if (about) user.about = about;
     if (lastName) user.lastName = lastName;
     if (mobileNumber) user.mobileNumber = mobileNumber;
     if (profilePic) user.profilePic = profilePic;
-    if (title) {
-      user.title = title;
-      user.role = title.toLowerCase();
-    }
 
     await user.save();
     const profile = user.toObject();
