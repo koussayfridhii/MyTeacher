@@ -27,6 +27,10 @@ const classSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    approved: {
+      type: Boolean,
+      default: true,
+    },
     date: { type: Date, default: Date.now },
     recordingUrl: { type: String },
   },

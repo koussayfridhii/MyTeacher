@@ -166,6 +166,11 @@ const CallList = ({ type }) => {
                       Teacher: {meeting.teacher?.firstName}{" "}
                       {meeting.teacher?.lastName}
                     </Text>
+                    {user.role !== "teacher" && (
+                      <Text fontWeight="bold" color="primary">
+                        Cost : {meeting.cost}
+                      </Text>
+                    )}
                     <Tooltip
                       label={meeting.students.map(
                         (s) => `${s.firstName} ${s.lastName}, `

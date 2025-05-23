@@ -164,5 +164,10 @@ export const deleteClass = async (req, res, next) => {
     next(err);
   }
 };
-//TODO:
-export const disapproveClass = async (req, res, next) => {};
+export const disapproveClass = async (req, res, next) => {
+  const klass = await Class.findById(req.params.id);
+  klass.approved = !klass.approved;
+  await klass.save();
+
+  res.status(200).json({ success: true, class: klass });
+};

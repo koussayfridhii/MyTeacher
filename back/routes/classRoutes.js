@@ -4,6 +4,7 @@ import role from "../middleware/role.js";
 import {
   createClass,
   deleteClass,
+  disapproveClass,
   listClasses,
   myClasses,
 } from "../controllers/classController.js";
@@ -22,5 +23,6 @@ router.get(
 // Admin or Coordinator can create new classes
 router.post("/", auth, role("admin", "coordinator", "teacher"), createClass);
 router.delete("/:id", auth, role("admin", "coordinator"), deleteClass);
+router.patch("/:id", auth, role("admin", "coordinator"), disapproveClass);
 
 export default router;

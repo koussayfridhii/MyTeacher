@@ -3,7 +3,7 @@ import Chart from "react-apexcharts";
 import { useCoordinators } from "../hooks/useCoordinators";
 import { Center, Spinner, Flex, Text, Box, Stack } from "@chakra-ui/react";
 
-const CoordinatorsRankChart = () => {
+const CoordinatorsRankChart = ({ admin }) => {
   const [seriesIncome, setSeriesIncome] = useState([]);
   const [seriesStudents, setSeriesStudents] = useState([]);
   const { data: allCoordinators = [], isLoading, isError } = useCoordinators();
@@ -125,15 +125,17 @@ const CoordinatorsRankChart = () => {
       w="full"
       px={[2, 4, 6]}
     >
-      <Box w={["100%", "100%", "48%"]}>
-        <Chart
-          options={optionsIncomes}
-          series={seriesIncome}
-          type="bar"
-          height={500}
-          width="100%"
-        />
-      </Box>
+      {admin && (
+        <Box w={["100%", "100%", "48%"]}>
+          <Chart
+            options={optionsIncomes}
+            series={seriesIncome}
+            type="bar"
+            height={500}
+            width="100%"
+          />
+        </Box>
+      )}
       <Box w={["100%", "100%", "48%"]}>
         <Chart
           options={optionsStudents}

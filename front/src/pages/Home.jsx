@@ -180,7 +180,7 @@ const Home = () => {
           <Heading color="primary" textDecor="underline">
             Coordinators
           </Heading>
-          <CoordinatorsRankChart role={user.role} />
+          <CoordinatorsRankChart admin={user.role === "admin"} />
         </>
       )}
       {/* <MeetingTypeList /> */}

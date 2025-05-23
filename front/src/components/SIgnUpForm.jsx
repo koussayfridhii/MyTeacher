@@ -173,23 +173,6 @@ export default function SignUpForm() {
             </FormErrorMessage>
           </FormControl>
 
-          {/* Title */}
-          <FormControl isInvalid={!!errors.Tilte} mb={6}>
-            <FormLabel color="primary" htmlFor="tilte">
-              {t.title}
-            </FormLabel>
-            <Select
-              id="tilte"
-              placeholder={t.titlePlaceholder}
-              {...register("Tilte", { required: t.titleRequired })}
-              p={3}
-            >
-              <option value="Teacher">{t.optionTeacher}</option>
-              <option value="Student">{t.optionStudent}</option>
-            </Select>
-            <FormErrorMessage>{errors.Tilte?.message}</FormErrorMessage>
-          </FormControl>
-
           {/* Password Field with toggle */}
           <FormControl isInvalid={!!errors.Password} mb={4}>
             <FormLabel color="primary" htmlFor="password">

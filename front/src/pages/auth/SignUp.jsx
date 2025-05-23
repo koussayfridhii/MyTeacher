@@ -12,14 +12,7 @@ const SignUp = () => {
     }
   }, [isLoggedIn]);
   return (
-    <Flex
-      w="100%"
-      bg="primary"
-      minH="100vh"
-      p={4}
-      justify="center"
-      align="center"
-    >
+    <Flex w="100%" bg="#fff" minH="100vh" p={4} justify="center" align="center">
       <SignUpForm />
     </Flex>
   );

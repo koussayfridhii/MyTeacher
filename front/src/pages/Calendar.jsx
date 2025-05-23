@@ -130,16 +130,18 @@ const CalendarPage = () => {
         end: dayjs(c.date).add(2, "hour").toISOString(),
         backgroundColor: "#FFD63A",
         borderColor: "#FFD63A",
+        approved: c.approved || true,
       })
     );
     endedCourses?.forEach((c) =>
       evs.push({
         id: c._id,
-        title: `${c.topic} (Ended)`,
+        title: `${c.topic} (${c.approved ? "✔️" : "❌"})`,
         start: dayjs(c.date).toISOString(),
         end: dayjs(c.date).add(2, "hour").toISOString(),
         backgroundColor: "#CF0F47",
         borderColor: "#CF0F47",
+        approved: c.approved || true,
       })
     );
     availabilities?.data?.forEach((a) => {
@@ -225,7 +227,9 @@ const CalendarPage = () => {
     }
   };
   useEffect(() => {
-    fetchPlans();
+    if (["admin", "coordinator"].includes(user.role)) {
+      fetchPlans();
+    }
   }, []);
   // create meeting
   const createMeeting = async () => {
@@ -285,48 +289,94 @@ const CalendarPage = () => {
 
   // delete availability click
   const handleEventClick = (info) => {
-    if (
-      ["coordinator", "student", "teacher"].includes(user.role) &&
-      info.event.title === "Availability"
-    ) {
-      setDelEvent({
-        id: info.event.id,
-        title: info.event.title,
-        bg: info.event.backgroundColor,
-      });
-      openDel();
-    } else if (["admin"].includes(user.role)) {
-      setDelEvent({
-        id: info.event.id,
-        title: info.event.title,
-        bg: info.event.backgroundColor,
-      });
-      openDel();
-    } else if (user.role === "coordinator") {
-      const endPlusDay = dayjs(info.event._instance.range.end).add(24, "hour");
-      const now = dayjs();
-
-      // Compare now with end + 24h
-      if (now.isAfter(endPlusDay)) {
-        toast({
-          title: info.event.title,
-          description: `${info.event?._instance?.range?.start} to ${info.event?._instance?.range?.end} if you want to delete it contact administrator`,
-          status: "info",
-        });
-      } else {
+    const bgColor = info.event.backgroundColor;
+    const isClass = ["#CF0F47", "#FFD63A"].includes(bgColor);
+    if (isClass) {
+      if (user.role === "admin") {
         setDelEvent({
           id: info.event.id,
           title: info.event.title,
-          bg: info.event.backgroundColor,
+          bg: bgColor,
+          isClass: true,
+          end: info.event.end,
         });
         openDel();
+      } else if (user.role === "coordinator") {
+        const eventEnd = info.event.end ? new Date(info.event.end) : null;
+        const endPlus24h = dayjs(eventEnd).add(24, "hour");
+        const now = dayjs();
+
+        if (now.isBefore(endPlus24h)) {
+          setDelEvent({
+            id: info.event.id,
+            title: info.event.title,
+            bg: bgColor,
+            isClass: true,
+            end: eventEnd,
+          });
+          openDel();
+        } else {
+          toast({
+            title: info.event.title,
+            description: `You can only manage events within 24 hours of their end time.`,
+            status: "info",
+          });
+        }
+      } else {
+        toast({
+          title: info.event.title,
+          description: `From ${info.event.startStr} to ${info.event.endStr}`,
+          status: "info",
+        });
       }
     } else {
-      toast({
-        title: info.event.title,
-        description: `${info.event?._instance?.range?.start} to ${info.event?._instance?.range?.end}`,
-        status: "info",
-      });
+      // Existing availability event logic
+      if (
+        (user.role === "coordinator" ||
+          user.role === "student" ||
+          user.role === "teacher") &&
+        info.event.title === "Availability"
+      ) {
+        setDelEvent({
+          id: info.event.id,
+          title: info.event.title,
+          bg: bgColor,
+          isClass: false,
+        });
+        openDel();
+      } else if (user.role === "admin") {
+        setDelEvent({
+          id: info.event.id,
+          title: info.event.title,
+          bg: bgColor,
+          isClass: false,
+        });
+        openDel();
+      } else if (user.role === "coordinator") {
+        const endPlusDay = dayjs(info.event.end).add(24, "hour");
+        const now = dayjs();
+        if (now.isAfter(endPlusDay)) {
+          toast({
+            title: info.event.title,
+            description: `${info.event.startStr} to ${info.event.endStr}. Contact administrator to delete.`,
+            status: "info",
+          });
+        } else {
+          setDelEvent({
+            id: info.event.id,
+            title: info.event.title,
+            bg: bgColor,
+            isClass: false,
+          });
+          openDel();
+        }
+      } else {
+        toast({
+          title: info.event.title,
+          description: `${info.event.startStr} to ${info.event.endStr}`,
+          status: "info",
+        });
+      }
     }
   };
   const confirmDelete = async () => {
@@ -346,7 +396,25 @@ const CalendarPage = () => {
       closeDel();
     }
   };
-
+  const confirmDisapprove = async () => {
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/classes/${delEvent.id}`,
+        {}, // Adjust body as needed
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast({
+        title: `Event ${
+          delEvent.title.includes("❌") ? " approved" : " disapproved"
+        }`,
+        status: "success",
+      });
+    } catch (error) {
+      toast({ title: "Failed to disapprove event", status: "error" });
+    } finally {
+      closeDel();
+    }
+  };
   return (
     <Box p={2}>
       <FullCalendar
@@ -396,29 +464,33 @@ const CalendarPage = () => {
           <ModalHeader>Create Availability</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <FormControl mb={3}>
-              <FormLabel>For</FormLabel>
-              <Select
-                value={availRole}
-                onChange={(e) => setAvailRole(e.target.value)}
-              >
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-              </Select>
-            </FormControl>
-            <FormControl mb={3}>
-              <FormLabel>Select {availRole}</FormLabel>
-              <Select
-                value={selectedAvailUser}
-                onChange={(e) => setSelectedAvailUser(e.target.value)}
-              >
-                {availOptions.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.firstName} {u.lastName}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
+            {["admin", "coordinator"].includes(user.role) && (
+              <>
+                <FormControl mb={3}>
+                  <FormLabel>For</FormLabel>
+                  <Select
+                    value={availRole}
+                    onChange={(e) => setAvailRole(e.target.value)}
+                  >
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                  </Select>
+                </FormControl>
+                <FormControl mb={3}>
+                  <FormLabel>Select {availRole}</FormLabel>
+                  <Select
+                    value={selectedAvailUser}
+                    onChange={(e) => setSelectedAvailUser(e.target.value)}
+                  >
+                    {availOptions.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.firstName} {u.lastName}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
+            )}
             <FormControl mb={3}>
               <FormLabel>Start</FormLabel>
               <Input
@@ -473,9 +545,21 @@ const CalendarPage = () => {
             <Button ref={cancelRef} onClick={closeDel}>
               Cancel
             </Button>
-            <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-              Delete
-            </Button>
+            {delEvent?.isClass &&
+            (user.role === "admin" || user.role === "coordinator") ? (
+              <>
+                <Button colorScheme="yellow" onClick={confirmDisapprove} ml={3}>
+                  Dis/Approve
+                </Button>
+                <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                  Delete
+                </Button>
+              </>
+            ) : (
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                Delete
+              </Button>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

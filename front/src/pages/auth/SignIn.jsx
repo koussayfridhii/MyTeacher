@@ -12,13 +12,7 @@ const SignIn = () => {
     }
   }, [isLoggedIn]);
   return (
-    <Flex
-      align="center"
-      justify="center"
-      minH="100vh"
-      width="100%"
-      bg="primary"
-    >
+    <Flex align="center" justify="center" minH="100vh" width="100%" bg="#fff">
       <SignInForm />
     </Flex>
   );
