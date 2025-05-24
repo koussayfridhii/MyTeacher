@@ -103,7 +103,16 @@ export const sidebarLinks = [
 
     authorizedRoles: ["coordinator", "admin"],
   },
-
+  {
+    imgURL: "/assets/icons/parent.svg", // Placeholder icon, consider a more specific one if available
+    route: "/dashboard/parents",
+    label: {
+      ar: "أولياء الأمور",
+      en: "Parents",
+      fr: "Parents",
+    },
+    authorizedRoles: ["admin", "coordinator"],
+  },
   // {
   //   imgURL: "/assets/icons/teacher.svg",
   //   route: "/dashboard/myteachers",

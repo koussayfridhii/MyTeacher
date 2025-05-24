@@ -176,6 +176,15 @@ export default function SignInForm() {
             <FormErrorMessage>{errors.Password?.message}</FormErrorMessage>
           </FormControl>
 
+          {/* Forgot Password Link */}
+          <Flex justifyContent="flex-end" mb={4}>
+            <Text fontSize="xs" color="primary">
+              <Link to="/forgot-password">
+                {t.forgotPassword || "Forgot Password?"}
+              </Link>
+            </Text>
+          </Flex>
+
           <Flex w="100%" justify="center" align="center" gap={3}>
             <Button
               mt={4}

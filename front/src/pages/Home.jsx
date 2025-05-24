@@ -10,6 +10,7 @@ import {
   Alert,
   AlertIcon,
   Heading,
+  Divider,
 } from "@chakra-ui/react";
 import MeetingTypeList from "../components/MeetingTypeList";
 import { withAuthorization } from "../HOC/Protect";
@@ -18,6 +19,7 @@ import dayjs from "dayjs";
 import { useSelector } from "react-redux";
 import CoordinatorsRankChart from "../components/CoordinatorsRankChart";
 import IncomesChart from "../components/IncomesChart";
+import StudentStatsTable from "../components/StudentStatsTable"; // Added import
 import Game from "../components/MAthGame";
 
 const translations = {
@@ -166,15 +168,6 @@ const Home = () => {
         </Flex>
       </Box>
       {["teacher", "student"].includes(user.role) && <Game />}
-
-      {["admin"].includes(user.role) && (
-        <>
-          <Heading color="primary" textDecor="underline">
-            Incomes
-          </Heading>
-          <IncomesChart />
-        </>
-      )}
       {["admin", "coordinator"].includes(user.role) && (
         <>
           <Heading color="primary" textDecor="underline">
@@ -183,6 +176,21 @@ const Home = () => {
           <CoordinatorsRankChart admin={user.role === "admin"} />
         </>
       )}
+      <Divider colorScheme="blue" my={2} size={5} w="full" />
+      {["admin"].includes(user.role) && (
+        <>
+          <Heading color="primary" textDecor="underline">
+            Incomes
+          </Heading>
+          <IncomesChart />
+          <Divider colorScheme="blue" my={2} size={5} w="full" />
+          <Heading color="primary" textDecor="underline" mt={6}>
+            Student Statistics
+          </Heading>
+          <StudentStatsTable />
+        </>
+      )}
+
       {/* <MeetingTypeList /> */}
     </Flex>
   );

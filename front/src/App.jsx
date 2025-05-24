@@ -13,6 +13,12 @@ import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 const SignUp = lazy(() => import("./pages/auth/SignUp.jsx"));
 const SignIn = lazy(() => import("./pages/auth/SignIn.jsx"));
+const ForgotPasswordPage = lazy(() =>
+  import("./pages/auth/ForgotPasswordPage.jsx")
+);
+const ResetPasswordPage = lazy(() =>
+  import("./pages/auth/ResetPasswordPage.jsx")
+);
 const Layout = lazy(() => import("./components/Layout.jsx"));
 const Home = lazy(() => import("./pages/Home.jsx"));
 const MeetingPage = lazy(() => import("./pages/Meeting.jsx"));
@@ -31,6 +37,7 @@ const GoingOn = lazy(() => import("./pages/GoingOn.jsx"));
 const Plan = lazy(() => import("./pages/Plan.jsx"));
 const Landing = lazy(() => import("./pages/landing/Landing.jsx"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory.jsx"));
+const Parents = lazy(() => import("./pages/Parents.jsx"));
 
 const router = createBrowserRouter([
   {
@@ -39,6 +46,8 @@ const router = createBrowserRouter([
       { index: true, element: <Landing /> },
       { path: "signup", element: <SignUp /> },
       { path: "signin", element: <SignIn /> },
+      { path: "forgot-password", element: <ForgotPasswordPage /> },
+      { path: "reset-password/:token", element: <ResetPasswordPage /> },
       { path: "auth/verify/:token", element: <Verify /> },
       {
         path: "dashboard",
@@ -68,6 +77,7 @@ const router = createBrowserRouter([
           { path: "mystudents", element: <Students /> },
           { path: "plan", element: <Plan /> },
           { path: "students", element: <Students /> },
+          { path: "parents", element: <Parents /> },
           { path: "wallet-history", element: <WalletHistory /> },
           {
             path: "meeting",

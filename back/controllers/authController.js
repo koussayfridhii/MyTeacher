@@ -273,12 +273,10 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     // Always respond success to prevent email enumeration
     if (user) {
-      const resetToken = jwt.sign(
-        { id: user._id },
-        process.env.JWT_RESET_SECRET,
-        { expiresIn: "1h" }
-      );
-      const resetUrl = `${process.env.FRONT_URL}/auth/reset-password/${resetToken}`;
+      const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "1h",
+      });
+      const resetUrl = `${process.env.FRONT_URL}/reset-password/${resetToken}`;
       const emailHtml = `
         <div style="max-width:600px; margin:0 auto; font-family:Arial;">
           <p>You requested a password reset. Click below to set a new password:</p>
@@ -303,13 +301,13 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const { newPassword } = req.body;
+    const { password: newPassword } = req.body;
     if (!newPassword)
       return res.status(400).json({ error: "New password is required" });
 
     let payload;
     try {
-      payload = jwt.verify(token, process.env.JWT_RESET_SECRET);
+      payload = jwt.verify(token, process.env.JWT_SECRET);
     } catch (e) {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }

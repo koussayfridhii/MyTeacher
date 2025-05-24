@@ -22,7 +22,7 @@ router.post("/signin", signin);
 router.post("/logout", auth, logout);
 router.get("/profile", auth, getProfile);
 router.post("/profile-edit", auth, editProfile);
-router.post("/reset-password/:token", auth, resetPassword);
-router.post("/forgot-password", auth, forgotPassword);
+router.post("/reset-password/:token", resetPassword);
+router.post("/forgot-password", forgotPassword);
 
 export default router;

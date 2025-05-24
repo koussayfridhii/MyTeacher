@@ -6,7 +6,11 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: "/",
-
+  resolve: {
+    alias: {
+      "@": "/src", // This will point '@' to the src folder
+    },
+  },
   server: {
     port: 3000,
     watch: {

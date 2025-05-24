@@ -14,6 +14,7 @@ import streamTokenRouter from "./routes/streamTokenRoutes.js";
 import discountRoutes from "./routes/discountRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
 import planRoutes from "./routes/planRoutes.js";
+import parentRoutes from "./routes/parentRoutes.js";
 connectDB();
 
 const app = express();
@@ -48,6 +49,7 @@ app.use("/api/stream", streamTokenRouter);
 app.use("/api/discount", discountRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/plans", planRoutes);
+app.use("/api/parents", parentRoutes);
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });
