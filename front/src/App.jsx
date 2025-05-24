@@ -30,6 +30,7 @@ const Calendar = lazy(() => import("./pages/Calendar.jsx"));
 const GoingOn = lazy(() => import("./pages/GoingOn.jsx"));
 const Plan = lazy(() => import("./pages/Plan.jsx"));
 const Landing = lazy(() => import("./pages/landing/Landing.jsx"));
+const WalletHistory = lazy(() => import("./pages/WalletHistory.jsx"));
 
 const router = createBrowserRouter([
   {
@@ -67,6 +68,7 @@ const router = createBrowserRouter([
           { path: "mystudents", element: <Students /> },
           { path: "plan", element: <Plan /> },
           { path: "students", element: <Students /> },
+          { path: "wallet-history", element: <WalletHistory /> },
           {
             path: "meeting",
             children: [
