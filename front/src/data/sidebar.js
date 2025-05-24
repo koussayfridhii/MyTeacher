@@ -72,6 +72,16 @@ export const sidebarLinks = [
     authorizedRoles: ["admin", "coordinator "],
   },
   {
+    imgURL: "/assets/icons/coin.svg",
+    route: "/dashboard/wallet-history",
+    label: {
+      ar: "سجل المحفظة",
+      en: "Wallet History",
+      fr: "Historique du portefeuille",
+    },
+    authorizedRoles: ["student", "teacher"],
+  },
+  {
     imgURL: "/assets/icons/teacher.svg",
     route: "/dashboard/teachers",
 
