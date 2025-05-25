@@ -41,7 +41,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "firebase": "^11.7.3",
-    "framer-motion": "^12.12.1",
+    "framer-motion": "^12.12.2",
     "lucide-react": "^0.507.0",
     "motion": "^12.12.1",
     "postcss": "^8.5.3",
