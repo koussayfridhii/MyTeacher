@@ -15,6 +15,7 @@ import discountRoutes from "./routes/discountRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
 import planRoutes from "./routes/planRoutes.js";
 import parentRoutes from "./routes/parentRoutes.js";
+import potentialClientRoutes from "./routes/potenitalClientRoutes.js";
 connectDB();
 
 const app = express();
@@ -50,6 +51,7 @@ app.use("/api/discount", discountRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/parents", parentRoutes);
+app.use("/api/potential-clients", potentialClientRoutes);
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });

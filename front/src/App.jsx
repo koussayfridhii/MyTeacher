@@ -38,6 +38,16 @@ const Plan = lazy(() => import("./pages/Plan.jsx"));
 const Landing = lazy(() => import("./pages/landing/Landing.jsx"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory.jsx"));
 const Parents = lazy(() => import("./pages/Parents.jsx"));
+// Potential Client Pages
+const PotentialClientsListView = lazy(() =>
+  import("./components/ListView.jsx")
+);
+const PotentialClientDetailView = lazy(() =>
+  import("./components/DetailView.jsx")
+);
+const PotentialClientCreateForm = lazy(() =>
+  import("./components/CreateForm.jsx")
+);
 
 const router = createBrowserRouter([
   {
@@ -79,6 +89,15 @@ const router = createBrowserRouter([
           { path: "students", element: <Students /> },
           { path: "parents", element: <Parents /> },
           { path: "wallet-history", element: <WalletHistory /> },
+          { path: "potential-clients", element: <PotentialClientsListView /> },
+          {
+            path: "potential-clients/create",
+            element: <PotentialClientCreateForm />,
+          },
+          {
+            path: "potential-clients/:id",
+            element: <PotentialClientDetailView />,
+          },
           {
             path: "meeting",
             children: [

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import {
@@ -20,6 +20,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
+import { t } from "../utils/translations"; // Added import
 
 /**
  * CreateUserModal
@@ -124,8 +125,17 @@ const CreateUserModal = ({
               <Input
                 type="email"
                 {...register("email", {
-                  required: "Email is required",
-                  pattern: { value: /^\S+@\S+$/i, message: "Invalid email" },
+                  required: t(
+                    "createUserModal.validation.emailRequired",
+                    language
+                  ),
+                  pattern: {
+                    value: /^\S+@\S+$/i,
+                    message: t(
+                      "createUserModal.validation.emailInvalid",
+                      language
+                    ),
+                  },
                 })}
               />
               <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
@@ -137,8 +147,17 @@ const CreateUserModal = ({
               <Input
                 type="password"
                 {...register("password", {
-                  required: "Password is required",
-                  minLength: { value: 6, message: "Min length is 6" },
+                  required: t(
+                    "createUserModal.validation.passwordRequired",
+                    language
+                  ),
+                  minLength: {
+                    value: 6,
+                    message: t(
+                      "createUserModal.validation.minLength6",
+                      language
+                    ),
+                  },
                 })}
               />
               <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
@@ -149,7 +168,10 @@ const CreateUserModal = ({
               <FormLabel>{labels.firstName}</FormLabel>
               <Input
                 {...register("firstName", {
-                  required: "First name is required",
+                  required: t(
+                    "createUserModal.validation.firstNameRequired",
+                    language
+                  ),
                 })}
               />
               <FormErrorMessage>{errors.firstName?.message}</FormErrorMessage>
@@ -160,7 +182,10 @@ const CreateUserModal = ({
               <FormLabel>{labels.lastName}</FormLabel>
               <Input
                 {...register("lastName", {
-                  required: "Last name is required",
+                  required: t(
+                    "createUserModal.validation.lastNameRequired",
+                    language
+                  ),
                 })}
               />
               <FormErrorMessage>{errors.lastName?.message}</FormErrorMessage>
@@ -171,9 +196,24 @@ const CreateUserModal = ({
               <FormLabel>{labels.mobile}</FormLabel>
               <Input
                 {...register("mobileNumber", {
-                  required: "Mobile number is required",
-                  minLength: { value: 6, message: "Min length is 6" },
-                  maxLength: { value: 12, message: "Max length is 12" },
+                  required: t(
+                    "createUserModal.validation.mobileRequired",
+                    language
+                  ),
+                  minLength: {
+                    value: 6,
+                    message: t(
+                      "createUserModal.validation.minLength6",
+                      language
+                    ),
+                  },
+                  maxLength: {
+                    value: 12,
+                    message: t(
+                      "createUserModal.validation.mobileMaxLength12",
+                      language
+                    ),
+                  },
                 })}
               />
               <FormErrorMessage>
@@ -184,11 +224,23 @@ const CreateUserModal = ({
             {/* Coordinator select for admin when creating student */}
             {user.role === "admin" && !showTeacherFields && (
               <FormControl isInvalid={errors.coordinatorId}>
-                <FormLabel>{labels.coordinator || "Coordinator"}</FormLabel>
+                <FormLabel>
+                  {labels.coordinator ||
+                    t("createUserModal.labelCoordinatorFallback", language)}
+                </FormLabel>
                 <Select
-                  placeholder={labels.coordinator || "Select coordinator"}
+                  placeholder={
+                    labels.coordinator ||
+                    t(
+                      "createUserModal.placeholderCoordinatorFallback",
+                      language
+                    )
+                  }
                   {...register("coordinatorId", {
-                    required: "Coordinator is required",
+                    required: t(
+                      "createUserModal.validation.coordinatorRequired",
+                      language
+                    ),
                   })}
                 >
                   {coordinators.map((c) => (
@@ -205,7 +257,9 @@ const CreateUserModal = ({
 
             {/* Profile Picture Upload */}
             <FormControl>
-              <FormLabel>Profile Picture</FormLabel>
+              <FormLabel>
+                {t("createUserModal.profilePictureLabel", language)}
+              </FormLabel>
               <Input type="file" accept="image/*" onChange={onFileChange} />
               {uploadProgress > 0 && uploadProgress < 100 && (
                 <Progress value={uploadProgress} size="sm" mt={2} />
@@ -217,7 +271,9 @@ const CreateUserModal = ({
             {showTeacherFields && (
               <>
                 <FormControl isInvalid={errors.rib}>
-                  <FormLabel>rib</FormLabel>
+                  <FormLabel>
+                    {t("createUserModal.ribLabel", language)}
+                  </FormLabel>
                   <Input {...register("rib")} />
                   <FormErrorMessage>{errors.rib?.message}</FormErrorMessage>
                 </FormControl>
@@ -231,7 +287,10 @@ const CreateUserModal = ({
                   <FormLabel>{labels.program}</FormLabel>
                   <Input
                     {...register("programs")}
-                    placeholder="Program1, Program2"
+                    placeholder={t(
+                      "createUserModal.programPlaceholder",
+                      language
+                    )}
                   />
                   <FormErrorMessage>
                     {errors.programs?.message}

@@ -69,7 +69,7 @@ export const sidebarLinks = [
       fr: "Recharger",
     },
 
-    authorizedRoles: ["admin", "coordinator "],
+    authorizedRoles: ["admin"],
   },
   {
     imgURL: "/assets/icons/coin.svg",
@@ -155,6 +155,16 @@ export const sidebarLinks = [
       fr: "Plans",
     },
 
+    authorizedRoles: ["admin", "coordinator"],
+  },
+  {
+    imgURL: "/assets/icons/potential_client.svg", // Using a more distinct icon if available, otherwise a generic one
+    route: "/dashboard/potential-clients",
+    label: {
+      ar: "العملاء المحتملين",
+      en: "Potential Clients",
+      fr: "Clients Potentiels",
+    },
     authorizedRoles: ["admin", "coordinator"],
   },
 ];

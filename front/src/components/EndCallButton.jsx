@@ -12,7 +12,7 @@ const EndCallButton = ({ role }) => {
 
   const endCall = async () => {
     await call.endCall();
-    navigate("/");
+    navigate("/dashboard");
   };
 
   return (
