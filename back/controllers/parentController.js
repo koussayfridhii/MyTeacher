@@ -112,7 +112,6 @@ export const getParentById = async (req, res) => {
 // @route   PUT /api/parents/:id
 // @access  Private (Admin or Coordinator who owns the parent)
 export const updateParent = async (req, res) => {
-  console.log(req.body);
   try {
     const {
       fullName,

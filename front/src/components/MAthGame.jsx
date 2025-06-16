@@ -49,7 +49,7 @@ function generateQuestions(count = 100) {
 
   return questions;
 }
-const questions = generateQuestions(100);
+const questions = generateQuestions(10);
 const MAthGame = () => {
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);

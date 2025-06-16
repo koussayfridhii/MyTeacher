@@ -56,7 +56,7 @@ export default function MeetingRoom() {
       try {
         const { data } = await axios.post(
           `${baseURL}/users/push-class`,
-          { classId: location.pathname.replace("/meeting/", "") },
+          { classId: location.pathname.replace("/dashboard/meeting/", "") },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         dispatch(
@@ -115,7 +115,7 @@ export default function MeetingRoom() {
 
   const handleLeave = async () => {
     await leave();
-    navigate("/");
+    navigate("/dashboard");
   };
 
   if (loading || !canJoin) {

@@ -96,7 +96,6 @@ const RecordingsList = ({ type }) => {
         url: rec.url || rec.filename,
       };
     });
-
     const visibleRecs =
       user.role === "admin"
         ? merged
@@ -122,7 +121,9 @@ const RecordingsList = ({ type }) => {
 
   const handlePlay = (meeting) => {
     const id = meeting.session_id || meeting._id;
-    navigate(`/meeting/recordings/${id}`, { state: { link: meeting.url } });
+    navigate(`/dashboard/meeting/recordings/${id}`, {
+      state: { link: meeting.url },
+    });
   };
 
   // Memoized and filtered/sorted items

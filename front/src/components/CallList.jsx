@@ -211,7 +211,9 @@ const CallList = ({ type }) => {
                   </Box>
                   {["now"].includes(type) && (
                     <Button
-                      onClick={() => navigate(`/meeting/${meeting.meetID}`)}
+                      onClick={() =>
+                        navigate(`/dashboard/meeting/${meeting.meetID}`)
+                      }
                       colorScheme={type === "ended" ? "blue" : "teal"}
                     >
                       Start
@@ -255,7 +257,7 @@ const CallList = ({ type }) => {
 };
 
 CallList.propTypes = {
-  type: PropTypes.oneOf(["upcoming", "ended"]).isRequired,
+  type: PropTypes.oneOf(["upcoming", "ended", "now"]).isRequired,
 };
 
 export default React.memo(CallList);

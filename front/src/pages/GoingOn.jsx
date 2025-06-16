@@ -6,7 +6,7 @@ const GoingOn = () => {
   return (
     <Flex spacing={4} w="full" flexDir="column" p={4}>
       <Text fontWeight="bold" fontSize="3xl" color="text">
-        Previous Calls
+        Going On Calls
       </Text>
 
       <CallList type="now" />
