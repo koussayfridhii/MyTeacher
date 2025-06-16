@@ -38,6 +38,7 @@ const Plan = lazy(() => import("./pages/Plan.jsx"));
 const Landing = lazy(() => import("./pages/landing/Landing.jsx"));
 const WalletHistory = lazy(() => import("./pages/WalletHistory.jsx"));
 const Parents = lazy(() => import("./pages/Parents.jsx"));
+const PaymentProof = lazy(() => import("./pages/PaymentProof.jsx"));
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
   import("./components/ListView.jsx")
@@ -89,6 +90,7 @@ const router = createBrowserRouter([
           { path: "students", element: <Students /> },
           { path: "parents", element: <Parents /> },
           { path: "wallet-history", element: <WalletHistory /> },
+          { path: "payment-proof", element: <PaymentProof /> },
           { path: "potential-clients", element: <PotentialClientsListView /> },
           {
             path: "potential-clients/create",

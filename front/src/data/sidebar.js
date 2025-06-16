@@ -167,6 +167,16 @@ export const sidebarLinks = [
     },
     authorizedRoles: ["admin", "coordinator"],
   },
+  {
+    imgURL: "/assets/icons/coin.svg", // Using a more distinct icon if available, otherwise a generic one
+    route: "/dashboard/payment-proof",
+    label: {
+      ar: "اثبات الدفع",
+      en: "Payment Proof",
+      fr: "Pruves de paiement",
+    },
+    authorizedRoles: ["admin", "coordinator"],
+  },
 ];
 
 export const avatarImages = [

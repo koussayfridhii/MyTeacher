@@ -16,6 +16,7 @@ import availabilityRoutes from "./routes/availabilityRoutes.js";
 import planRoutes from "./routes/planRoutes.js";
 import parentRoutes from "./routes/parentRoutes.js";
 import potentialClientRoutes from "./routes/potenitalClientRoutes.js";
+import paymentProuveRoutes from "./routes/paymentProuveRoutes.js";
 connectDB();
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/api/availability", availabilityRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/parents", parentRoutes);
 app.use("/api/potential-clients", potentialClientRoutes);
+app.use("/api/payment-prouve", paymentProuveRoutes);
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });

@@ -29,6 +29,7 @@ import {
   useColorMode,
   useColorModeValue,
   Link as ChakraLink,
+  Image as ChakraImage,
 } from "@chakra-ui/react";
 import {
   InfoIcon,
@@ -292,22 +293,43 @@ const LandingPage = () => {
   // featuresData needs to be defined inside LandingPage to use useColorModeValue or values derived from it.
   const featuresData = [
     {
-      iconName: "InfoIcon",
-      titleKey: "feature1Title",
-      descKey: "feature1Desc",
-      iconColor: useColorModeValue("teal.500", "teal.300"),
+      icon: "/assets/icons/interactive.gif",
+      title: {
+        ar: "دروس حية وتفاعلية",
+        fr: "Des cours vivants",
+        en: "Lively and interactive lessons",
+      },
+      desc: {
+        ar: ".  مدعّمة بفيديوهات، اختبارات، حالات تطبيقية، وتمارين محلولة",
+        fr: "Des cours vivants et interactifs enrichis de vidéos, quiz, cas pratiques et exercices corrigés.",
+        en: "Lively and interactive lessons enriched with videos, quizzes, case studies, and solved exercises.",
+      },
     },
     {
-      iconName: "CheckCircleIcon",
-      titleKey: "feature2Title",
-      descKey: "feature2Desc",
-      iconColor: useColorModeValue("green.500", "green.300"),
+      icon: "/assets/icons/experience.gif",
+      title: {
+        ar: "التجربة",
+        fr: "l'expérience",
+        en: "the Experience",
+      },
+      desc: {
+        ar: ".تجربة تعلم سلسة، سهلة الوصول وجذابة على جميع أجهزتكم",
+        fr: "Une expérience d’apprentissage fluide, accessible et engageante sur tous vos appareils.",
+        en: "A smooth, accessible, and engaging learning experience on all your devices.",
+      },
     },
     {
-      iconName: "SettingsIcon",
-      titleKey: "feature3Title",
-      descKey: "feature3Desc",
-      iconColor: useColorModeValue("blue.500", "blue.300"),
+      icon: "/assets/icons/support.gif",
+      title: {
+        ar: "الدعم والمتابعة",
+        fr: "Le suivi personnalisé",
+        en: "Support and follow up",
+      },
+      desc: {
+        ar: ".متابعة شخصية للتقدّم حسب وتيرتك، مع موارد متاحة في أي وقت",
+        fr: "Un suivi personnalisé pour progresser à votre rythme, avec des ressources toujours disponibles.",
+        en: "Personalized support and follow up to progress at your own pace, with resources always available.",
+      },
     },
   ];
 
@@ -488,14 +510,22 @@ const LandingPage = () => {
           p={8}
         >
           <Heading as="h2" size="2xl" color="white" fontWeight="bold">
-            {t("heroHeadline", currentLanguage)}
+            {currentLanguage === "fr"
+              ? "Votre partenaire éducatif, de l’école à la vie professionnelle."
+              : currentLanguage === "ar"
+              ? ".شريككم في التعليم، من المدرسة إلى الحياة المهنية"
+              : "Your educational partner, from school to professional life."}
           </Heading>
           <Text fontSize="xl" color="white" mb={2}>
-            {" "}
-            {/* Adjusted color and mb */}
-            {t("heroSubheadline", currentLanguage)}
+            {currentLanguage === "fr"
+              ? "Le succès commence avec Be First Learning."
+              : currentLanguage === "ar"
+              ? " Be First Learning" + " النجاح يبدأ مع"
+              : "Success starts with Be First Learning"}
           </Text>
           <Button
+            as={Link}
+            to="/signup"
             colorScheme="whiteAlpha"
             size="lg"
             _hover={{ bg: "whiteAlpha.900", color: "teal.500" }}
@@ -524,7 +554,6 @@ const LandingPage = () => {
           viewport={{ once: true, amount: 0.2 }}
         >
           {featuresData.map((feature, index) => {
-            const FeatureIcon = iconMap[feature.iconName];
             return (
               <MotionBox
                 key={index}
@@ -539,22 +568,13 @@ const LandingPage = () => {
                 transition="box-shadow 0.2s"
               >
                 <Flex direction="column" align="center">
-                  {FeatureIcon && (
-                    <Icon
-                      as={FeatureIcon}
-                      w={12}
-                      h={12}
-                      color={feature.iconColor}
-                      mb={5}
-                    />
-                  )}
+                  {<ChakraImage src={feature.icon} boxSize={95} />}
                   <Heading as="h3" size="lg" mb={3}>
-                    {t(feature.titleKey, currentLanguage)}
+                    {feature.title[currentLanguage]}
                   </Heading>
                   <Text textAlign="center">
                     {" "}
-                    {/* Default text color should adapt */}
-                    {t(feature.descKey, currentLanguage)}
+                    {feature.desc[currentLanguage]}
                   </Text>
                 </Flex>
               </MotionBox>
@@ -562,127 +582,14 @@ const LandingPage = () => {
           })}
         </MotionSimpleGrid>
       </Box>
-      <Box id="pricing-section" py={20} px={{ base: 4, md: 8 }}>
-        <Heading as="h2" size="2xl" textAlign="center" mb={6}>
-          {t("pricingTitle", currentLanguage)}
-        </Heading>
-        <Text textAlign="center" fontSize="lg" color={subtleTextColor} mb={10}>
-          {" "}
-          {/* Updated */}
-          {t("pricingSubtitle", currentLanguage)}
-        </Text>
 
-        <Flex justify="center" mb={10}>
-          {" "}
-          {/* ButtonGroup should adapt well */}
-          <ButtonGroup isAttached variant="outline">
-            <Button
-              onClick={() => setIsAnnualBilling(false)}
-              isActive={!isAnnualBilling}
-              colorScheme={!isAnnualBilling ? "teal" : "gray"}
-            >
-              {t("monthlyBilling", currentLanguage)}
-            </Button>
-            <Button
-              onClick={() => setIsAnnualBilling(true)}
-              isActive={isAnnualBilling}
-              colorScheme={isAnnualBilling ? "teal" : "gray"}
-            >
-              {t("annualBilling", currentLanguage)}
-            </Button>
-          </ButtonGroup>
-        </Flex>
-        <MotionSimpleGrid
-          columns={{ base: 1, md: 2, lg: 4 }}
-          spacing={8}
-          maxW="container.xl"
-          mx="auto"
-          variants={staggerContainerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          {pricingPlansData.map((plan, index) => (
-            <MotionBox
-              key={index}
-              variants={fadeInUpVariants}
-              display="flex"
-              flexDirection="column"
-              justifyContent="space-between"
-              {...plan.cardStyles} // Spread the card styles
-            >
-              <Box>
-                {plan.isRecommended && (
-                  <Flex
-                    justifyContent="space-between"
-                    alignItems="center"
-                    mb={4}
-                  >
-                    <Heading as="h3" size="lg">
-                      {t(plan.titleKey, currentLanguage)}
-                    </Heading>
-                    <Text
-                      bg={recommendedBadgeBg}
-                      color={recommendedBadgeColor}
-                      fontSize="xs"
-                      fontWeight="bold"
-                      px={3}
-                      py={1}
-                      borderRadius="full"
-                    >
-                      {" "}
-                      {/* Updated */}
-                      {t("recommendedLabel", currentLanguage)}
-                    </Text>
-                  </Flex>
-                )}
-                {!plan.isRecommended && (
-                  <Heading as="h3" size="lg" mb={4}>
-                    {t(plan.titleKey, currentLanguage)}
-                  </Heading>
-                )}
-                <Text fontSize="4xl" fontWeight="bold" mb={1}>
-                  {" "}
-                  {/* Default text color should adapt */}
-                  {isAnnualBilling
-                    ? t(plan.annualPriceKey, currentLanguage)
-                    : t(plan.monthlyPriceKey, currentLanguage)}
-                </Text>
-                <Text color={subtleTextColor} mb={6}>
-                  {" "}
-                  {/* Updated */}
-                  {isAnnualBilling
-                    ? t("perYear", currentLanguage)
-                    : t("perMonth", currentLanguage)}
-                </Text>
-                <List spacing={3} mb={6} textAlign="left">
-                  {plan.features.map((featureKey, featureIndex) => (
-                    <ListItem key={featureIndex}>
-                      <ListIcon
-                        as={CheckIcon}
-                        color={useColorModeValue("green.500", "green.300")}
-                      />{" "}
-                      {/* Updated */}
-                      {t(featureKey, currentLanguage)}
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-              <Button w="full" colorScheme="teal" variant={plan.buttonVariant}>
-                {" "}
-                {/* Button colorScheme should adapt */}
-                {t("selectPlanButton", currentLanguage)}
-              </Button>
-            </MotionBox>
-          ))}
-        </MotionSimpleGrid>
-      </Box>
       <Box
         id="about-us-section"
         py={20}
         px={{ base: 4, md: 8 }}
-        maxW="container.lg"
         mx="auto"
+        bg={useColorModeValue("blue.100", "gray.800")} // Updated
+        dir={currentLanguage === "ar" ? "rtl" : "ltr"} // Added dir attribute for RTL support
       >
         <MotionFlex
           direction={{ base: "column", md: "row" }}
@@ -694,24 +601,46 @@ const LandingPage = () => {
           viewport={{ once: true, amount: 0.2 }}
         >
           {/* Column 1: Text Content */}
-          <Box flex="1" textAlign={{ base: "center", md: "left" }}>
-            <Heading as="h2" size="2xl" mb={6} fontWeight="bold">
+          <Box
+            flex="1"
+            textAlign={{
+              base: "center",
+              md: currentLanguage === "ar" ? "right" : "left",
+            }} // Adjust text alignment based on language
+            dir={currentLanguage === "ar" ? "rtl" : "ltr"}
+          >
+            <Heading
+              as="h2"
+              size="2xl"
+              mb={6}
+              fontWeight="bold"
+              dir={currentLanguage === "ar" ? "rtl" : "ltr"}
+            >
               {" "}
               {/* Default heading color should adapt */}
               {t("aboutUsTitle", currentLanguage)}
             </Heading>
             <Text fontSize="lg" color={aboutUsTextColor} mb={4}>
-              {" "}
-              {/* Updated */}
-              {t("aboutUsMissionP1", currentLanguage)}
+              {currentLanguage === "fr"
+                ? "Be First Learning est une plateforme tunisienne de formation en ligne qui propose des cours de soutien scolaire (conformes aux programmes tunisiens et étrangers) et des formations pour professionnels. Elle s’adresse aux élèves, parents, enseignants et formateurs."
+                : currentLanguage === "ar"
+                ? " هي منصة تونسية للتكوين عن بعد، تقدّم دروس دعم مدرسي (مطابقة للبرامج التونسية والأجنبية) وتكوينات مهنية. توجّه خدماتها للتلاميذ، الأولياء، المدرّسين، والمكوّنين."
+                : "Be First Learning is a Tunisian online training platform that offers academic support courses (aligned with both Tunisian and international curricula) and professional training. It is designed for students, parents, teachers, and trainers."}
             </Text>
             <Text fontSize="lg" color={aboutUsTextColor} mb={6}>
-              {" "}
-              {/* Updated */}
-              {t("aboutUsMissionP2", currentLanguage)}
+              {currentLanguage === "fr"
+                ? "Les cours couvrent de nombreuses disciplines : langues (arabe, français, anglais, allemand), maths, sciences, technologie, informatique, économie-gestion, etc. Pour les professionnels, l’offre inclut communication, marketing digital, développement personnel, bureautique, comptabilité, etc."
+                : currentLanguage === "ar"
+                ? "تشمل الدروس عديد المواد: اللغات (العربية، الفرنسية، الإنجليزية، الألمانية)، الرياضيات، العلوم، التكنولوجيا، الإعلامية، الاقتصاد والتصرف، وغيرها. أما بالنسبة للمحترفين، فتشمل العروض مجالات مثل: التواصل، التسويق الرقمي، التنمية الذاتية، برامج المكتب، المحاسبة، وغيرها."
+                : "The courses cover a wide range of subjects: languages (Arabic, French, English, German), mathematics, sciences, technology, computer science, economics and management, etc. For professionals, the offer includes communication, digital marketing, personal development, office tools, accounting, and more."}
             </Text>
-            {/* Optional: Add a button or list of values here if desired */}
-            {/* <Button colorScheme="teal" size="lg">{t('learnMoreAboutUs', currentLanguage)}</Button> */}
+            <Text fontSize="lg" color={aboutUsTextColor} mb={6}>
+              {currentLanguage === "fr"
+                ? "Les formations se font en direct via vidéoconférences interactives intégrées à la plateforme, sans logiciel externe. Une séance gratuite est proposée pour découvrir l’outil et évaluer le niveau."
+                : currentLanguage === "ar"
+                ? "تُقدَّم التكوينات مباشرة عبر حصص بالفيديو مدمجة في المنصة، دون الحاجة إلى برامج خارجية. وتُتاح حصة مجانية للتعرّف على المنصة وتقييم المستوى."
+                : "Trainings are delivered live via interactive video conferencing integrated into the platform, with no external software required. A free session is offered to discover the platform and assess the learner's level."}
+            </Text>
           </Box>
 
           {/* Column 2: Image */}
