@@ -1,0 +1,35 @@
+  version: '3'
+  services:
+    client:
+      build:
+        context: ./front
+        dockerfile: Dockerfile
+      ports:
+        - "4173:3000"
+      environment:
+        - VITE_API_URL=http://localhost:5000/api
+        - VITE_STREAM_API_KEY=4538gvnghraz
+      depends_on:
+        - server
+      restart: unless-stopped
+
+    server:
+      build:
+        context: ./back
+        dockerfile: Dockerfile
+      ports:
+        - "5000:5000"
+      env_file:
+        - ./back/.env
+      restart: unless-stopped
+
+    nginx:
+      build:
+        context: ./nginx
+        dockerfile: Dockerfile
+      ports:
+        - "80:80"
+      depends_on:
+        - client
+        - server
+      restart: unless-stopped

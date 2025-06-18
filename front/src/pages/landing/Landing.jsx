@@ -657,11 +657,78 @@ const LandingPage = () => {
           </Box>
         </MotionFlex>
       </Box>
+
+      {/* Nos Objectifs Section */}
+      <Box
+        id="nos-objectifs-section"
+        py={20}
+        px={{ base: 4, md: 8 }}
+        bg={useColorModeValue("green.50", "green.900")}
+        textAlign="center"
+        dir={currentLanguage === "ar" ? "rtl" : "ltr"}
+      >
+        <Heading as="h2" size="2xl" mb={10} fontWeight="bold">
+          {currentLanguage === "fr"
+            ? "Nos objectifs"
+            : currentLanguage === "ar"
+            ? "أهدافنا"
+            : "Our Objectives"}
+        </Heading>
+        <List
+          spacing={3}
+          maxW="container.md"
+          mx="auto"
+          textAlign={currentLanguage === "ar" ? "right" : "left"}
+        >
+          <ListItem>
+            <ListIcon as={CheckCircleIcon} color="green.500" />
+            {currentLanguage === "fr"
+              ? "Accompagner les élèves vers la réussite scolaire"
+              : currentLanguage === "ar"
+              ? "مرافقة التلاميذ نحو النجاح الدراسي"
+              : "Support students towards academic success"}
+          </ListItem>
+          <ListItem>
+            <ListIcon as={CheckCircleIcon} color="green.500" />
+            {currentLanguage === "fr"
+              ? "Outiller les professionnels pour leur évolution de carrière"
+              : currentLanguage === "ar"
+              ? "تزويد المهنيين بالأدوات اللازمة لتطورهم الوظيفي"
+              : "Equip professionals for their career development"}
+          </ListItem>
+          <ListItem>
+            <ListIcon as={CheckCircleIcon} color="green.500" />
+            {currentLanguage === "fr"
+              ? "Créer une communauté d’apprentissage inclusive"
+              : currentLanguage === "ar"
+              ? "إنشاء مجتمع تعليمي شامل"
+              : "Create an inclusive learning community"}
+          </ListItem>
+          <ListItem>
+            <ListIcon as={CheckCircleIcon} color="green.500" />
+            {currentLanguage === "fr"
+              ? "Proposer une plateforme intuitive et innovante"
+              : currentLanguage === "ar"
+              ? "تقديم منصة سهلة الاستخدام ومبتكرة"
+              : "Offer an intuitive and innovative platform"}
+          </ListItem>
+          <ListItem>
+            <ListIcon as={CheckCircleIcon} color="green.500" />
+            {currentLanguage === "fr"
+              ? "Contribuer à la transformation numérique de l’éducation en Tunisie et au-delà"
+              : currentLanguage === "ar"
+              ? "المساهمة في التحول الرقمي للتعليم في تونس وخارجها"
+              : "Contribute to the digital transformation of education in Tunisia and beyond"}
+          </ListItem>
+        </List>
+      </Box>
+
       <Box
         id="teachers-section"
         py={20}
         px={{ base: 4, md: 8 }}
         bg={sectionSubtleBg}
+        dir={currentLanguage === "ar" ? "rtl" : "ltr"}
       >
         {" "}
         {/* Updated */}
@@ -669,13 +736,28 @@ const LandingPage = () => {
           as="h2"
           size="2xl"
           textAlign="center"
-          mb={12}
+          mb={6} // Reduced margin bottom for the new text
           fontWeight="bold"
         >
           {" "}
           {/* Default heading color should adapt */}
           {t("teachersTitle", currentLanguage)}
         </Heading>
+        <Text
+          fontSize="lg"
+          color={subtleTextColor}
+          mb={12}
+          textAlign="center"
+          maxW="container.lg"
+          mx="auto"
+          px={{ base: 2, md: 4 }} // Add some padding for better readability on smaller screens
+        >
+          {currentLanguage === "fr"
+            ? "Chez Be First Learning, l'excellence commence par les personnes qui vous enseignent. C’est pourquoi nous avons réuni une équipe d’enseignants et de formateurs/trices sur le volet, reconnus pour leur maîtrise pédagogique, leur expérience concrète sur le terrain et leur capacité à motiver chaque apprenant. Qu’il s’agisse de matières scolaires comme les mathématiques, les langues, les sciences, ou de compétences professionnelles comme le marketing digital, les langues étrangères ou la bureautique, nos experts sont là pour vous guider, en direct, avec des méthodes innovantes et des supports personnalisés. Pourquoi choisir nos enseignants experts?  Parce qu’ils connaissent parfaitement les programmes officiels tunisiens et internationaux.  Parce qu’ils savent adapter leur pédagogie à votre rythme et vos besoins.  Parce qu’ils vous accompagnent non seulement pour réussir vos examens, mais aussi pour atteindre vos objectifs professionnels. Rejoignez Be First Learning et vivez l’expérience d’un apprentissage de qualité, avec des experts passionnés par votre réussite."
+            : currentLanguage === "ar"
+            ? "في Be First Learning، يبدأ التميز بالأشخاص الذين يعلمونك. لهذا السبب قمنا بتجميع فريق من المعلمين والمدربين المختارين بعناية، والمعروفين بإتقانهم التربوي وخبرتهم الميدانية وقدرتهم على تحفيز كل متعلم. سواء تعلق الأمر بالمواد الدراسية مثل الرياضيات واللغات والعلوم، أو المهارات المهنية مثل التسويق الرقمي واللغات الأجنبية أو تطبيقات المكاتب، فإن خبرائنا هنا لإرشادك مباشرةً، بأساليب مبتكرة ومواد مخصصة. لماذا تختار معلمينا الخبراء؟ لأنهم على دراية تامة بالبرامج الرسمية التونسية والدولية. لأنهم يعرفون كيف يكيفون أساليبهم التعليمية مع وتيرتك واحتياجاتك. لأنهم يرافقونك ليس فقط للنجاح في امتحاناتك، ولكن أيضًا لتحقيق أهدافك المهنية. انضم إلى Be First Learning وعش تجربة تعلم عالية الجودة، مع خبراء شغوفين بنجاحك."
+            : "At Be First Learning, excellence begins with the people who teach you. That's why we have assembled a team of handpicked teachers and trainers, recognized for their pedagogical mastery, practical field experience, and ability to motivate each learner. Whether it's school subjects like mathematics, languages, sciences, or professional skills like digital marketing, foreign languages, or office software, our experts are here to guide you, live, with innovative methods and personalized materials. Why choose our expert teachers? Because they are perfectly familiar with official Tunisian and international programs. Because they know how to adapt their teaching methods to your pace and needs. Because they support you not only to pass your exams but also to achieve your professional goals. Join Be First Learning and experience quality learning with experts passionate about your success."}
+        </Text>
         <MotionSimpleGrid
           columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
           spacingX={10}
