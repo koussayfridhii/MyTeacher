@@ -21,22 +21,22 @@ connectDB();
 
 const app = express();
 const allowedOrigins = ["https://my-teacher-6ner.vercel.app"];
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-  })
-);
-// app.use(cors({ origin: "*" }));
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     preflightContinue: false,
+//     optionsSuccessStatus: 204,
+//   })
+// );
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(passport.initialize());
 import("./config/passport.js").then((mod) => mod.default(passport));
