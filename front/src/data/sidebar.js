@@ -177,6 +177,16 @@ export const sidebarLinks = [
     },
     authorizedRoles: ["admin", "coordinator"],
   },
+  {
+    imgURL: "/assets/icons/previous.svg", // Placeholder icon, update if a better one exists
+    route: "/dashboard/comments",
+    label: {
+      ar: "التعليقات", // Arabic for "Comments"
+      en: "Comments",
+      fr: "Commentaires", // French for "Comments"
+    },
+    authorizedRoles: ["admin", "coordinator"],
+  },
 ];
 
 export const avatarImages = [

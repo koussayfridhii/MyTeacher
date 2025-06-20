@@ -2,6 +2,7 @@ import express from "express";
 import passport from "passport";
 import "dotenv/config";
 import cors from "cors";
+// import morgan from "morgan";
 import connectDB from "./config/db.js";
 import errorHandler from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -17,9 +18,13 @@ import planRoutes from "./routes/planRoutes.js";
 import parentRoutes from "./routes/parentRoutes.js";
 import potentialClientRoutes from "./routes/potenitalClientRoutes.js";
 import paymentProuveRoutes from "./routes/paymentProuveRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+
 connectDB();
 
 const app = express();
+// app.use(morgan("dev")); // or 'combined', 'tiny', etc.
+
 const allowedOrigins = [
   "https://www.befirstlearning.com",
   "http://www.befirstlearning.com",
@@ -57,6 +62,7 @@ app.use("/api/plans", planRoutes);
 app.use("/api/parents", parentRoutes);
 app.use("/api/potential-clients", potentialClientRoutes);
 app.use("/api/payment-prouve", paymentProuveRoutes);
+app.use("/api/comments", commentRoutes);
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });
