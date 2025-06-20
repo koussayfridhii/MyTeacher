@@ -1,5 +1,6 @@
 import { Box, Button, Flex, Heading } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 
 function generateQuestions(count = 100) {
   const operators = ["+", "-", "×", "÷"];
@@ -51,6 +52,7 @@ function generateQuestions(count = 100) {
 }
 const questions = generateQuestions(10);
 const MAthGame = () => {
+  const currentLanguage = useSelector((state) => state.language.language);
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [status, setStatus] = useState("");
@@ -65,7 +67,13 @@ const MAthGame = () => {
     if (!started || showSummary) return;
 
     if (timer === 0) {
-      setStatus("Time's up!");
+      setStatus(
+        currentLanguage === "fr"
+          ? "Temps écoulé !"
+          : currentLanguage === "ar"
+          ? "انتهى الوقت!"
+          : "Time's up!"
+      );
       setWrongStreak((w) => {
         const newStreak = w + 1;
         if (newStreak >= 3) setShowSummary(true);
@@ -85,10 +93,22 @@ const MAthGame = () => {
   const handleChoice = (choice) => {
     if (choice === current.correct) {
       setScore((s) => s + 1);
-      setStatus("Correct ✅");
+      setStatus(
+        currentLanguage === "fr"
+          ? "Correct ✅"
+          : currentLanguage === "ar"
+          ? "صحيح ✅"
+          : "Correct ✅"
+      );
       setWrongStreak(0);
     } else {
-      setStatus("Wrong ❌");
+      setStatus(
+        currentLanguage === "fr"
+          ? "Faux ❌"
+          : currentLanguage === "ar"
+          ? "خطأ ❌"
+          : "Wrong ❌"
+      );
       setWrongStreak((w) => {
         const newStreak = w + 1;
         if (newStreak >= 3) setShowSummary(true);
@@ -134,7 +154,13 @@ const MAthGame = () => {
           bg="primary"
           py={4}
         >
-          <Heading color="white">🧠 Welcome to the Math Quiz</Heading>
+          <Heading color="white">
+            {currentLanguage === "fr"
+              ? "🧠 Bienvenue au Quiz de Maths"
+              : currentLanguage === "ar"
+              ? "🧠 مرحبًا بك في اختبار الرياضيات"
+              : "🧠 Welcome to the Math Quiz"}
+          </Heading>
 
           <div className="button" onClick={() => setStarted(true)}>
             <button name="checkbox" type="button"></button>
@@ -147,16 +173,33 @@ const MAthGame = () => {
       ) : !showSummary ? (
         <>
           <header className="w-full bg-teal-500 p-4 mb-6">
-            <h1 className="text-3xl font-bold text-white">🧠 Math Quiz</h1>
+            <h1 className="text-3xl font-bold text-white">
+              {currentLanguage === "fr"
+                ? "🧠 Quiz de Maths"
+                : currentLanguage === "ar"
+                ? "🧠 اختبار الرياضيات"
+                : "🧠 Math Quiz"}
+            </h1>
           </header>
 
           <div className="bg-white h-[300px] shadow-md rounded flex flex-col gap-5 px-8 pt-6 pb-8 mb-4 w-full ">
             <div className="mb-4">
               <div className="bg-teal-500 text-xl font-semibold text-blue-600">
-                🏆 Score: {score}
+                {currentLanguage === "fr"
+                  ? "🏆 Score : "
+                  : currentLanguage === "ar"
+                  ? "🏆 النتيجة: "
+                  : "🏆 Score: "}
+                {score}
               </div>
               <div className="bg-teal-500 text-lg font-bold  px-4 py-2 shadow mt-2">
-                ⏱ Time: {timer}s
+                {currentLanguage === "fr"
+                  ? "⏱ Temps : "
+                  : currentLanguage === "ar"
+                  ? "⏱ الوقت: "
+                  : "⏱ Time: "}
+                {timer}
+                {currentLanguage === "ar" ? "ث" : "s"}
               </div>
             </div>
 
@@ -181,13 +224,30 @@ const MAthGame = () => {
         </>
       ) : (
         <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md">
-          <h2 className="text-2xl font-bold mb-4">Quiz Completed!</h2>
-          <p className="text-xl mb-4">Your final score is: {score}</p>
+          <h2 className="text-2xl font-bold mb-4">
+            {currentLanguage === "fr"
+              ? "Quiz terminé !"
+              : currentLanguage === "ar"
+              ? "اكتمل الاختبار!"
+              : "Quiz Completed!"}
+          </h2>
+          <p className="text-xl mb-4">
+            {currentLanguage === "fr"
+              ? "Votre score final est : "
+              : currentLanguage === "ar"
+              ? "نتيجتك النهائية هي: "
+              : "Your final score is: "}
+            {score}
+          </p>
           <button
             onClick={restartQuiz}
             className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded"
           >
-            Restart Quiz
+            {currentLanguage === "fr"
+              ? "Recommencer le Quiz"
+              : currentLanguage === "ar"
+              ? "إعادة الاختبار"
+              : "Restart Quiz"}
           </button>
         </div>
       )}

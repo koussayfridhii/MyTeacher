@@ -101,7 +101,6 @@ const TopUp = () => {
     patchWallet({ endpoint, payload });
     onClose();
   };
-  console.log(users);
   if (isLoading)
     return (
       <Center w="full" h="100vh">

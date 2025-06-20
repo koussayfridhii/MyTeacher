@@ -20,20 +20,37 @@ import { useSelector } from "react-redux";
 const MobileNav = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const location = useLocation();
-  const language = useSelector((state) => state.language.language);
-  const dir = language === "ar" ? "rtl" : "ltr";
+  const currentLanguage = useSelector((state) => state.language.language); // Renamed for consistency
+  const dir = currentLanguage === "ar" ? "rtl" : "ltr";
 
   return (
     <Box display={{ base: "block", md: "none" }} dir={dir}>
       <IconButton
-        icon={<ChakraImage src="/assets/icons/hamburger.svg" alt="menu icon" />}
-        aria-label="Open menu"
+        icon={
+          <ChakraImage
+            src="/assets/icons/hamburger.svg"
+            alt={
+              currentLanguage === "fr"
+                ? "icône de menu"
+                : currentLanguage === "ar"
+                ? "أيقونة القائمة"
+                : "menu icon"
+            }
+          />
+        }
+        aria-label={
+          currentLanguage === "fr"
+            ? "Ouvrir le menu"
+            : currentLanguage === "ar"
+            ? "فتح القائمة"
+            : "Open menu"
+        }
         variant="ghost"
         onClick={onOpen}
         size="lg"
       />
       <Drawer
-        placement={language === "ar" ? "right" : "left"}
+        placement={currentLanguage === "ar" ? "right" : "left"}
         onClose={onClose}
         isOpen={isOpen}
       >
@@ -44,11 +61,21 @@ const MobileNav = () => {
             <Box mb={6} display="flex" alignItems="center">
               <ChakraImage
                 src="/assets/icons/logo.svg"
-                alt="yoom logo"
+                alt={
+                  currentLanguage === "fr"
+                    ? "Logo Yoom"
+                    : currentLanguage === "ar"
+                    ? "شعار Yoom"
+                    : "Yoom logo"
+                }
                 boxSize="8"
               />
               <Text ml={2} fontSize="2xl" fontWeight="extrabold">
-                My Teacher
+                {currentLanguage === "fr"
+                  ? "Mon Professeur"
+                  : currentLanguage === "ar"
+                  ? "أستاذي"
+                  : "My Teacher"}
               </Text>
             </Box>
             <VStack align="stretch" spacing={4}>
@@ -73,11 +100,23 @@ const MobileNav = () => {
                     >
                       <ChakraImage
                         src={item.imgURL}
-                        alt={item.label[language]}
+                        alt={
+                          currentLanguage === "fr"
+                            ? item.label.fr
+                            : currentLanguage === "ar"
+                            ? item.label.ar
+                            : item.label.en
+                        }
                         boxSize="5"
                         mr={4}
                       />
-                      <Text fontWeight="semibold">{item.label[language]}</Text>
+                      <Text fontWeight="semibold">
+                        {currentLanguage === "fr"
+                          ? item.label.fr
+                          : currentLanguage === "ar"
+                          ? item.label.ar
+                          : item.label.en}
+                      </Text>
                     </Flex>
                   </NavLink>
                 );

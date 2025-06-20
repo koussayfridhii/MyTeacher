@@ -28,7 +28,7 @@ import { useSelector } from "react-redux";
 
 // -- Search & Sort Component --
 const SearchSort = React.memo(
-  ({ searchTerm, onSearch, sortOrder, onSortChange }) => (
+  ({ searchTerm, onSearch, sortOrder, onSortChange, currentLanguage }) => (
     <Flex mb={4} align="center" justify="space-between" wrap="wrap">
       <Stack
         direction={{ base: "column", md: "row" }}
@@ -39,7 +39,13 @@ const SearchSort = React.memo(
         borderRadius={10}
       >
         <Input
-          placeholder="Search by topic or teacher"
+          placeholder={
+            currentLanguage === "fr"
+              ? "Rechercher par sujet ou professeur"
+              : currentLanguage === "ar"
+              ? "البحث حسب الموضوع أو المعلم"
+              : "Search by topic or teacher"
+          }
           value={searchTerm}
           onChange={onSearch}
           color="white"
@@ -51,14 +57,30 @@ const SearchSort = React.memo(
           onChange={onSortChange}
           color="white"
         >
-          <option value="asc">Sort by Date ↑</option>
-          <option value="desc">Sort by Date ↓</option>
+          <option value="asc">
+            {currentLanguage === "fr"
+              ? "Trier par Date ↑"
+              : currentLanguage === "ar"
+              ? "فرز حسب التاريخ ↑"
+              : "Sort by Date ↑"}
+          </option>
+          <option value="desc">
+            {currentLanguage === "fr"
+              ? "Trier par Date ↓"
+              : currentLanguage === "ar"
+              ? "فرز حسب التاريخ ↓"
+              : "Sort by Date ↓"}
+          </option>
         </Select>
         <Button
           variant="outline"
           onClick={() => onSearch({ target: { value: "" } })}
         >
-          Clear
+          {currentLanguage === "fr"
+            ? "Effacer"
+            : currentLanguage === "ar"
+            ? "مسح"
+            : "Clear"}
         </Button>
       </Stack>
     </Flex>
@@ -70,6 +92,7 @@ SearchSort.propTypes = {
   onSearch: PropTypes.func.isRequired,
   sortOrder: PropTypes.oneOf(["asc", "desc"]).isRequired,
   onSortChange: PropTypes.func.isRequired,
+  currentLanguage: PropTypes.string.isRequired,
 };
 
 // -- Main Component --
@@ -81,6 +104,7 @@ const CallList = ({ type }) => {
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
   const user = useSelector((state) => state.user.user);
+  const currentLanguage = useSelector((state) => state.language.language);
   // Debounced search
   const debouncedSearch = useMemo(
     () => debounce((val) => setSearchTerm(val), 300),
@@ -132,7 +156,12 @@ const CallList = ({ type }) => {
       <Center py={10}>
         <Alert status="error">
           <AlertIcon />
-          {error.message || "Failed to load classes."}
+          {error.message ||
+            (currentLanguage === "fr"
+              ? "Échec du chargement des cours."
+              : currentLanguage === "ar"
+              ? "فشل تحميل الفصول الدراسية."
+              : "Failed to load classes.")}
         </Alert>
       </Center>
     );
@@ -144,6 +173,7 @@ const CallList = ({ type }) => {
         onSearch={handleSearch}
         sortOrder={sortOrder}
         onSortChange={handleSortChange}
+        currentLanguage={currentLanguage}
       />
 
       {paged?.length > 0 ? (
@@ -163,23 +193,43 @@ const CallList = ({ type }) => {
                   <Box>
                     <Text fontWeight="bold">{meeting.topic}</Text>
                     <Text fontSize="sm">
-                      Teacher: {meeting.teacher?.firstName}{" "}
-                      {meeting.teacher?.lastName}
+                      {currentLanguage === "fr"
+                        ? "Professeur: "
+                        : currentLanguage === "ar"
+                        ? "المعلم: "
+                        : "Teacher: "}
+                      {meeting.teacher?.firstName} {meeting.teacher?.lastName}
                     </Text>
                     {user.role !== "teacher" && (
                       <Text fontWeight="bold" color="primary">
-                        Cost : {meeting.cost}
+                        {currentLanguage === "fr"
+                          ? "Coût : "
+                          : currentLanguage === "ar"
+                          ? "التكلفة : "
+                          : "Cost : "}
+                        {meeting.cost}
                       </Text>
                     )}
                     <Tooltip
                       label={meeting.students.map(
                         (s) => `${s.firstName} ${s.lastName}, `
                       )}
-                      aria-label="A tooltip"
+                      aria-label={
+                        currentLanguage === "fr"
+                          ? "Une info-bulle"
+                          : currentLanguage === "ar"
+                          ? "تلميح"
+                          : "A tooltip"
+                      }
                       cursor="pointer"
                     >
                       <Text fontSize="sm">
-                        Students: {meeting.students?.length || 0}
+                        {currentLanguage === "fr"
+                          ? "Étudiants: "
+                          : currentLanguage === "ar"
+                          ? "الطلاب: "
+                          : "Students: "}
+                        {meeting.students?.length || 0}
                       </Text>
                     </Tooltip>
                     {type === "ended" &&
@@ -188,11 +238,22 @@ const CallList = ({ type }) => {
                           label={meeting.presentStudents?.map(
                             (s) => `${s.firstName} ${s.lastName},`
                           )}
-                          aria-label="A tooltip"
+                          aria-label={
+                            currentLanguage === "fr"
+                              ? "Une info-bulle"
+                              : currentLanguage === "ar"
+                              ? "تلميح"
+                              : "A tooltip"
+                          }
                           cursor="pointer"
                         >
                           <Text fontWeight="semibold">
-                            Present Students {meeting.presentStudents?.length}
+                            {currentLanguage === "fr"
+                              ? "Étudiants Présents"
+                              : currentLanguage === "ar"
+                              ? "الطلاب الحاضرون"
+                              : "Present Students"}{" "}
+                            {meeting.presentStudents?.length}
                           </Text>
                         </Tooltip>
                       )}
@@ -200,14 +261,29 @@ const CallList = ({ type }) => {
                       type === "ended" &&
                       (meeting?.presentStudents?.includes(user._id) ? (
                         <Badge colorScheme="green" variant="solid">
-                          Present{" "}
+                          {currentLanguage === "fr"
+                            ? "Présent"
+                            : currentLanguage === "ar"
+                            ? "حاضر"
+                            : "Present"}{" "}
                         </Badge>
                       ) : (
                         <Badge colorScheme="red" variant="solid">
-                          Absent{" "}
+                          {currentLanguage === "fr"
+                            ? "Absent"
+                            : currentLanguage === "ar"
+                            ? "غائب"
+                            : "Absent"}{" "}
                         </Badge>
                       ))}
-                    <Text fontSize="sm">Date: {dateStr}</Text>
+                    <Text fontSize="sm">
+                      {currentLanguage === "fr"
+                        ? "Date"
+                        : currentLanguage === "ar"
+                        ? "التاريخ"
+                        : "Date"}
+                      : {dateStr}
+                    </Text>
                   </Box>
                   {["now"].includes(type) && (
                     <Button
@@ -216,7 +292,11 @@ const CallList = ({ type }) => {
                       }
                       colorScheme={type === "ended" ? "blue" : "teal"}
                     >
-                      Start
+                      {currentLanguage === "fr"
+                        ? "Commencer"
+                        : currentLanguage === "ar"
+                        ? "بدء"
+                        : "Start"}
                     </Button>
                   )}
                 </Flex>
@@ -227,7 +307,17 @@ const CallList = ({ type }) => {
       ) : (
         <Center py={10}>
           <Text fontSize="2xl" fontWeight="bold" color="gray.800">
-            {type === "ended" ? "No Previous Calls" : "No Upcoming Calls"}
+            {type === "ended"
+              ? currentLanguage === "fr"
+                ? "Aucun appel précédent"
+                : currentLanguage === "ar"
+                ? "لا توجد مكالمات سابقة"
+                : "No Previous Calls"
+              : currentLanguage === "fr"
+              ? "Aucun appel à venir"
+              : currentLanguage === "ar"
+              ? "لا توجد مكالمات قادمة"
+              : "No Upcoming Calls"}
           </Text>
         </Center>
       )}
@@ -239,16 +329,30 @@ const CallList = ({ type }) => {
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
             isDisabled={page === 1}
           >
-            Prev
+            {currentLanguage === "fr"
+              ? "Précédent"
+              : currentLanguage === "ar"
+              ? "السابق"
+              : "Previous"}
           </Button>
           <Text mx={2}>
-            {page} / {totalPages}
+            {page}
+            {currentLanguage === "fr"
+              ? " / "
+              : currentLanguage === "ar"
+              ? " / "
+              : " / "}
+            {totalPages}
           </Text>
           <Button
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             isDisabled={page === totalPages}
           >
-            Next
+            {currentLanguage === "fr"
+              ? "Suivant"
+              : currentLanguage === "ar"
+              ? "التالي"
+              : "Next"}
           </Button>
         </Flex>
       )}

@@ -18,6 +18,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { login as loginAction, attendClass } from "../redux/userSlice";
 import { useGetUsers } from "../hooks/useGetUsers";
+// Note: Removed t function import as it's being replaced by inline ternaries.
 import axios from "axios";
 import ReactSelect from "react-select";
 
@@ -38,6 +39,7 @@ const MeetingTypeList = () => {
   const dispatch = useDispatch();
   const toast = useToast();
   const client = useStreamVideoClient();
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
 
   const token = localStorage.getItem("token");
   const user = useSelector((s) => s.user.user);
@@ -68,7 +70,12 @@ const MeetingTypeList = () => {
     if (!client || !token) return;
     if (!values.dateTime || !values.teacherId || values.studentIds.length < 1) {
       toast({
-        title: "Topic, teacher & at least 1 student required",
+        title:
+          currentLanguage === "fr"
+            ? "Sujet, professeur et au moins 1 étudiant requis"
+            : currentLanguage === "ar"
+            ? "الموضوع والمعلم وطالب واحد على الأقل مطلوبون"
+            : "Topic, teacher & at least 1 student required",
         status: "warning",
         duration: 3000,
       });
@@ -76,7 +83,12 @@ const MeetingTypeList = () => {
     }
     if (!allowedRoles.includes(user.role)) {
       toast({
-        title: "You are not allowed to create meetings",
+        title:
+          currentLanguage === "fr"
+            ? "Vous n'êtes pas autorisé à créer des réunions"
+            : currentLanguage === "ar"
+            ? "غير مسموح لك بإنشاء اجتماعات"
+            : "You are not allowed to create meetings",
         status: "error",
         duration: 3000,
       });
@@ -93,7 +105,16 @@ const MeetingTypeList = () => {
         },
       });
       setCallDetail(call);
-      toast({ title: "Meeting Created", status: "success", duration: 3000 });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Réunion créée"
+            : currentLanguage === "ar"
+            ? "تم إنشاء الاجتماع"
+            : "Meeting Created",
+        status: "success",
+        duration: 3000,
+      });
 
       await axios.post(
         `${baseURL}/classes`,
@@ -110,7 +131,12 @@ const MeetingTypeList = () => {
     } catch (err) {
       console.error(err);
       toast({
-        title: "Failed to create Meeting",
+        title:
+          currentLanguage === "fr"
+            ? "Échec de la création de la réunion"
+            : currentLanguage === "ar"
+            ? "فشل إنشاء الاجتماع"
+            : "Failed to create Meeting",
         status: "error",
         duration: 3000,
       });
@@ -136,7 +162,12 @@ const MeetingTypeList = () => {
         console.log(err);
         if (err.response?.status === 400) {
           toast({
-            title: "Not enough points",
+            title:
+              currentLanguage === "fr"
+                ? "Points insuffisants"
+                : currentLanguage === "ar"
+                ? "ليس لديك نقاط كافية"
+                : "Not enough points",
             status: "warning",
             duration: 4000,
           });
@@ -151,12 +182,26 @@ const MeetingTypeList = () => {
           dispatch(loginAction({ user: p.data.user, ...w.data }));
         } else if (err.response?.status === 403) {
           toast({
-            title: "You are not enrolled in this class.",
+            title:
+              currentLanguage === "fr"
+                ? "Vous n'êtes pas inscrit à ce cours."
+                : currentLanguage === "ar"
+                ? "أنت غير مسجل في هذا الفصل."
+                : "You are not enrolled in this class.",
             status: "error",
             duration: 3000,
           });
         } else {
-          toast({ title: "Failed to join", status: "error", duration: 3000 });
+          toast({
+            title:
+              currentLanguage === "fr"
+                ? "Échec de la connexion"
+                : currentLanguage === "ar"
+                ? "فشل الانضمام"
+                : "Failed to join",
+            status: "error",
+            duration: 3000,
+          });
         }
       }
     } else navigate(`/meeting/${values.link}`);
@@ -187,32 +232,80 @@ const MeetingTypeList = () => {
           <HomeCard
             role="other"
             img="/assets/icons/add-meeting.svg"
-            title="New Meeting"
-            description="Start an instant meeting"
+            title={
+              currentLanguage === "fr"
+                ? "Nouvelle réunion"
+                : currentLanguage === "ar"
+                ? "اجتماع جديد"
+                : "New Meeting"
+            }
+            description={
+              currentLanguage === "fr"
+                ? "Démarrer une réunion instantanée"
+                : currentLanguage === "ar"
+                ? "بدء اجتماع فوري"
+                : "Start an instant meeting"
+            }
             handleClick={() => setMeetingState("instant")}
             bgColor="primary"
           />
           <HomeCard
             role="other"
             img="/assets/icons/join-meeting.svg"
-            title="Join Meeting"
-            description="Via invitation link"
+            title={
+              currentLanguage === "fr"
+                ? "Rejoindre une réunion"
+                : currentLanguage === "ar"
+                ? "الانضمام إلى اجتماع"
+                : "Join Meeting"
+            }
+            description={
+              currentLanguage === "fr"
+                ? "Via le lien d'invitation"
+                : currentLanguage === "ar"
+                ? "عبر رابط الدعوة"
+                : "Via invitation link"
+            }
             handleClick={() => setMeetingState("join")}
             bgColor="secondary"
           />
           <HomeCard
             role="other"
             img="/assets/icons/schedule.svg"
-            title="Schedule Meeting"
-            description="Plan your meeting"
+            title={
+              currentLanguage === "fr"
+                ? "Planifier une réunion"
+                : currentLanguage === "ar"
+                ? "جدولة اجتماع"
+                : "Schedule Meeting"
+            }
+            description={
+              currentLanguage === "fr"
+                ? "Planifiez votre réunion"
+                : currentLanguage === "ar"
+                ? "خطط لاجتماعك"
+                : "Plan your meeting"
+            }
             handleClick={() => setMeetingState("schedule")}
             bgColor="pink.500"
           />
           <HomeCard
             role="other"
             img="/assets/icons/recordings.svg"
-            title="View Recordings"
-            description="Meeting Recordings"
+            title={
+              currentLanguage === "fr"
+                ? "Voir les enregistrements"
+                : currentLanguage === "ar"
+                ? "عرض التسجيلات"
+                : "View Recordings"
+            }
+            description={
+              currentLanguage === "fr"
+                ? "Enregistrements des réunions"
+                : currentLanguage === "ar"
+                ? "تسجيلات الاجتماعات"
+                : "Meeting Recordings"
+            }
             handleClick={() => navigate("/meeting/recordings")}
             bgColor="green.500"
           />
@@ -220,8 +313,20 @@ const MeetingTypeList = () => {
       ) : (
         <HomeCard
           img="/assets/icons/join-meeting.svg"
-          title="Join Meeting"
-          description="Via invitation link"
+          title={
+            currentLanguage === "fr"
+              ? "Rejoindre une réunion"
+              : currentLanguage === "ar"
+              ? "الانضمام إلى اجتماع"
+              : "Join Meeting"
+          }
+          description={
+            currentLanguage === "fr"
+              ? "Via le lien d'invitation"
+              : currentLanguage === "ar"
+              ? "عبر رابط الدعوة"
+              : "Via invitation link"
+          }
           handleClick={() => setMeetingState("join")}
           bgColor="secondary"
           role="student"
@@ -233,12 +338,24 @@ const MeetingTypeList = () => {
         <MeetingModal
           isOpen={meetingState === "schedule"}
           onClose={() => setMeetingState(undefined)}
-          title="Create Meeting"
+          title={
+            currentLanguage === "fr"
+              ? "Créer une réunion"
+              : currentLanguage === "ar"
+              ? "إنشاء اجتماع"
+              : "Create Meeting"
+          }
           handleClick={createMeeting}
         >
           <Box mb={4}>
             <Input
-              placeholder="Topic"
+              placeholder={
+                currentLanguage === "fr"
+                  ? "Sujet"
+                  : currentLanguage === "ar"
+                  ? "الموضوع"
+                  : "Topic"
+              }
               value={values.topic}
               onChange={(e) =>
                 setValues((v) => ({ ...v, topic: e.target.value }))
@@ -248,7 +365,13 @@ const MeetingTypeList = () => {
           </Box>
           <Box mb={4}>
             <Select
-              placeholder="Select a teacher"
+              placeholder={
+                currentLanguage === "fr"
+                  ? "Sélectionnez un professeur"
+                  : currentLanguage === "ar"
+                  ? "اختر معلمًا"
+                  : "Select a teacher"
+              }
               value={values.teacherId}
               onChange={(e) =>
                 setValues((v) => ({ ...v, teacherId: e.target.value }))
@@ -263,7 +386,13 @@ const MeetingTypeList = () => {
             </Select>
           </Box>
           <Box mb={4}>
-            <Text mb={2}>Select students (1–8)</Text>
+            <Text mb={2}>
+              {currentLanguage === "fr"
+                ? "Sélectionnez les étudiants (1–8)"
+                : currentLanguage === "ar"
+                ? "اختر الطلاب (1–8)"
+                : "Select students (1–8)"}
+            </Text>
             <ReactSelect
               isMulti
               options={studentOptions}
@@ -276,19 +405,33 @@ const MeetingTypeList = () => {
                   setValues((v) => ({ ...v, studentIds: ids }));
                 }
               }}
-              placeholder="Type to search…"
+              placeholder={
+                currentLanguage === "fr"
+                  ? "Tapez pour rechercher..."
+                  : currentLanguage === "ar"
+                  ? "اكتب للبحث..."
+                  : "Type to search…"
+              }
               closeMenuOnSelect={false}
               isClearable
               styles={{ container: (base) => ({ ...base, minWidth: "200px" }) }}
             />
             {values.studentIds.length === 0 && (
               <Text color="red.500" fontSize="sm" mt={1}>
-                Please select at least one student.
+                {currentLanguage === "fr"
+                  ? "Veuillez sélectionner au moins un étudiant."
+                  : currentLanguage === "ar"
+                  ? "يرجى اختيار طالب واحد على الأقل."
+                  : "Please select at least one student."}
               </Text>
             )}
             {values.studentIds.length > 8 && (
               <Text color="red.500" fontSize="sm" mt={1}>
-                You can only select up to 8 students.
+                {currentLanguage === "fr"
+                  ? "Vous ne pouvez sélectionner que jusqu'à 8 étudiants."
+                  : currentLanguage === "ar"
+                  ? "يمكنك اختيار حتى 8 طلاب فقط."
+                  : "You can only select up to 8 students."}
               </Text>
             )}
           </Box>
@@ -308,15 +451,36 @@ const MeetingTypeList = () => {
         <MeetingModal
           isOpen={meetingState === "schedule"}
           onClose={() => setMeetingState(undefined)}
-          title="Meeting Created"
+          title={
+            currentLanguage === "fr"
+              ? "Réunion créée"
+              : currentLanguage === "ar"
+              ? "تم إنشاء الاجتماع"
+              : "Meeting Created"
+          }
           handleClick={() => {
             navigator.clipboard.writeText(meetingLink);
-            toast({ title: "Link Copied", status: "success", duration: 3000 });
+            toast({
+              title:
+                currentLanguage === "fr"
+                  ? "Lien copié"
+                  : currentLanguage === "ar"
+                  ? "تم نسخ الرابط"
+                  : "Link Copied",
+              status: "success",
+              duration: 3000,
+            });
           }}
           image="/assets/icons/checked.svg"
           buttonIcon="/assets/icons/copy.svg"
           className="text-center"
-          buttonText="Copy Meeting Link"
+          buttonText={
+            currentLanguage === "fr"
+              ? "Copier le lien de la réunion"
+              : currentLanguage === "ar"
+              ? "نسخ رابط الاجتماع"
+              : "Copy Meeting Link"
+          }
         />
       )}
 
@@ -324,13 +488,31 @@ const MeetingTypeList = () => {
       <MeetingModal
         isOpen={meetingState === "join"}
         onClose={() => setMeetingState(undefined)}
-        title="Enter the link"
+        title={
+          currentLanguage === "fr"
+            ? "Entrez le lien"
+            : currentLanguage === "ar"
+            ? "أدخل الرابط"
+            : "Enter the link"
+        }
         className="text-center"
-        buttonText="Join Meeting"
+        buttonText={
+          currentLanguage === "fr"
+            ? "Rejoindre la réunion"
+            : currentLanguage === "ar"
+            ? "الانضمام إلى الاجتماع"
+            : "Join Meeting"
+        }
         handleClick={handleJoinMeeting}
       >
         <Input
-          placeholder="Meeting link"
+          placeholder={
+            currentLanguage === "fr"
+              ? "Lien de la réunion"
+              : currentLanguage === "ar"
+              ? "رابط الاجتماع"
+              : "Meeting link"
+          }
           value={values.id}
           onChange={(e) => setValues((v) => ({ ...v, id: e.target.value }))}
           focusBorderColor="blue.300"
@@ -341,9 +523,21 @@ const MeetingTypeList = () => {
       <MeetingModal
         isOpen={meetingState === "instant"}
         onClose={() => setMeetingState(undefined)}
-        title="Start an Instant Meeting"
+        title={
+          currentLanguage === "fr"
+            ? "Démarrer une réunion instantanée"
+            : currentLanguage === "ar"
+            ? "بدء اجتماع فوري"
+            : "Start an Instant Meeting"
+        }
         className="text-center"
-        buttonText="Start Meeting"
+        buttonText={
+          currentLanguage === "fr"
+            ? "Démarrer la réunion"
+            : currentLanguage === "ar"
+            ? "بدء الاجتماع"
+            : "Start Meeting"
+        }
         handleClick={createMeeting}
       />
     </Grid>

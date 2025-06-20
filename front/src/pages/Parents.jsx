@@ -30,14 +30,13 @@ import { useGetParents, useDeleteParent } from "../hooks/useParents"; // Updated
 import CreateParentModal from "../components/CreateParentModal";
 import EditParentModal from "../components/EditParentModal";
 import { withAuthorization } from "../HOC/Protect.jsx"; // Corrected import
-import { t } from "../utils/translations";
 
 const Parents = () => {
   const toast = useToast();
   const { user } = useSelector((state) => ({
     user: state.user.user,
   }));
-  const language = useSelector((state) => state.language.language);
+  const currentLanguage = useSelector((state) => state.language.language); // Renamed language to currentLanguage
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,8 +129,18 @@ const Parents = () => {
       deleteParent(selectedParent._id, {
         onSuccess: () => {
           toast({
-            title: t("parentDeletedSuccessTitle", language),
-            description: t("parentDeletedSuccessDesc", language),
+            title:
+              currentLanguage === "fr"
+                ? "Parent Supprimé"
+                : currentLanguage === "ar"
+                ? "تم حذف ولي الأمر"
+                : "Parent Deleted",
+            description:
+              currentLanguage === "fr"
+                ? "Le parent a été supprimé avec succès."
+                : currentLanguage === "ar"
+                ? "تم حذف ولي الأمر بنجاح."
+                : "Parent has been successfully deleted.",
             status: "success",
             duration: 5000,
             isClosable: true,
@@ -142,11 +151,20 @@ const Parents = () => {
         },
         onError: (error) => {
           toast({
-            title: t("errorDeletingParentTitle", language),
+            title:
+              currentLanguage === "fr"
+                ? "Erreur de Suppression du Parent"
+                : currentLanguage === "ar"
+                ? "خطأ في حذف ولي الأمر"
+                : "Error Deleting Parent",
             description:
               error?.response?.data?.message ||
               error.message ||
-              t("errorDeletingParentDesc", language),
+              (currentLanguage === "fr"
+                ? "Une erreur s'est produite lors de la suppression du parent."
+                : currentLanguage === "ar"
+                ? "حدث خطأ أثناء حذف ولي الأمر."
+                : "An error occurred while deleting the parent."),
             status: "error",
             duration: 5000,
             isClosable: true,
@@ -178,7 +196,11 @@ const Parents = () => {
         <Text color="red.500">
           {fetchError?.response?.data?.message ||
             fetchError?.message ||
-            t("errorFetchingParents", language)}
+            (currentLanguage === "fr"
+              ? "Erreur lors de la récupération des données des parents."
+              : currentLanguage === "ar"
+              ? "خطأ في جلب بيانات أولياء الأمور."
+              : "Error fetching parents data.")}
         </Text>
       </Center>
     );
@@ -186,11 +208,23 @@ const Parents = () => {
 
   return (
     <Box p={5}>
-      <Heading mb={6}>{t("parentsList", language)}</Heading>
+      <Heading mb={6}>
+        {currentLanguage === "fr"
+          ? "Liste des Parents"
+          : currentLanguage === "ar"
+          ? "قائمة أولياء الأمور"
+          : "Parents List"}
+      </Heading>
 
       <HStack mb={4} spacing={4}>
         <Input
-          placeholder={t("searchByName", language)} // Consider a more generic placeholder if searching more fields
+          placeholder={
+            currentLanguage === "fr"
+              ? "Rechercher par nom..."
+              : currentLanguage === "ar"
+              ? "البحث بالاسم..."
+              : "Search by name..."
+          }
           value={searchTerm}
           onChange={handleSearchChange}
           width={{ base: "100%", md: "300px" }}
@@ -200,14 +234,17 @@ const Parents = () => {
           colorScheme="teal"
           onClick={onCreateModalOpen}
         >
-          {t("createParent", language)}
+          {currentLanguage === "fr"
+            ? "Créer un Parent"
+            : currentLanguage === "ar"
+            ? "إنشاء ولي أمر"
+            : "Create Parent"}
         </Button>
       </HStack>
 
       <CreateParentModal
         isOpen={isCreateModalOpen}
         onClose={onCreateModalClose}
-        language={language}
       />
       {selectedParent && (
         <EditParentModal
@@ -217,7 +254,6 @@ const Parents = () => {
             setSelectedParent(null);
           }}
           parentData={selectedParent}
-          language={language}
         />
       )}
 
@@ -227,13 +263,55 @@ const Parents = () => {
           <Thead>
             <Tr>
               <Th>#</Th>
-              <Th>{t("fullName", language)}</Th>
-              <Th>{t("email", language)}</Th>
-              <Th>{t("mobileNumber", language)}</Th>
-              <Th>{t("numberOfStudents", language)}</Th>
-              <Th>{t("coordinator", language)}</Th>
-              <Th>{t("isAssigned", language)}</Th>
-              <Th>{t("actions", language)}</Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Nom Complet"
+                  : currentLanguage === "ar"
+                  ? "الاسم الكامل"
+                  : "Full Name"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Email"
+                  : currentLanguage === "ar"
+                  ? "البريد الإلكتروني"
+                  : "Email"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Numéro de Mobile"
+                  : currentLanguage === "ar"
+                  ? "رقم الجوال"
+                  : "Mobile Number"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Nb. d'Étudiants"
+                  : currentLanguage === "ar"
+                  ? "عدد الطلاب"
+                  : "No. of Students"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Coordinateur"
+                  : currentLanguage === "ar"
+                  ? "المنسق"
+                  : "Coordinator"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Assigné"
+                  : currentLanguage === "ar"
+                  ? "مُعين"
+                  : "Assigned"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Actions"
+                  : currentLanguage === "ar"
+                  ? "الإجراءات"
+                  : "Actions"}
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -247,7 +325,11 @@ const Parents = () => {
                 <Td>
                   {parent.coordinator
                     ? `${parent.coordinator.firstName} ${parent.coordinator.lastName}`
-                    : t("notAssigned", language)}
+                    : currentLanguage === "fr"
+                    ? "N/A"
+                    : currentLanguage === "ar"
+                    ? "غير مُحدد"
+                    : "N/A"}
                 </Td>
                 <Td>{parent.isAssigned ? "✔️" : "❌"}</Td>
                 <Td>
@@ -257,7 +339,11 @@ const Parents = () => {
                       leftIcon={<FiEdit />}
                       onClick={() => handleEditClick(parent)}
                     >
-                      {t("edit", language)}
+                      {currentLanguage === "fr"
+                        ? "Modifier"
+                        : currentLanguage === "ar"
+                        ? "تعديل"
+                        : "Edit"}
                     </Button>
                     <Button
                       size="sm"
@@ -268,7 +354,11 @@ const Parents = () => {
                         isDeleting && selectedParent?._id === parent._id
                       }
                     >
-                      {t("delete", language)}
+                      {currentLanguage === "fr"
+                        ? "Supprimer"
+                        : currentLanguage === "ar"
+                        ? "حذف"
+                        : "Delete"}
                     </Button>
                   </HStack>
                 </Td>
@@ -283,8 +373,16 @@ const Parents = () => {
           <Center my={10}>
             <Text>
               {searchTerm
-                ? t("noParentsFoundSearch", language)
-                : t("noParentsAvailable", language)}
+                ? currentLanguage === "fr"
+                  ? "Aucun parent trouvé correspondant à votre recherche."
+                  : currentLanguage === "ar"
+                  ? "لم يتم العثور على أولياء أمور مطابقين لبحثك."
+                  : "No parents found matching your search."
+                : currentLanguage === "fr"
+                ? "Aucun parent disponible à afficher."
+                : currentLanguage === "ar"
+                ? "لا يوجد أولياء أمور لعرضهم."
+                : "No parents available to display."}
             </Text>
           </Center>
         )}
@@ -296,27 +394,73 @@ const Parents = () => {
               onClick={() => handlePageChange(currentPage - 1)}
               isDisabled={currentPage === 1}
             >
-              {t("previous", language)}
+              {currentLanguage === "fr"
+                ? "Précédent"
+                : currentLanguage === "ar"
+                ? "السابق"
+                : "Previous"}
             </Button>
             <Text>
-              {t("page", language)} {currentPage} {t("of", language)}{" "}
+              {currentLanguage === "fr"
+                ? "Page"
+                : currentLanguage === "ar"
+                ? "صفحة"
+                : "Page"}{" "}
+              {currentPage}{" "}
+              {currentLanguage === "fr"
+                ? "de"
+                : currentLanguage === "ar"
+                ? "من"
+                : "of"}{" "}
               {totalPages || 1}
             </Text>
             <Button
               onClick={() => handlePageChange(currentPage + 1)}
               isDisabled={currentPage === totalPages || totalPages === 0}
             >
-              {t("next", language)}
+              {currentLanguage === "fr"
+                ? "Suivant"
+                : currentLanguage === "ar"
+                ? "التالي"
+                : "Next"}
             </Button>
             <Select
               width="120px"
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
             >
-              <option value={5}>5 {t("perPage", language)}</option>
-              <option value={10}>10 {t("perPage", language)}</option>
-              <option value={20}>20 {t("perPage", language)}</option>
-              <option value={50}>50 {t("perPage", language)}</option>
+              <option value={5}>
+                5
+                {currentLanguage === "fr"
+                  ? " par page"
+                  : currentLanguage === "ar"
+                  ? " لكل صفحة"
+                  : " per page"}
+              </option>
+              <option value={10}>
+                10
+                {currentLanguage === "fr"
+                  ? " par page"
+                  : currentLanguage === "ar"
+                  ? " لكل صفحة"
+                  : " per page"}
+              </option>
+              <option value={20}>
+                20
+                {currentLanguage === "fr"
+                  ? " par page"
+                  : currentLanguage === "ar"
+                  ? " لكل صفحة"
+                  : " per page"}
+              </option>
+              <option value={50}>
+                50
+                {currentLanguage === "fr"
+                  ? " par page"
+                  : currentLanguage === "ar"
+                  ? " لكل صفحة"
+                  : " per page"}
+              </option>
             </Select>
           </HStack>
         )}
@@ -330,15 +474,27 @@ const Parents = () => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              {t("deleteParentTitle", language)}
+              {currentLanguage === "fr"
+                ? "Supprimer le Parent"
+                : currentLanguage === "ar"
+                ? "حذف ولي الأمر"
+                : "Delete Parent"}
             </AlertDialogHeader>
             <AlertDialogBody>
-              {t("deleteParentConfirmation", language)}{" "}
+              {currentLanguage === "fr"
+                ? "Êtes-vous sûr de vouloir supprimer"
+                : currentLanguage === "ar"
+                ? "هل أنت متأكد أنك تريد حذف"
+                : "Are you sure you want to delete"}{" "}
               {selectedParent?.fullName}?
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button ref={cancelRef} onClick={onDeleteAlertClose}>
-                {t("cancel", language)}
+                {currentLanguage === "fr"
+                  ? "Annuler"
+                  : currentLanguage === "ar"
+                  ? "إلغاء"
+                  : "Cancel"}
               </Button>
               <Button
                 colorScheme="red"
@@ -346,7 +502,11 @@ const Parents = () => {
                 ml={3}
                 isLoading={isDeleting}
               >
-                {t("delete", language)}
+                {currentLanguage === "fr"
+                  ? "Supprimer"
+                  : currentLanguage === "ar"
+                  ? "حذف"
+                  : "Delete"}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

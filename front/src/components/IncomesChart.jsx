@@ -12,25 +12,61 @@ import {
   Text,
 } from "@chakra-ui/react";
 import apiClient from "../hooks/apiClient";
-
-const monthNames = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { useSelector } from "react-redux"; // Import useSelector
+import { useMemo } from "react"; // Import useMemo
 
 const MonthlyIncomeTable = () => {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const [monthlyData, setMonthlyData] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const localizedMonthNames = useMemo(() => {
+    if (currentLanguage === "fr") {
+      return [
+        "Janv",
+        "Févr",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juil",
+        "Août",
+        "Sept",
+        "Oct",
+        "Nov",
+        "Déc",
+      ];
+    } else if (currentLanguage === "ar") {
+      return [
+        "ينا",
+        "فبر",
+        "مار",
+        "أبر",
+        "ماي",
+        "يون",
+        "يول",
+        "أغس",
+        "سبت",
+        "أكت",
+        "نوف",
+        "ديس",
+      ];
+    }
+    return [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+  }, [currentLanguage]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -57,7 +93,11 @@ const MonthlyIncomeTable = () => {
   return (
     <Box p={4} w="full">
       <Text fontSize="xl" mb={4} fontWeight="bold" color="primary">
-        Monthly Income Breakdown
+        {currentLanguage === "fr"
+          ? "Répartition mensuelle des revenus"
+          : currentLanguage === "ar"
+          ? "توزيع الدخل الشهري"
+          : "Monthly Income Breakdown"}
       </Text>
 
       {loading ? (
@@ -72,7 +112,13 @@ const MonthlyIncomeTable = () => {
           >
             <Thead bg="gray.100">
               <Tr>
-                <Th>Month</Th>
+                <Th>
+                  {currentLanguage === "fr"
+                    ? "Mois"
+                    : currentLanguage === "ar"
+                    ? "الشهر"
+                    : "Month"}
+                </Th>
                 {keys.map((key) => (
                   <Th key={key} textTransform="capitalize">
                     {key}
@@ -81,7 +127,7 @@ const MonthlyIncomeTable = () => {
               </Tr>
             </Thead>
             <Tbody>
-              {monthNames.map((name, idx) => {
+              {localizedMonthNames.map((name, idx) => {
                 const monthKey = String(idx + 1);
                 const row = monthlyData[monthKey] || {};
 

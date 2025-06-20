@@ -12,6 +12,7 @@ import {
   Image,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { useSelector } from "react-redux"; // Import useSelector
 
 const MeetingModal = ({
   isOpen,
@@ -25,8 +26,23 @@ const MeetingModal = ({
   buttonIcon,
   textAlign = "left",
 }) => {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const bg = useColorModeValue("white", "gray.800");
   const headerColor = useColorModeValue("gray.700", "white");
+
+  const defaultButtonText =
+    currentLanguage === "fr"
+      ? "Confirmer"
+      : currentLanguage === "ar"
+      ? "تأكيد"
+      : "Confirm";
+
+  const iconAltText =
+    currentLanguage === "fr"
+      ? "icône"
+      : currentLanguage === "ar"
+      ? "أيقونة"
+      : "icon";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
@@ -35,7 +51,7 @@ const MeetingModal = ({
         <ModalHeader textAlign={textAlign}>
           {image && (
             <Box mb={4} display="flex" justifyContent={textAlign}>
-              <Image src={image} alt="icon" boxSize="72px" />
+              <Image src={image} alt={iconAltText} boxSize="72px" />
             </Box>
           )}
           <Text fontSize="2xl" fontWeight="bold" color={headerColor}>
@@ -51,11 +67,11 @@ const MeetingModal = ({
             onClick={handleClick}
             leftIcon={
               buttonIcon ? (
-                <Image src={buttonIcon} alt="icon" boxSize="14px" />
+                <Image src={buttonIcon} alt={iconAltText} boxSize="14px" />
               ) : null
             }
           >
-            {buttonText}
+            {buttonText === "Confirm" ? defaultButtonText : buttonText}
           </Button>
         </ModalFooter>
       </ModalContent>

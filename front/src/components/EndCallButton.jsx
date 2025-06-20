@@ -2,10 +2,12 @@
 import { Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useCall } from "@stream-io/video-react-sdk";
+import { useSelector } from "react-redux";
 
 const EndCallButton = ({ role }) => {
   const call = useCall();
   const navigate = useNavigate();
+  const currentLanguage = useSelector((state) => state.language.language);
 
   // only owners get a button
   if (role === "student") return null;
@@ -17,7 +19,11 @@ const EndCallButton = ({ role }) => {
 
   return (
     <Button onClick={endCall} colorScheme="red" borderRadius="full">
-      End call for everyone
+      {currentLanguage === "fr"
+        ? "Terminer l'appel pour tous"
+        : currentLanguage === "ar"
+        ? "إنهاء المكالمة للجميع"
+        : "End call for everyone"}
     </Button>
   );
 };

@@ -28,6 +28,7 @@ import { useDispatch, useSelector } from "react-redux";
 const baseURL = import.meta.env.VITE_API_URL;
 
 export default function MeetingRoom() {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const [loading, setLoading] = useState(true);
   const [canJoin, setCanJoin] = useState(false);
   const [layout, setLayout] = useState("speaker-left");
@@ -71,7 +72,12 @@ export default function MeetingRoom() {
         console.log(err);
         if (err.response?.status === 400) {
           toast({
-            title: "Not enough points",
+            title:
+              currentLanguage === "fr"
+                ? "Points insuffisants"
+                : currentLanguage === "ar"
+                ? "ليس لديك نقاط كافية"
+                : "Not enough points",
             status: "warning",
             duration: 4000,
           });
@@ -88,12 +94,26 @@ export default function MeetingRoom() {
           );
         } else if (err.response?.status === 403) {
           toast({
-            title: "You are not enrolled in this class.",
+            title:
+              currentLanguage === "fr"
+                ? "Vous n'êtes pas inscrit à ce cours."
+                : currentLanguage === "ar"
+                ? "أنت غير مسجل في هذا الفصل."
+                : "You are not enrolled in this class.",
             status: "error",
             duration: 3000,
           });
         } else {
-          toast({ title: "Failed to join", status: "error", duration: 3000 });
+          toast({
+            title:
+              currentLanguage === "fr"
+                ? "Échec de la connexion"
+                : currentLanguage === "ar"
+                ? "فشل الانضمام"
+                : "Failed to join",
+            status: "error",
+            duration: 3000,
+          });
         }
       } finally {
         setLoading(false);
@@ -161,9 +181,33 @@ export default function MeetingRoom() {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="border-dark-1 bg-dark-1 text-white">
             {[
-              { label: "Grid", value: "grid" },
-              { label: "Speaker-Left", value: "speaker-left" },
-              { label: "Speaker-Right", value: "speaker-right" },
+              {
+                label:
+                  currentLanguage === "fr"
+                    ? "Grille"
+                    : currentLanguage === "ar"
+                    ? "شبكة"
+                    : "Grid",
+                value: "grid",
+              },
+              {
+                label:
+                  currentLanguage === "fr"
+                    ? "Orateur à gauche"
+                    : currentLanguage === "ar"
+                    ? "المتحدث يسارًا"
+                    : "Speaker-Left",
+                value: "speaker-left",
+              },
+              {
+                label:
+                  currentLanguage === "fr"
+                    ? "Orateur à droite"
+                    : currentLanguage === "ar"
+                    ? "المتحدث يمينًا"
+                    : "Speaker-Right",
+                value: "speaker-right",
+              },
             ].map((item) => (
               <div key={item.value}>
                 <DropdownMenuItem onClick={() => setLayout(item.value)}>

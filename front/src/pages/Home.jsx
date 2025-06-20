@@ -22,44 +22,26 @@ import IncomesChart from "../components/IncomesChart";
 import StudentStatsTable from "../components/StudentStatsTable"; // Added import
 import Game from "../components/MAthGame";
 
-const translations = {
-  en: {
-    upcoming: "Upcoming Meeting at",
-    noMeetings: "No Upcoming Meetings",
-    loading: "Loading next meeting...",
-    unable: "Unable to load meetings",
-  },
-  fr: {
-    upcoming: "Prochaine réunion à",
-    noMeetings: "Aucune réunion à venir",
-    loading: "Chargement de la prochaine réunion...",
-    unable: "Impossible de charger les réunions",
-  },
-  ar: {
-    upcoming: "الاجتماع القادم في",
-    noMeetings: "لا توجد اجتماعات قادمة",
-    loading: "جارٍ تحميل الاجتماع التالي...",
-    unable: "تعذّر تحميل الاجتماعات",
-  },
-};
-
 const Home = () => {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
   const { courses, isLoading, error } = useFetchCourses("upcoming");
-  const language = useSelector((state) => state.language.language) || "en";
+  const currentLanguage =
+    useSelector((state) => state.language.language) || "en"; // Renamed for consistency
   const user = useSelector((state) => state.user.user) || "en";
-  const t = translations[language] || translations.en;
 
   // Update clock display
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
       setTime(
-        now.toLocaleTimeString(language, { hour: "2-digit", minute: "2-digit" })
+        now.toLocaleTimeString(currentLanguage, {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
       );
       setDate(
-        new Intl.DateTimeFormat(language, {
+        new Intl.DateTimeFormat(currentLanguage, {
           dateStyle: "full",
           timeZone: "UTC",
         }).format(now)
@@ -69,7 +51,7 @@ const Home = () => {
     updateDateTime();
     const timer = setInterval(updateDateTime, 60000);
     return () => clearInterval(timer);
-  }, [language]);
+  }, [currentLanguage]);
 
   // Compute next upcoming meeting (date & time)
   const nextMeeting = useMemo(() => {
@@ -79,10 +61,10 @@ const Home = () => {
     );
     const next = sorted[0].date;
     return {
-      time: dayjs(next).locale(language).format("HH:mm"),
+      time: dayjs(next).locale(currentLanguage).format("HH:mm"),
       date: next.split("T")[0],
     };
-  }, [courses, language]);
+  }, [courses, currentLanguage]);
   useEffect(() => {}, [nextMeeting]);
   const heroBg = useColorModeValue(
     "url('/assets/images/hero-background.png')",
@@ -133,22 +115,44 @@ const Home = () => {
               <Flex align="center" justify="center">
                 <Spinner size="sm" />
                 <Text ml={2} fontSize="md">
-                  {t.loading}
+                  {currentLanguage === "fr"
+                    ? "Chargement de la prochaine réunion..."
+                    : currentLanguage === "ar"
+                    ? "جارٍ تحميل الاجتماع التالي..."
+                    : "Loading next meeting..."}
                 </Text>
               </Flex>
             ) : error ? (
               <Alert status="error">
-                <AlertIcon /> {t.unable}
+                <AlertIcon />{" "}
+                {currentLanguage === "fr"
+                  ? "Impossible de charger les réunions"
+                  : currentLanguage === "ar"
+                  ? "تعذّر تحميل الاجتماعات"
+                  : "Unable to load meetings"}
               </Alert>
             ) : nextMeeting ? (
               <Text fontSize="md" fontWeight="normal">
-                {t.upcoming} {nextMeeting.time}{" "}
-                {language === "fr" ? "le" : language === "ar" ? "في" : "on"}{" "}
+                {currentLanguage === "fr"
+                  ? "Prochaine réunion à"
+                  : currentLanguage === "ar"
+                  ? "الاجتماع القادم في"
+                  : "Upcoming Meeting at"}{" "}
+                {nextMeeting.time}{" "}
+                {currentLanguage === "fr"
+                  ? "le"
+                  : currentLanguage === "ar"
+                  ? "في"
+                  : "on"}{" "}
                 {nextMeeting.date}
               </Text>
             ) : (
               <Text fontSize="md" fontWeight="normal">
-                {t.noMeetings}
+                {currentLanguage === "fr"
+                  ? "Aucune réunion à venir"
+                  : currentLanguage === "ar"
+                  ? "لا توجد اجتماعات قادمة"
+                  : "No Upcoming Meetings"}
               </Text>
             )}
           </Box>
@@ -171,7 +175,11 @@ const Home = () => {
       {["admin", "coordinator"].includes(user.role) && (
         <>
           <Heading color="primary" textDecor="underline">
-            Coordinators
+            {currentLanguage === "fr"
+              ? "Coordinateurs"
+              : currentLanguage === "ar"
+              ? "المنسقون"
+              : "Coordinators"}
           </Heading>
           <CoordinatorsRankChart admin={user.role === "admin"} />
         </>
@@ -180,12 +188,20 @@ const Home = () => {
       {["admin"].includes(user.role) && (
         <>
           <Heading color="primary" textDecor="underline">
-            Incomes
+            {currentLanguage === "fr"
+              ? "Revenus"
+              : currentLanguage === "ar"
+              ? "الدخل"
+              : "Incomes"}
           </Heading>
           <IncomesChart />
           <Divider colorScheme="blue" my={2} size={5} w="full" />
           <Heading color="primary" textDecor="underline" mt={6}>
-            Student Statistics
+            {currentLanguage === "fr"
+              ? "Statistiques des étudiants"
+              : currentLanguage === "ar"
+              ? "إحصائيات الطلاب"
+              : "Student Statistics"}
           </Heading>
           <StudentStatsTable />
         </>

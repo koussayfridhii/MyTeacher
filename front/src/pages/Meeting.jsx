@@ -19,6 +19,7 @@ import { withAuthorization } from "../HOC/Protect";
 const MeetingPage = () => {
   const { id } = useParams();
   const { user } = useSelector((state) => state.user);
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const { call, isCallLoading } = useGetCallById(id);
   const [isSetupComplete, setIsSetupComplete] = useState(false);
 
@@ -34,7 +35,11 @@ const MeetingPage = () => {
     return (
       <Center h="100vh">
         <Text fontSize="3xl" fontWeight="bold" color="white">
-          Call Not Found
+          {currentLanguage === "fr"
+            ? "Appel non trouvé"
+            : currentLanguage === "ar"
+            ? "لم يتم العثور على المكالمة"
+            : "Call Not Found"}
         </Text>
       </Center>
     );
@@ -61,7 +66,11 @@ const MeetingPage = () => {
         >
           <AlertIcon boxSize="40px" mr={0} />
           <AlertTitle mt={4} mb={1} fontSize="lg">
-            You are not allowed to join this meeting
+            {currentLanguage === "fr"
+              ? "Vous n'êtes pas autorisé à rejoindre cette réunion"
+              : currentLanguage === "ar"
+              ? "غير مسموح لك بالانضمام إلى هذا الاجتماع"
+              : "You are not allowed to join this meeting"}
           </AlertTitle>
         </Alert>
       </Center>

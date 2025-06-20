@@ -9,8 +9,10 @@ import {
   MessageInput,
   useChatClient,
 } from "@stream-io/video-react-sdk";
+import { useSelector } from "react-redux"; // Import useSelector
 
 export default function MessagingPanel({ onClose }) {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const [channel, setChannel] = useState(null);
   const chatClient = useChatClient();
   const classId = window.location.pathname.replace("/meeting/", "");
@@ -28,7 +30,15 @@ export default function MessagingPanel({ onClose }) {
   }, [chatClient, classId]);
 
   if (!chatClient || !channel) {
-    return <Box p={4}>Loading chat...</Box>;
+    return (
+      <Box p={4}>
+        {currentLanguage === "fr"
+          ? "Chargement du chat..."
+          : currentLanguage === "ar"
+          ? "جاري تحميل الدردشة..."
+          : "Loading chat..."}
+      </Box>
+    );
   }
 
   return (
@@ -42,14 +52,24 @@ export default function MessagingPanel({ onClose }) {
     >
       <Flex mb={2} alignItems="center">
         <Box flexGrow={1} fontSize="lg" fontWeight="bold">
-          Chat
+          {currentLanguage === "fr"
+            ? "Chat"
+            : currentLanguage === "ar"
+            ? "الدردشة"
+            : "Chat"}
         </Box>
         <IconButton
           icon={<X size={16} />}
           size="sm"
           onClick={onClose}
           variant="ghost"
-          aria-label="Close chat"
+          aria-label={
+            currentLanguage === "fr"
+              ? "Fermer le chat"
+              : currentLanguage === "ar"
+              ? "إغلاق الدردشة"
+              : "Close chat"
+          }
         />
       </Flex>
       <Box flexGrow={1} mb={2} overflowY="auto">

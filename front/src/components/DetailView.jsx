@@ -43,6 +43,7 @@ const PotentialClientDetailView = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
   const user = useSelector((state) => state.user.user); // Accessing user from Redux store
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
 
   const [newComment, setNewComment] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -96,7 +97,12 @@ const PotentialClientDetailView = () => {
         queryKey: ["potentialClient", clientId],
       });
       toast({
-        title: "Comment added.",
+        title:
+          currentLanguage === "fr"
+            ? "Commentaire ajouté."
+            : currentLanguage === "ar"
+            ? "تمت إضافة التعليق."
+            : "Comment added.",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -105,7 +111,12 @@ const PotentialClientDetailView = () => {
     },
     onError: (err) => {
       toast({
-        title: "Error adding comment.",
+        title:
+          currentLanguage === "fr"
+            ? "Erreur lors de l'ajout du commentaire."
+            : currentLanguage === "ar"
+            ? "خطأ في إضافة التعليق."
+            : "Error adding comment.",
         description: err.response?.data?.message || err.message,
         status: "error",
         duration: 5000,
@@ -122,7 +133,12 @@ const PotentialClientDetailView = () => {
         queryKey: ["potentialClient", clientId],
       });
       toast({
-        title: "Assistant assigned.",
+        title:
+          currentLanguage === "fr"
+            ? "Assistant assigné."
+            : currentLanguage === "ar"
+            ? "تم تعيين المساعد."
+            : "Assistant assigned.",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -130,7 +146,12 @@ const PotentialClientDetailView = () => {
     },
     onError: (err) => {
       toast({
-        title: "Error assigning assistant.",
+        title:
+          currentLanguage === "fr"
+            ? "Erreur lors de l'assignation de l'assistant."
+            : currentLanguage === "ar"
+            ? "خطأ في تعيين المساعد."
+            : "Error assigning assistant.",
         description: err.response?.data?.message || err.message,
         status: "error",
         duration: 5000,
@@ -149,7 +170,12 @@ const PotentialClientDetailView = () => {
         queryKey: ["potentialClient", clientId],
       });
       toast({
-        title: "Status updated.",
+        title:
+          currentLanguage === "fr"
+            ? "Statut mis à jour."
+            : currentLanguage === "ar"
+            ? "تم تحديث الحالة."
+            : "Status updated.",
         status: "success",
         duration: 3000,
         isClosable: true,
@@ -157,7 +183,12 @@ const PotentialClientDetailView = () => {
     },
     onError: (err) => {
       toast({
-        title: "Error updating status.",
+        title:
+          currentLanguage === "fr"
+            ? "Erreur lors de la mise à jour du statut."
+            : currentLanguage === "ar"
+            ? "خطأ في تحديث الحالة."
+            : "Error updating status.",
         description: err.response?.data?.message || err.message,
         status: "error",
         duration: 5000,
@@ -198,8 +229,18 @@ const PotentialClientDetailView = () => {
     return (
       <Alert status="error">
         <AlertIcon />
-        Error fetching client details:{" "}
-        {error?.response?.data?.message || error?.message || "Unknown error"}
+        {currentLanguage === "fr"
+          ? "Erreur lors de la récupération des détails du client : "
+          : currentLanguage === "ar"
+          ? "خطأ في جلب تفاصيل العميل: "
+          : "Error fetching client details: "}
+        {error?.response?.data?.message ||
+          error?.message ||
+          (currentLanguage === "fr"
+            ? "Erreur inconnue"
+            : currentLanguage === "ar"
+            ? "خطأ غير معروف"
+            : "Unknown error")}
       </Alert>
     );
   }
@@ -208,7 +249,11 @@ const PotentialClientDetailView = () => {
     return (
       <Alert status="warning">
         <AlertIcon />
-        Client not found.
+        {currentLanguage === "fr"
+          ? "Client non trouvé."
+          : currentLanguage === "ar"
+          ? "العميل غير موجود."
+          : "Client not found."}
       </Alert>
     );
   }
@@ -229,7 +274,11 @@ const PotentialClientDetailView = () => {
   return (
     <Box p={5}>
       <Button mb={4} onClick={() => navigate("/dashboard/potential-clients")}>
-        Back to List
+        {currentLanguage === "fr"
+          ? "Retour à la liste"
+          : currentLanguage === "ar"
+          ? "العودة إلى القائمة"
+          : "Back to List"}
       </Button>
       <Heading as="h1" size="xl" mb={6}>
         {client.name}
@@ -238,40 +287,86 @@ const PotentialClientDetailView = () => {
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10}>
         <Card>
           <CardHeader>
-            <Heading size="md">Client Details</Heading>
+            <Heading size="md">
+              {currentLanguage === "fr"
+                ? "Détails du client"
+                : currentLanguage === "ar"
+                ? "تفاصيل العميل"
+                : "Client Details"}
+            </Heading>
           </CardHeader>
           <CardBody>
             <Stack divider={<Divider />} spacing={4}>
               <HStack>
-                <Text fontWeight="bold">Email:</Text>
+                <Text fontWeight="bold">
+                  {currentLanguage === "fr"
+                    ? "Email :"
+                    : currentLanguage === "ar"
+                    ? "البريد الإلكتروني:"
+                    : "Email:"}
+                </Text>
                 <Text>{client.email}</Text>
               </HStack>
               <HStack>
-                <Text fontWeight="bold">Phone:</Text>
+                <Text fontWeight="bold">
+                  {currentLanguage === "fr"
+                    ? "Téléphone :"
+                    : currentLanguage === "ar"
+                    ? "الهاتف:"
+                    : "Phone:"}
+                </Text>
                 <Text>{client.phone}</Text>
               </HStack>
               <HStack>
-                <Text fontWeight="bold">Status:</Text>
+                <Text fontWeight="bold">
+                  {currentLanguage === "fr"
+                    ? "Statut :"
+                    : currentLanguage === "ar"
+                    ? "الحالة:"
+                    : "Status:"}
+                </Text>
                 <Tag size="md" colorScheme={getStatusColor(client.status)}>
                   {client.status}
                 </Tag>
               </HStack>
               <HStack>
-                <Text fontWeight="bold">Manager:</Text>
+                <Text fontWeight="bold">
+                  {currentLanguage === "fr"
+                    ? "Responsable :"
+                    : currentLanguage === "ar"
+                    ? "المدير:"
+                    : "Manager:"}
+                </Text>
                 <Text>
                   {client.manager?.firstName} {client.manager?.lastName}
                 </Text>
               </HStack>
               <HStack>
-                <Text fontWeight="bold">Assistant:</Text>
+                <Text fontWeight="bold">
+                  {currentLanguage === "fr"
+                    ? "Assistant :"
+                    : currentLanguage === "ar"
+                    ? "المساعد:"
+                    : "Assistant:"}
+                </Text>
                 <Text>
                   {client.assistant
                     ? `${client.assistant.firstName} ${client.assistant.lastName}`
+                    : currentLanguage === "fr"
+                    ? "N/A"
+                    : currentLanguage === "ar"
+                    ? "غير متاح"
                     : "N/A"}
                 </Text>
               </HStack>
               <HStack>
-                <Text fontWeight="bold">Created At:</Text>
+                <Text fontWeight="bold">
+                  {currentLanguage === "fr"
+                    ? "Créé le :"
+                    : currentLanguage === "ar"
+                    ? "أنشئ في:"
+                    : "Created At:"}
+                </Text>
                 <Text>{format(new Date(client.createdAt), "PPP p")}</Text>
               </HStack>
             </Stack>
@@ -282,11 +377,23 @@ const PotentialClientDetailView = () => {
           {canUserCommentOrUpdate && (
             <Card>
               <CardHeader>
-                <Heading size="md">Update Status</Heading>
+                <Heading size="md">
+                  {currentLanguage === "fr"
+                    ? "Mettre à jour le statut"
+                    : currentLanguage === "ar"
+                    ? "تحديث الحالة"
+                    : "Update Status"}
+                </Heading>
               </CardHeader>
               <CardBody>
                 <FormControl>
-                  <FormLabel htmlFor="status">Client Status</FormLabel>
+                  <FormLabel htmlFor="status">
+                    {currentLanguage === "fr"
+                      ? "Statut du client"
+                      : currentLanguage === "ar"
+                      ? "حالة العميل"
+                      : "Client Status"}
+                  </FormLabel>
                   <Select
                     id="status"
                     value={selectedStatus}
@@ -295,9 +402,27 @@ const PotentialClientDetailView = () => {
                       updateStatusMutation.isLoading || !canUserCommentOrUpdate
                     }
                   >
-                    <option value="intéressé">Intéressé</option>
-                    <option value="pas intéressé">Pas intéressé</option>
-                    <option value="injoignable">Injoignable</option>
+                    <option value="intéressé">
+                      {currentLanguage === "fr"
+                        ? "Intéressé"
+                        : currentLanguage === "ar"
+                        ? "مهتم"
+                        : "Interested"}
+                    </option>
+                    <option value="pas intéressé">
+                      {currentLanguage === "fr"
+                        ? "Pas intéressé"
+                        : currentLanguage === "ar"
+                        ? "غير مهتم"
+                        : "Not Interested"}
+                    </option>
+                    <option value="injoignable">
+                      {currentLanguage === "fr"
+                        ? "Injoignable"
+                        : currentLanguage === "ar"
+                        ? "لا يمكن الوصول إليه"
+                        : "Unreachable"}
+                    </option>
                   </Select>
                 </FormControl>
               </CardBody>
@@ -313,7 +438,11 @@ const PotentialClientDetailView = () => {
                 !canAssignAssistant || assignAssistantMutation.isLoading
               }
             >
-              Assign Myself as Assistant
+              {currentLanguage === "fr"
+                ? "M'assigner comme assistant"
+                : currentLanguage === "ar"
+                ? "عين نفسي كمساعد"
+                : "Assign Myself as Assistant"}
             </Button>
           )}
         </VStack>
@@ -321,7 +450,11 @@ const PotentialClientDetailView = () => {
 
       <Box mt={10}>
         <Heading size="lg" mb={4}>
-          Comments
+          {currentLanguage === "fr"
+            ? "Commentaires"
+            : currentLanguage === "ar"
+            ? "تعليقات"
+            : "Comments"}
         </Heading>
         {canUserCommentOrUpdate && (
           <VStack
@@ -332,12 +465,24 @@ const PotentialClientDetailView = () => {
             align="stretch"
           >
             <FormControl>
-              <FormLabel htmlFor="comment">Add a Comment</FormLabel>
+              <FormLabel htmlFor="comment">
+                {currentLanguage === "fr"
+                  ? "Ajouter un commentaire"
+                  : currentLanguage === "ar"
+                  ? "إضافة تعليق"
+                  : "Add a Comment"}
+              </FormLabel>
               <Textarea
                 id="comment"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Type your comment here..."
+                placeholder={
+                  currentLanguage === "fr"
+                    ? "Tapez votre commentaire ici..."
+                    : currentLanguage === "ar"
+                    ? "اكتب تعليقك هنا..."
+                    : "Type your comment here..."
+                }
                 isDisabled={addCommentMutation.isLoading}
               />
             </FormControl>
@@ -348,7 +493,11 @@ const PotentialClientDetailView = () => {
               isLoading={addCommentMutation.isLoading}
               isDisabled={!newComment.trim()}
             >
-              Submit Comment
+              {currentLanguage === "fr"
+                ? "Soumettre le commentaire"
+                : currentLanguage === "ar"
+                ? "إرسال التعليق"
+                : "Submit Comment"}
             </Button>
           </VStack>
         )}
@@ -387,7 +536,13 @@ const PotentialClientDetailView = () => {
               ))}
           </List>
         ) : (
-          <Text>No comments yet.</Text>
+          <Text>
+            {currentLanguage === "fr"
+              ? "Aucun commentaire pour le moment."
+              : currentLanguage === "ar"
+              ? "لا توجد تعليقات حتى الآن."
+              : "No comments yet."}
+          </Text>
         )}
       </Box>
     </Box>

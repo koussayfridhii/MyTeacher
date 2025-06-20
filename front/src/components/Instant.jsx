@@ -3,8 +3,10 @@ import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
 import { useGetCallById } from "../hooks/useGetCallById";
 import MeetingSetup from "./MeetingSetup";
 import MeetingRoom from "./MeetingRoom";
+import { useSelector } from "react-redux"; // Import useSelector
 
 export default function Instant() {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const token = localStorage.getItem("token");
   const [callId, setCallId] = useState(null);
   const { call, isLoading, createInstantCall, fetchCall } =
@@ -16,8 +18,25 @@ export default function Instant() {
   const startInstant = async () => setCallId(await createInstantCall(token));
 
   if (!callId)
-    return <button onClick={startInstant}>Start Instant Meeting</button>;
-  if (isLoading) return <div>Loading meeting...</div>;
+    return (
+      <button onClick={startInstant}>
+        {currentLanguage === "fr"
+          ? "Démarrer une réunion instantanée"
+          : currentLanguage === "ar"
+          ? "بدء اجتماع فوري"
+          : "Start Instant Meeting"}
+      </button>
+    );
+  if (isLoading)
+    return (
+      <div>
+        {currentLanguage === "fr"
+          ? "Chargement de la réunion..."
+          : currentLanguage === "ar"
+          ? "جاري تحميل الاجتماع..."
+          : "Loading meeting..."}
+      </div>
+    );
 
   return (
     <StreamCall call={call} token={token}>

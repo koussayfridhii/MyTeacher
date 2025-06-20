@@ -59,12 +59,53 @@ const Teachers = () => {
       mobile: "Mobile Number",
     },
     fr: {
-      /* ... French labels ... */
+      title: "Gérer les enseignants",
+      search: "Rechercher...",
+      balance: "Solde",
+      subject: "Matière",
+      program: "Programme",
+      approve: "Approuver",
+      disapprove: "Désapprouver",
+      status: "Statut",
+      prev: "Précédent",
+      next: "Suivant",
+      approvedMsg: "Enseignant approuvé",
+      disapprovedMsg: "Enseignant désapprouvé",
+      errorMsg: "Échec de l'action",
+      createBtn: "Créer un enseignant",
+      modalTitle: "Nouvel enseignant",
+      submit: "Soumettre",
+      email: "Email",
+      password: "Mot de passe",
+      firstName: "Prénom",
+      lastName: "Nom de famille",
+      mobile: "Numéro de téléphone",
     },
     ar: {
-      /* ... Arabic labels ... */
+      title: "إدارة المعلمين",
+      search: "بحث...",
+      balance: "الرصيد",
+      subject: "المادة",
+      program: "البرنامج",
+      approve: "الموافقة",
+      disapprove: "رفض",
+      status: "الحالة",
+      prev: "السابق",
+      next: "التالي",
+      approvedMsg: "تمت الموافقة على المعلم",
+      disapprovedMsg: "تم رفض المعلم",
+      errorMsg: "فشل الإجراء",
+      createBtn: "إنشاء معلم",
+      modalTitle: "معلم جديد",
+      submit: "إرسال",
+      email: "البريد الإلكتروني",
+      password: "كلمة المرور",
+      firstName: "الاسم الأول",
+      lastName: "الاسم الأخير",
+      mobile: "رقم الهاتف",
     },
   };
+
   const labels = t[language] || t.en;
 
   const [search, setSearch] = useState("");
@@ -186,7 +227,9 @@ const Teachers = () => {
         <Thead>
           <Tr>
             <Th>#</Th>
-            <Th>Name</Th>
+            <Th>
+              {language === "en" ? "Name" : language === "fr" ? "Nom" : "الاسم"}
+            </Th>
             <Th>Mobile</Th>
 
             {isMyTeachers && <Th>RIB</Th>}
@@ -194,7 +237,9 @@ const Teachers = () => {
             <Th>{labels.subject}</Th>
             <Th>{labels.program}</Th>
             <Th>{labels.status}</Th>
-            {isMyTeachers && <Th>Actions</Th>}
+            {isMyTeachers && (
+              <Th>{language === "ar" ? "التفاعل" : "Actions"}</Th>
+            )}
           </Tr>
         </Thead>
         <Tbody>

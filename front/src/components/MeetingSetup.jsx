@@ -17,8 +17,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useIsMeetingOwner } from "../hooks/useIsMeetingOwner";
+import { useSelector } from "react-redux"; // Import useSelector
 
 const MeetingSetup = ({ setIsSetupComplete }) => {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const { useCallEndedAt, useCallStartsAt } = useCallStateHooks();
   const callStartsAt = useCallStartsAt();
   const callEndedAt = useCallEndedAt();
@@ -31,7 +33,11 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
 
   if (!call) {
     throw new Error(
-      "useStreamCall must be used within a StreamCall component."
+      currentLanguage === "fr"
+        ? "useStreamCall doit être utilisé dans un composant StreamCall."
+        : currentLanguage === "ar"
+        ? "يجب استخدام useStreamCall ضمن مكون StreamCall."
+        : "useStreamCall must be used within a StreamCall component."
     );
   }
 
@@ -52,7 +58,11 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
       <Alert status="info">
         <AlertIcon />
         <AlertTitle>
-          Your Meeting has not started yet. It is scheduled for{" "}
+          {currentLanguage === "fr"
+            ? "Votre réunion n'a pas encore commencé. Elle est prévue pour "
+            : currentLanguage === "ar"
+            ? "اجتماعك لم يبدأ بعد. من المقرر أن يبدأ في "
+            : "Your Meeting has not started yet. It is scheduled for "}
           {new Date(callStartsAt).toLocaleString()}
         </AlertTitle>
       </Alert>
@@ -62,7 +72,13 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
     return (
       <Alert status="error">
         <AlertIcon />
-        <AlertTitle>The call has been ended by the host</AlertTitle>
+        <AlertTitle>
+          {currentLanguage === "fr"
+            ? "L'appel a été terminé par l'hôte"
+            : currentLanguage === "ar"
+            ? "أنهى المضيف المكالمة"
+            : "The call has been ended by the host"}
+        </AlertTitle>
       </Alert>
     );
 
@@ -77,7 +93,13 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
       overflow={"hidden"}
       mx={0}
     >
-      <Heading size="lg">Setup</Heading>
+      <Heading size="lg">
+        {currentLanguage === "fr"
+          ? "Configuration"
+          : currentLanguage === "ar"
+          ? "الإعداد"
+          : "Setup"}
+      </Heading>
       <Center w="90%" maxW="500px" mx="auto">
         <VideoPreview marginX={0} />
       </Center>
@@ -90,7 +112,11 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
           p={2}
           borderRadius={4}
         >
-          Join with mic and camera off
+          {currentLanguage === "fr"
+            ? "Rejoindre avec micro et caméra éteints"
+            : currentLanguage === "ar"
+            ? "الانضمام مع إيقاف تشغيل الميكروفون والكاميرا"
+            : "Join with mic and camera off"}
         </Checkbox>
         <DeviceSettings />
       </Box>
@@ -106,7 +132,11 @@ const MeetingSetup = ({ setIsSetupComplete }) => {
           setIsSetupComplete(true);
         }}
       >
-        Join meeting
+        {currentLanguage === "fr"
+          ? "Rejoindre la réunion"
+          : currentLanguage === "ar"
+          ? "الانضمام إلى الاجتماع"
+          : "Join meeting"}
       </Button>
     </VStack>
   );

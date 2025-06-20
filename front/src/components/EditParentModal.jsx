@@ -26,9 +26,9 @@ import { useSelector } from "react-redux";
 import { useGetUsers } from "../hooks/useGetUsers";
 import { useCoordinators } from "../hooks/useCoordinators"; // Import useCoordinators
 import { useUpdateParent } from "../hooks/useParents";
-import { t } from "../utils/translations";
 
-const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
+const EditParentModal = ({ isOpen, onClose, parentData }) => {
+  const currentLanguage = useSelector((state) => state.language.language);
   const toast = useToast();
   const { user } = useSelector((state) => ({
     user: state.user.user,
@@ -92,14 +92,41 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
 
   const validateForm = () => {
     const errors = {};
-    if (!fullName.trim()) errors.fullName = t("fullNameRequired", language);
-    if (!email.trim()) errors.email = t("emailRequired", language);
+    if (!fullName.trim())
+      errors.fullName =
+        currentLanguage === "fr"
+          ? "Le nom complet est requis."
+          : currentLanguage === "ar"
+          ? "الاسم الكامل مطلوب."
+          : "Full name is required.";
+    if (!email.trim())
+      errors.email =
+        currentLanguage === "fr"
+          ? "L'email est requis."
+          : currentLanguage === "ar"
+          ? "البريد الإلكتروني مطلوب."
+          : "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(email))
-      errors.email = t("invalidEmailFormat", language);
+      errors.email =
+        currentLanguage === "fr"
+          ? "Format d'email invalide."
+          : currentLanguage === "ar"
+          ? "صيغة بريد إلكتروني غير صالحة."
+          : "Invalid email format.";
     if (!mobileNumber.trim())
-      errors.mobileNumber = t("mobileNumberRequired", language);
+      errors.mobileNumber =
+        currentLanguage === "fr"
+          ? "Le numéro de mobile est requis."
+          : currentLanguage === "ar"
+          ? "رقم الجوال مطلوب."
+          : "Mobile number is required.";
     if (user.role === "admin" && !coordinatorId)
-      errors.coordinatorId = t("coordinatorRequiredForAdmin", language);
+      errors.coordinatorId =
+        currentLanguage === "fr"
+          ? "La sélection du coordinateur est requise pour l'administrateur."
+          : currentLanguage === "ar"
+          ? "اختيار المنسق مطلوب للمسؤول."
+          : "Coordinator selection is required for Admin.";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -135,8 +162,18 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
   const handleSubmit = () => {
     if (!validateForm()) {
       toast({
-        title: t("validationErrorTitle", language),
-        description: t("fillRequiredFields", language),
+        title:
+          currentLanguage === "fr"
+            ? "Erreur de Validation"
+            : currentLanguage === "ar"
+            ? "خطأ في التحقق"
+            : "Validation Error",
+        description:
+          currentLanguage === "fr"
+            ? "Veuillez remplir correctement tous les champs obligatoires."
+            : currentLanguage === "ar"
+            ? "يرجى ملء جميع الحقول المطلوبة بشكل صحيح."
+            : "Please fill in all required fields correctly.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -157,7 +194,12 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
       {
         onSuccess: () => {
           toast({
-            title: t("parentUpdatedSuccessTitle", language),
+            title:
+              currentLanguage === "fr"
+                ? "Parent Mis à Jour"
+                : currentLanguage === "ar"
+                ? "تم تحديث ولي الأمر"
+                : "Parent Updated",
             status: "success",
             duration: 5000,
             isClosable: true,
@@ -166,11 +208,20 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
         },
         onError: (error) => {
           toast({
-            title: t("errorUpdatingParentTitle", language),
+            title:
+              currentLanguage === "fr"
+                ? "Erreur de Mise à Jour du Parent"
+                : currentLanguage === "ar"
+                ? "خطأ في تحديث ولي الأمر"
+                : "Error Updating Parent",
             description:
               error?.response?.data?.message ||
               error.message ||
-              t("errorUpdatingParentDesc", language),
+              (currentLanguage === "fr"
+                ? "Une erreur s'est produite lors de la mise à jour du parent."
+                : currentLanguage === "ar"
+                ? "حدث خطأ أثناء تحديث ولي الأمر."
+                : "An error occurred while updating the parent."),
             status: "error",
             duration: 5000,
             isClosable: true,
@@ -184,19 +235,35 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{t("editParent", language)}</ModalHeader>
+        <ModalHeader>
+          {currentLanguage === "fr"
+            ? "Modifier le Parent"
+            : currentLanguage === "ar"
+            ? "تعديل ولي الأمر"
+            : "Edit Parent"}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <VStack spacing={4}>
             <FormControl isInvalid={formErrors.fullName}>
               <FormLabel htmlFor="edit-fullName">
-                {t("fullName", language)}
+                {currentLanguage === "fr"
+                  ? "Nom Complet"
+                  : currentLanguage === "ar"
+                  ? "الاسم الكامل"
+                  : "Full Name"}
               </FormLabel>
               <Input
                 id="edit-fullName"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder={t("enterFullName", language)}
+                placeholder={
+                  currentLanguage === "fr"
+                    ? "Entrez le nom complet"
+                    : currentLanguage === "ar"
+                    ? "أدخل الاسم الكامل"
+                    : "Enter full name"
+                }
               />
               {formErrors.fullName && (
                 <Text color="red.500" fontSize="sm">
@@ -206,13 +273,25 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
             </FormControl>
 
             <FormControl isInvalid={formErrors.email}>
-              <FormLabel htmlFor="edit-email">{t("email", language)}</FormLabel>
+              <FormLabel htmlFor="edit-email">
+                {currentLanguage === "fr"
+                  ? "Email"
+                  : currentLanguage === "ar"
+                  ? "البريد الإلكتروني"
+                  : "Email"}
+              </FormLabel>
               <Input
                 id="edit-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("enterEmail", language)}
+                placeholder={
+                  currentLanguage === "fr"
+                    ? "Entrez l'e-mail"
+                    : currentLanguage === "ar"
+                    ? "أدخل البريد الإلكتروني"
+                    : "Enter email"
+                }
               />
               {formErrors.email && (
                 <Text color="red.500" fontSize="sm">
@@ -223,13 +302,23 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
 
             <FormControl isInvalid={formErrors.mobileNumber}>
               <FormLabel htmlFor="edit-mobileNumber">
-                {t("mobileNumber", language)}
+                {currentLanguage === "fr"
+                  ? "Numéro de Mobile"
+                  : currentLanguage === "ar"
+                  ? "رقم الجوال"
+                  : "Mobile Number"}
               </FormLabel>
               <Input
                 id="edit-mobileNumber"
                 value={mobileNumber}
                 onChange={(e) => setMobileNumber(e.target.value)}
-                placeholder={t("enterMobileNumber", language)}
+                placeholder={
+                  currentLanguage === "fr"
+                    ? "Entrez le numéro de mobile"
+                    : currentLanguage === "ar"
+                    ? "أدخل رقم الجوال"
+                    : "Enter mobile number"
+                }
               />
               {formErrors.mobileNumber && (
                 <Text color="red.500" fontSize="sm">
@@ -240,18 +329,34 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
 
             <FormControl>
               <FormLabel htmlFor="edit-students">
-                {t("selectStudents", language)}
+                {currentLanguage === "fr"
+                  ? "Sélectionner Étudiants"
+                  : currentLanguage === "ar"
+                  ? "اختر الطلاب"
+                  : "Select Students"}
               </FormLabel>
               <HStack>
                 <Select
                   id="edit-students"
-                  placeholder={t("selectStudentPlaceholder", language)}
+                  placeholder={
+                    currentLanguage === "fr"
+                      ? "Sélectionnez un étudiant..."
+                      : currentLanguage === "ar"
+                      ? "اختر طالبًا..."
+                      : "Select a student..."
+                  }
                   value={currentStudentSelection}
                   onChange={(e) => setCurrentStudentSelection(e.target.value)}
                   isDisabled={isLoadingAllUsers}
                 >
                   {isLoadingAllUsers ? (
-                    <option>{t("loadingStudents", language)}</option>
+                    <option>
+                      {currentLanguage === "fr"
+                        ? "Chargement des étudiants..."
+                        : currentLanguage === "ar"
+                        ? "جارٍ تحميل الطلاب..."
+                        : "Loading students..."}
+                    </option>
                   ) : (
                     studentsForSelect
                       .filter(
@@ -270,7 +375,11 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
                   onClick={handleAddStudent}
                   isDisabled={!currentStudentSelection}
                 >
-                  {t("addStudent", language)}
+                  {currentLanguage === "fr"
+                    ? "Ajouter Étudiant"
+                    : currentLanguage === "ar"
+                    ? "إضافة طالب"
+                    : "Add Student"}
                 </Button>
               </HStack>
               <Box mt={2} display="flex" flexWrap="wrap">
@@ -297,14 +406,24 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
             {user.role === "admin" && (
               <FormControl isInvalid={formErrors.coordinatorId}>
                 <FormLabel htmlFor="edit-coordinator">
-                  {t("selectCoordinator", language)}
+                  {currentLanguage === "fr"
+                    ? "Sélectionner Coordinateur"
+                    : currentLanguage === "ar"
+                    ? "اختر المنسق"
+                    : "Select Coordinator"}
                 </FormLabel>
                 {isLoadingCoordinators ? (
                   <Spinner />
                 ) : (
                   <Select
                     id="edit-coordinator"
-                    placeholder={t("selectCoordinatorPlaceholder", language)}
+                    placeholder={
+                      currentLanguage === "fr"
+                        ? "Sélectionnez un coordinateur..."
+                        : currentLanguage === "ar"
+                        ? "اختر منسقًا..."
+                        : "Select a coordinator..."
+                    }
                     value={coordinatorId}
                     onChange={(e) => setCoordinatorId(e.target.value)}
                   >
@@ -327,14 +446,22 @@ const EditParentModal = ({ isOpen, onClose, parentData, language }) => {
 
         <ModalFooter>
           <Button onClick={onClose} mr={3} variant="ghost">
-            {t("cancel", language)}
+            {currentLanguage === "fr"
+              ? "Annuler"
+              : currentLanguage === "ar"
+              ? "إلغاء"
+              : "Cancel"}
           </Button>
           <Button
             colorScheme="teal"
             onClick={handleSubmit}
             isLoading={isUpdatingParent}
           >
-            {t("update", language)}
+            {currentLanguage === "fr"
+              ? "Mettre à jour"
+              : currentLanguage === "ar"
+              ? "تحديث"
+              : "Update"}
           </Button>
         </ModalFooter>
       </ModalContent>

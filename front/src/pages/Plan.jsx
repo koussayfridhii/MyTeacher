@@ -35,6 +35,7 @@ import axios from "axios";
 import { withAuthorization } from "../HOC/Protect";
 
 const Plan = () => {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
@@ -69,7 +70,15 @@ const Plan = () => {
       });
       if (res.data.success) setPlans(res.data.plans);
     } catch (err) {
-      toast({ title: "Failed to fetch plans", status: "error" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Échec de la récupération des plans"
+            : currentLanguage === "ar"
+            ? "فشل في جلب الخطط"
+            : "Failed to fetch plans",
+        status: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -84,10 +93,26 @@ const Plan = () => {
       await axios.delete(`${import.meta.env.VITE_API_URL}/plans/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast({ title: "Plan deleted", status: "success" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Plan supprimé"
+            : currentLanguage === "ar"
+            ? "تم حذف الخطة"
+            : "Plan deleted",
+        status: "success",
+      });
       fetchPlans();
     } catch {
-      toast({ title: "Delete failed", status: "error" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Échec de la suppression"
+            : currentLanguage === "ar"
+            ? "فشل الحذف"
+            : "Delete failed",
+        status: "error",
+      });
     }
   };
 
@@ -110,7 +135,15 @@ const Plan = () => {
   const handleSubmitEdit = async () => {
     const { name, cost, color, numberOfStudents } = formData;
     if (!name || !cost || !color || !numberOfStudents) {
-      toast({ title: "All fields are required", status: "warning" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Tous les champs sont obligatoires"
+            : currentLanguage === "ar"
+            ? "جميع الحقول مطلوبة"
+            : "All fields are required",
+        status: "warning",
+      });
       return;
     }
     try {
@@ -119,29 +152,69 @@ const Plan = () => {
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast({ title: "Plan updated", status: "success" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Plan mis à jour"
+            : currentLanguage === "ar"
+            ? "تم تحديث الخطة"
+            : "Plan updated",
+        status: "success",
+      });
       onEditClose();
       fetchPlans();
     } catch {
-      toast({ title: "Update failed", status: "error" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Échec de la mise à jour"
+            : currentLanguage === "ar"
+            ? "فشل التحديث"
+            : "Update failed",
+        status: "error",
+      });
     }
   };
 
   const handleSubmitCreate = async () => {
     const { name, cost, color, numberOfStudents } = formData;
     if (!name || !cost || !color || !numberOfStudents) {
-      toast({ title: "All fields are required", status: "warning" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Tous les champs sont obligatoires"
+            : currentLanguage === "ar"
+            ? "جميع الحقول مطلوبة"
+            : "All fields are required",
+        status: "warning",
+      });
       return;
     }
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/plans`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast({ title: "Plan created", status: "success" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Plan créé"
+            : currentLanguage === "ar"
+            ? "تم إنشاء الخطة"
+            : "Plan created",
+        status: "success",
+      });
       onCreateClose();
       fetchPlans();
     } catch {
-      toast({ title: "Creation failed", status: "error" });
+      toast({
+        title:
+          currentLanguage === "fr"
+            ? "Échec de la création"
+            : currentLanguage === "ar"
+            ? "فشل الإنشاء"
+            : "Creation failed",
+        status: "error",
+      });
     }
   };
 
@@ -149,7 +222,11 @@ const Plan = () => {
     <Box p={4}>
       <HStack justify="space-between" mb={4}>
         <Text fontSize="2xl" fontWeight="bold">
-          Plans
+          {currentLanguage === "fr"
+            ? "Plans"
+            : currentLanguage === "ar"
+            ? "الخطط"
+            : "Plans"}
         </Text>
         {user.role === "admin" && (
           <Button
@@ -164,7 +241,11 @@ const Plan = () => {
               onCreateOpen();
             }}
           >
-            + Create New Plan
+            {currentLanguage === "fr"
+              ? "+ Créer un nouveau plan"
+              : currentLanguage === "ar"
+              ? "+ إنشاء خطة جديدة"
+              : "+ Create New Plan"}
           </Button>
         )}
       </HStack>
@@ -176,12 +257,50 @@ const Plan = () => {
           <Table variant="striped">
             <Thead bg="gray.100">
               <Tr>
-                <Th>Name</Th>
-                <Th>Cost</Th>
-                <Th>Students</Th>
-                <Th>Color</Th>
-                <Th>Created At</Th>
-                {user?.role === "admin" && <Th>Actions</Th>}
+                <Th>
+                  {currentLanguage === "fr"
+                    ? "Nom"
+                    : currentLanguage === "ar"
+                    ? "الاسم"
+                    : "Name"}
+                </Th>
+                <Th>
+                  {currentLanguage === "fr"
+                    ? "Coût"
+                    : currentLanguage === "ar"
+                    ? "التكلفة"
+                    : "Cost"}
+                </Th>
+                <Th>
+                  {currentLanguage === "fr"
+                    ? "Étudiants"
+                    : currentLanguage === "ar"
+                    ? "الطلاب"
+                    : "Students"}
+                </Th>
+                <Th>
+                  {currentLanguage === "fr"
+                    ? "Couleur"
+                    : currentLanguage === "ar"
+                    ? "اللون"
+                    : "Color"}
+                </Th>
+                <Th>
+                  {currentLanguage === "fr"
+                    ? "Créé le"
+                    : currentLanguage === "ar"
+                    ? "أنشئت في"
+                    : "Created At"}
+                </Th>
+                {user?.role === "admin" && (
+                  <Th>
+                    {currentLanguage === "fr"
+                      ? "Actions"
+                      : currentLanguage === "ar"
+                      ? "الإجراءات"
+                      : "Actions"}
+                  </Th>
+                )}
               </Tr>
             </Thead>
             <Tbody>
@@ -227,11 +346,23 @@ const Plan = () => {
       <Modal isOpen={isEditOpen} onClose={onEditClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Edit Plan</ModalHeader>
+          <ModalHeader>
+            {currentLanguage === "fr"
+              ? "Modifier le plan"
+              : currentLanguage === "ar"
+              ? "تعديل الخطة"
+              : "Edit Plan"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl isRequired mb={3}>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Nom"
+                  : currentLanguage === "ar"
+                  ? "الاسم"
+                  : "Name"}
+              </FormLabel>
               <Input
                 name="name"
                 value={formData.name}
@@ -239,7 +370,13 @@ const Plan = () => {
               />
             </FormControl>
             <FormControl isRequired mb={3}>
-              <FormLabel>Cost</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Coût"
+                  : currentLanguage === "ar"
+                  ? "التكلفة"
+                  : "Cost"}
+              </FormLabel>
               <NumberInput>
                 <NumberInputField
                   name="cost"
@@ -249,7 +386,13 @@ const Plan = () => {
               </NumberInput>
             </FormControl>
             <FormControl isRequired mb={3}>
-              <FormLabel>Number of Students</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Nombre d'étudiants"
+                  : currentLanguage === "ar"
+                  ? "عدد الطلاب"
+                  : "Number of Students"}
+              </FormLabel>
               <NumberInput>
                 <NumberInputField
                   name="numberOfStudents"
@@ -259,7 +402,13 @@ const Plan = () => {
               </NumberInput>
             </FormControl>
             <FormControl isRequired mb={3}>
-              <FormLabel>Color</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Couleur"
+                  : currentLanguage === "ar"
+                  ? "اللون"
+                  : "Color"}
+              </FormLabel>
               <Input
                 name="color"
                 type="color"
@@ -270,10 +419,18 @@ const Plan = () => {
           </ModalBody>
           <ModalFooter>
             <Button onClick={onEditClose} mr={3}>
-              Cancel
+              {currentLanguage === "fr"
+                ? "Annuler"
+                : currentLanguage === "ar"
+                ? "إلغاء"
+                : "Cancel"}
             </Button>
             <Button colorScheme="blue" onClick={handleSubmitEdit}>
-              Save
+              {currentLanguage === "fr"
+                ? "Enregistrer"
+                : currentLanguage === "ar"
+                ? "حفظ"
+                : "Save"}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -283,11 +440,23 @@ const Plan = () => {
       <Modal isOpen={isCreateOpen} onClose={onCreateClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Create New Plan</ModalHeader>
+          <ModalHeader>
+            {currentLanguage === "fr"
+              ? "Créer un nouveau plan"
+              : currentLanguage === "ar"
+              ? "إنشاء خطة جديدة"
+              : "Create New Plan"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl isRequired mb={3}>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Nom"
+                  : currentLanguage === "ar"
+                  ? "الاسم"
+                  : "Name"}
+              </FormLabel>
               <Input
                 name="name"
                 value={formData.name}
@@ -295,7 +464,13 @@ const Plan = () => {
               />
             </FormControl>
             <FormControl isRequired mb={3}>
-              <FormLabel>Cost</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Coût"
+                  : currentLanguage === "ar"
+                  ? "التكلفة"
+                  : "Cost"}
+              </FormLabel>
               <NumberInput>
                 <NumberInputField
                   name="cost"
@@ -305,7 +480,13 @@ const Plan = () => {
               </NumberInput>
             </FormControl>
             <FormControl isRequired mb={3}>
-              <FormLabel>Number of Students</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Nombre d'étudiants"
+                  : currentLanguage === "ar"
+                  ? "عدد الطلاب"
+                  : "Number of Students"}
+              </FormLabel>
               <NumberInput>
                 <NumberInputField
                   name="numberOfStudents"
@@ -315,7 +496,13 @@ const Plan = () => {
               </NumberInput>
             </FormControl>
             <FormControl isRequired mb={3}>
-              <FormLabel>Color</FormLabel>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Couleur"
+                  : currentLanguage === "ar"
+                  ? "اللون"
+                  : "Color"}
+              </FormLabel>
               <Input
                 name="color"
                 type="color"
@@ -326,10 +513,18 @@ const Plan = () => {
           </ModalBody>
           <ModalFooter>
             <Button onClick={onCreateClose} mr={3}>
-              Cancel
+              {currentLanguage === "fr"
+                ? "Annuler"
+                : currentLanguage === "ar"
+                ? "إلغاء"
+                : "Cancel"}
             </Button>
             <Button colorScheme="green" onClick={handleSubmitCreate}>
-              Create
+              {currentLanguage === "fr"
+                ? "Créer"
+                : currentLanguage === "ar"
+                ? "إنشاء"
+                : "Create"}
             </Button>
           </ModalFooter>
         </ModalContent>

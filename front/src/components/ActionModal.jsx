@@ -18,8 +18,10 @@ import {
   Button,
   VStack,
 } from "@chakra-ui/react";
+import { useSelector } from "react-redux";
 
 const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
+  const currentLanguage = useSelector((state) => state.language.language);
   const { action, user } = modalProps;
   const [amount, setAmount] = useState(0);
   const [reason, setReason] = useState("");
@@ -152,11 +154,81 @@ const ActionModal = ({ isOpen, onClose, labels, modalProps, onConfirm }) => {
                     value={reason}
                     onChange={handleReasonChange}
                   >
-                    {options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                      </option>
-                    ))}
+                    {options.map((opt) => {
+                      let displayOpt;
+                      if (opt === "bonus") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Prime"
+                            : currentLanguage === "ar"
+                            ? "مكافأة"
+                            : "Bonus";
+                      } else if (opt === "free points") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Points gratuits"
+                            : currentLanguage === "ar"
+                            ? "نقاط مجانية"
+                            : "Free points";
+                      } else if (opt === "topup") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Recharge"
+                            : currentLanguage === "ar"
+                            ? "إعادة شحن"
+                            : "Topup";
+                      } else if (opt === "unfinished session") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Session inachevée"
+                            : currentLanguage === "ar"
+                            ? "جلسة غير مكتملة"
+                            : "Unfinished session";
+                      } else if (opt === "other") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Autre"
+                            : currentLanguage === "ar"
+                            ? "أخرى"
+                            : "Other";
+                      } else if (opt === "mistake") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Erreur"
+                            : currentLanguage === "ar"
+                            ? "خطأ"
+                            : "Mistake";
+                      } else if (opt === "refund") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Remboursement"
+                            : currentLanguage === "ar"
+                            ? "استرداد"
+                            : "Refund";
+                      } else if (opt === "approved class") {
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Cours approuvé"
+                            : currentLanguage === "ar"
+                            ? "فصل معتمد"
+                            : "Approved class";
+                      } else if (opt === "cash_out") {
+                        // Value is "cash_out" but display is "Cash out"
+                        displayOpt =
+                          currentLanguage === "fr"
+                            ? "Retrait"
+                            : currentLanguage === "ar"
+                            ? "سحب نقدي"
+                            : "Cash out";
+                      } else {
+                        displayOpt = opt.charAt(0).toUpperCase() + opt.slice(1);
+                      }
+                      return (
+                        <option key={opt} value={opt}>
+                          {displayOpt}
+                        </option>
+                      );
+                    })}
                   </Select>
                 </FormControl>
 

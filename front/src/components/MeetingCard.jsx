@@ -11,6 +11,7 @@ import {
   useToast,
   HStack,
 } from "@chakra-ui/react";
+import { useSelector } from "react-redux"; // Import useSelector
 
 const MeetingCard = ({
   icon,
@@ -25,12 +26,18 @@ const MeetingCard = ({
   students,
   role,
 }) => {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const { onCopy } = useClipboard(link);
   const toast = useToast();
   const handleCopy = () => {
     onCopy();
     toast({
-      title: "Link Copied",
+      title:
+        currentLanguage === "fr"
+          ? "Lien copié"
+          : currentLanguage === "ar"
+          ? "تم نسخ الرابط"
+          : "Link Copied",
       status: "success",
       duration: 2000,
       isClosable: true,
@@ -49,14 +56,30 @@ const MeetingCard = ({
       color="white"
     >
       <Box>
-        <ChakraImage src={icon} alt="meeting icon" boxSize="28px" mb={4} />
+        <ChakraImage
+          src={icon}
+          alt={
+            currentLanguage === "fr"
+              ? "icône de réunion"
+              : currentLanguage === "ar"
+              ? "أيقونة الاجتماع"
+              : "meeting icon"
+          }
+          boxSize="28px"
+          mb={4}
+        />
         <Flex justify="space-between">
           <Box>
             <Text fontSize="2xl" fontWeight="bold">
               {title}
             </Text>
             <Text fontSize="xl" fontWeight="bold">
-              teacher : {teacher}
+              {currentLanguage === "fr"
+                ? "Professeur : "
+                : currentLanguage === "ar"
+                ? "المعلم: "
+                : "Teacher: "}
+              {teacher}
             </Text>
             <Text fontSize="md" color="gray.300">
               {date}
@@ -66,7 +89,11 @@ const MeetingCard = ({
                 {students}
               </Text>
               <Text fontSize="md" color="gray.300">
-                students
+                {currentLanguage === "fr"
+                  ? "étudiants"
+                  : currentLanguage === "ar"
+                  ? "طلاب"
+                  : "students"}
               </Text>
             </HStack>
           </Box>
@@ -96,7 +123,11 @@ const MeetingCard = ({
                   boxSize="20px"
                   mr={2}
                 />
-                Copy Link
+                {currentLanguage === "fr"
+                  ? "Copier le lien"
+                  : currentLanguage === "ar"
+                  ? "نسخ الرابط"
+                  : "Copy Link"}
               </Button>
             )}
           </Flex>

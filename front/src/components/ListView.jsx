@@ -31,6 +31,7 @@ const PotentialClientsListView = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.user); // Accessing user from Redux store
   const userRole = user?.role;
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
 
   const {
     data: clients,
@@ -54,7 +55,17 @@ const PotentialClientsListView = () => {
     return (
       <Alert status="error">
         <AlertIcon />
-        Error fetching potential clients: {error?.message || "Unknown error"}
+        {currentLanguage === "fr"
+          ? "Erreur lors de la récupération des clients potentiels : "
+          : currentLanguage === "ar"
+          ? "خطأ في جلب العملاء المحتملين: "
+          : "Error fetching potential clients: "}
+        {error?.message ||
+          (currentLanguage === "fr"
+            ? "Erreur inconnue"
+            : currentLanguage === "ar"
+            ? "خطأ غير معروف"
+            : "Unknown error")}
       </Alert>
     );
   }
@@ -63,7 +74,11 @@ const PotentialClientsListView = () => {
     <Box p={5}>
       <Flex justify="space-between" align="center" mb={6}>
         <Heading as="h1" size="lg">
-          Potential Clients
+          {currentLanguage === "fr"
+            ? "Clients Potentiels"
+            : currentLanguage === "ar"
+            ? "العملاء المحتملون"
+            : "Potential Clients"}
         </Heading>
         {(userRole === "admin" || userRole === "coordinator") && (
           <Button
@@ -71,7 +86,11 @@ const PotentialClientsListView = () => {
             colorScheme="teal"
             onClick={() => navigate("/dashboard/potential-clients/create")}
           >
-            Create New Client
+            {currentLanguage === "fr"
+              ? "Créer un nouveau client"
+              : currentLanguage === "ar"
+              ? "إنشاء عميل جديد"
+              : "Create New Client"}
           </Button>
         )}
       </Flex>
@@ -80,14 +99,62 @@ const PotentialClientsListView = () => {
         <Table variant="simple" size="md">
           <Thead>
             <Tr>
-              <Th>Name</Th>
-              <Th>Phone</Th>
-              <Th>Email</Th>
-              <Th>Status</Th>
-              <Th>Manager</Th>
-              <Th>Assistant</Th>
-              <Th>Comments</Th>
-              <Th>Actions</Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Nom"
+                  : currentLanguage === "ar"
+                  ? "الاسم"
+                  : "Name"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Téléphone"
+                  : currentLanguage === "ar"
+                  ? "الهاتف"
+                  : "Phone"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Email"
+                  : currentLanguage === "ar"
+                  ? "البريد الإلكتروني"
+                  : "Email"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Statut"
+                  : currentLanguage === "ar"
+                  ? "الحالة"
+                  : "Status"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Responsable"
+                  : currentLanguage === "ar"
+                  ? "المدير"
+                  : "Manager"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Assistant"
+                  : currentLanguage === "ar"
+                  ? "المساعد"
+                  : "Assistant"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Commentaires"
+                  : currentLanguage === "ar"
+                  ? "التعليقات"
+                  : "Comments"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
+                  ? "Actions"
+                  : currentLanguage === "ar"
+                  ? "الإجراءات"
+                  : "Actions"}
+              </Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -100,11 +167,19 @@ const PotentialClientsListView = () => {
                 <Td>
                   {client.manager
                     ? `${client.manager.firstName} ${client.manager.lastName}`
+                    : currentLanguage === "fr"
+                    ? "N/A"
+                    : currentLanguage === "ar"
+                    ? "غير متاح"
                     : "N/A"}
                 </Td>
                 <Td>
                   {client.assistant
                     ? `${client.assistant.firstName} ${client.assistant.lastName}`
+                    : currentLanguage === "fr"
+                    ? "N/A"
+                    : currentLanguage === "ar"
+                    ? "غير متاح"
                     : "N/A"}
                 </Td>
                 <Td>{client.commentaires ? client.commentaires.length : 0}</Td>
@@ -116,7 +191,11 @@ const PotentialClientsListView = () => {
                       navigate(`/dashboard/potential-clients/${client._id}`)
                     }
                   >
-                    View Details
+                    {currentLanguage === "fr"
+                      ? "Voir les détails"
+                      : currentLanguage === "ar"
+                      ? "عرض التفاصيل"
+                      : "View Details"}
                   </Button>
                 </Td>
               </Tr>
@@ -124,7 +203,13 @@ const PotentialClientsListView = () => {
           </Tbody>
         </Table>
       ) : (
-        <Text>No potential clients found.</Text>
+        <Text>
+          {currentLanguage === "fr"
+            ? "Aucun client potentiel trouvé."
+            : currentLanguage === "ar"
+            ? "لم يتم العثور على عملاء محتملين."
+            : "No potential clients found."}
+        </Text>
       )}
     </Box>
   );

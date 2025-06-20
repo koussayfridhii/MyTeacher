@@ -27,7 +27,7 @@ import axios from "axios";
 const Navbar = ({ home }) => {
   const token = localStorage.getItem("token");
   const { user, wallet } = useSelector((state) => state.user);
-  const language = useSelector((state) => state.language.language);
+  const currentLanguage = useSelector((state) => state.language.language); // Renamed for consistency
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const bg = useColorModeValue("gray.800", "gray.900");
@@ -69,21 +69,30 @@ const Navbar = ({ home }) => {
             </MenuButton>
             <MenuList bg={bg} color={color}>
               <MenuItem bg={bg} fontWeight="bold">
-                {`User: ${user?.firstName} ${user?.lastName}`}
+                {currentLanguage === "fr"
+                  ? "Utilisateur : "
+                  : currentLanguage === "ar"
+                  ? "المستخدم: "
+                  : "User: "}
+                {user?.firstName} {user?.lastName}
               </MenuItem>
               <MenuItem bg={bg} fontWeight="bold">
                 {user?.email}
               </MenuItem>
               <MenuItem bg={bg} fontWeight="bold">
                 <Link to={`/dashboard/profile/${user._id}`}>
-                  Profile settings
+                  {currentLanguage === "fr"
+                    ? "Paramètres du profil"
+                    : currentLanguage === "ar"
+                    ? "إعدادات الملف الشخصي"
+                    : "Profile settings"}
                 </Link>
               </MenuItem>
 
               <Center bg={bg} fontWeight="bold" w="full" mt={2} gap={4}>
                 <Select
                   size="sm"
-                  value={language}
+                  value={currentLanguage}
                   onChange={handleLanguageChange}
                   w="100px"
                   sx={{
@@ -95,13 +104,35 @@ const Navbar = ({ home }) => {
                     },
                   }}
                 >
-                  <option value="en">English</option>
-                  <option value="ar">العربية</option>
-                  <option value="fr">Français</option>
+                  <option value="en">
+                    {currentLanguage === "fr"
+                      ? "Anglais"
+                      : currentLanguage === "ar"
+                      ? "الإنجليزية"
+                      : "English"}
+                  </option>
+                  <option value="ar">
+                    {currentLanguage === "fr"
+                      ? "Arabe"
+                      : currentLanguage === "ar"
+                      ? "العربية"
+                      : "Arabic"}
+                  </option>
+                  <option value="fr">
+                    {currentLanguage === "fr"
+                      ? "Français"
+                      : currentLanguage === "ar"
+                      ? "الفرنسية"
+                      : "French"}
+                  </option>
                 </Select>
                 {token ? (
                   <Button size="sm" colorScheme="red" onClick={handleLogout}>
-                    Logout
+                    {currentLanguage === "fr"
+                      ? "Déconnexion"
+                      : currentLanguage === "ar"
+                      ? "تسجيل الخروج"
+                      : "Logout"}
                   </Button>
                 ) : (
                   <Button
@@ -109,7 +140,11 @@ const Navbar = ({ home }) => {
                     colorScheme="blue"
                     onClick={() => navigate("/signin")}
                   >
-                    Login
+                    {currentLanguage === "fr"
+                      ? "Connexion"
+                      : currentLanguage === "ar"
+                      ? "تسجيل الدخول"
+                      : "Login"}
                   </Button>
                 )}
               </Center>
@@ -129,11 +164,16 @@ const Navbar = ({ home }) => {
             <HStack spacing={1} align="center">
               <ChakraLink
                 as={Link}
+                to="/"
                 color="white"
                 fontSize="xl"
                 fontWeight="bold"
               >
-                Home
+                {currentLanguage === "fr"
+                  ? "Accueil"
+                  : currentLanguage === "ar"
+                  ? "الرئيسية"
+                  : "Home"}
               </ChakraLink>
             </HStack>
           )}

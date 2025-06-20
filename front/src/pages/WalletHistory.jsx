@@ -26,23 +26,11 @@ import {
 } from "recharts";
 import apiClient from "../hooks/apiClient";
 import { format } from "date-fns"; // For date formatting
-
-const monthNames = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { useSelector } from "react-redux"; // Import useSelector
+import { useMemo } from "react"; // Import useMemo
 
 const WalletHistory = () => {
+  const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({}); // This will hold monthlyStats
   const [loading, setLoading] = useState(true);
@@ -51,6 +39,55 @@ const WalletHistory = () => {
 
   const cardBg = useColorModeValue("white", "gray.700");
   const textColor = useColorModeValue("gray.800", "white");
+
+  const localizedMonthNames = useMemo(() => {
+    if (currentLanguage === "fr") {
+      return [
+        "Janv",
+        "Févr",
+        "Mars",
+        "Avril",
+        "Mai",
+        "Juin",
+        "Juil",
+        "Août",
+        "Sept",
+        "Oct",
+        "Nov",
+        "Déc",
+      ];
+    } else if (currentLanguage === "ar") {
+      return [
+        "ينا",
+        "فبر",
+        "مار",
+        "أبر",
+        "ماي",
+        "يون",
+        "يول",
+        "أغس",
+        "سبت",
+        "أكت",
+        "نوف",
+        "ديس",
+      ];
+    }
+    return [
+      // English fallback
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+  }, [currentLanguage]);
 
   useEffect(() => {
     apiClient
@@ -84,27 +121,49 @@ const WalletHistory = () => {
             });
 
             return {
-              name: monthNames[monthNumber - 1] || `Month ${monthNumber}`,
+              name:
+                localizedMonthNames[monthNumber - 1] ||
+                `${
+                  currentLanguage === "fr"
+                    ? "Mois "
+                    : currentLanguage === "ar"
+                    ? "شهر "
+                    : "Month "
+                }${monthNumber}`,
               Income: income,
               Expenditure: expenditure,
             };
           })
           .sort(
-            (a, b) => monthNames.indexOf(a.name) - monthNames.indexOf(b.name)
+            (a, b) =>
+              localizedMonthNames.indexOf(a.name) -
+              localizedMonthNames.indexOf(b.name)
           ); // Sort by month
 
         setChartData(processedData);
         setLoading(false);
       })
       .catch((err) => {
-        setError("Failed to fetch wallet history.");
+        setError(
+          currentLanguage === "fr"
+            ? "Échec de la récupération de l'historique du portefeuille."
+            : currentLanguage === "ar"
+            ? "فشل في جلب سجل المحفظة."
+            : "Failed to fetch wallet history."
+        );
         setLoading(false);
       });
-  }, []);
+  }, [currentLanguage, localizedMonthNames]); // Added localizedMonthNames and currentLanguage to dependency array
 
   return (
     <Box p={5}>
-      <Heading mb={5}>Wallet History</Heading>
+      <Heading mb={5}>
+        {currentLanguage === "fr"
+          ? "Historique du portefeuille"
+          : currentLanguage === "ar"
+          ? "سجل المحفظة"
+          : "Wallet History"}
+      </Heading>
       {loading && <Spinner size="xl" />}
       {error && (
         <Text color="red.500" fontSize="lg">
@@ -115,7 +174,11 @@ const WalletHistory = () => {
       {!loading && !error && Object.keys(stats).length > 0 && (
         <Box bg={cardBg} p={5} borderRadius="lg" shadow="md" mt={5}>
           <Heading size="lg" mb={4} color={textColor}>
-            Monthly Summary
+            {currentLanguage === "fr"
+              ? "Résumé mensuel"
+              : currentLanguage === "ar"
+              ? "الملخص الشهري"
+              : "Monthly Summary"}
           </Heading>
           <ResponsiveContainer width="100%" height={400}>
             <BarChart
@@ -127,8 +190,28 @@ const WalletHistory = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="Income" fill="#48BB78" />
-              <Bar dataKey="Expenditure" fill="#F56565" />
+              <Bar
+                dataKey="Income"
+                fill="#48BB78"
+                name={
+                  currentLanguage === "fr"
+                    ? "Revenu"
+                    : currentLanguage === "ar"
+                    ? "الدخل"
+                    : "Income"
+                }
+              />
+              <Bar
+                dataKey="Expenditure"
+                fill="#F56565"
+                name={
+                  currentLanguage === "fr"
+                    ? "Dépense"
+                    : currentLanguage === "ar"
+                    ? "المصروفات"
+                    : "Expenditure"
+                }
+              />
             </BarChart>
           </ResponsiveContainer>
         </Box>
@@ -137,17 +220,51 @@ const WalletHistory = () => {
       {!loading && !error && history.length > 0 && (
         <Box bg={cardBg} p={5} borderRadius="lg" shadow="md" mt={10}>
           <Heading size="lg" mb={4} color={textColor}>
-            Transaction Details
+            {currentLanguage === "fr"
+              ? "Détails de la transaction"
+              : currentLanguage === "ar"
+              ? "تفاصيل المعاملة"
+              : "Transaction Details"}
           </Heading>
           <TableContainer>
             <Table variant="simple">
-              <TableCaption>Detailed Wallet Transaction History</TableCaption>
+              <TableCaption>
+                {currentLanguage === "fr"
+                  ? "Historique détaillé des transactions du portefeuille"
+                  : currentLanguage === "ar"
+                  ? "سجل معاملات المحفظة المفصل"
+                  : "Detailed Wallet Transaction History"}
+              </TableCaption>
               <Thead>
                 <Tr>
-                  <Th>Date</Th>
-                  <Th>Description</Th>
-                  <Th isNumeric>Amount Changed</Th>
-                  <Th isNumeric>Balance After</Th>
+                  <Th>
+                    {currentLanguage === "fr"
+                      ? "Date"
+                      : currentLanguage === "ar"
+                      ? "التاريخ"
+                      : "Date"}
+                  </Th>
+                  <Th>
+                    {currentLanguage === "fr"
+                      ? "Description"
+                      : currentLanguage === "ar"
+                      ? "الوصف"
+                      : "Description"}
+                  </Th>
+                  <Th isNumeric>
+                    {currentLanguage === "fr"
+                      ? "Montant modifié"
+                      : currentLanguage === "ar"
+                      ? "المبلغ المتغير"
+                      : "Amount Changed"}
+                  </Th>
+                  <Th isNumeric>
+                    {currentLanguage === "fr"
+                      ? "Solde après"
+                      : currentLanguage === "ar"
+                      ? "الرصيد بعد"
+                      : "Balance After"}
+                  </Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -183,9 +300,19 @@ const WalletHistory = () => {
         Object.keys(stats).length > 0 && (
           <Box bg={cardBg} p={5} borderRadius="lg" shadow="md" mt={10}>
             <Heading size="lg" mb={4} color={textColor}>
-              Transaction Details
+              {currentLanguage === "fr"
+                ? "Détails de la transaction"
+                : currentLanguage === "ar"
+                ? "تفاصيل المعاملة"
+                : "Transaction Details"}
             </Heading>
-            <Text>No transaction history found.</Text>
+            <Text>
+              {currentLanguage === "fr"
+                ? "Aucun historique de transaction trouvé."
+                : currentLanguage === "ar"
+                ? "لم يتم العثور على سجل معاملات."
+                : "No transaction history found."}
+            </Text>
           </Box>
         )}
 
@@ -194,7 +321,11 @@ const WalletHistory = () => {
         Object.keys(stats).length === 0 &&
         history.length === 0 && (
           <Text mt={5} fontSize="lg">
-            No wallet history or statistics available at the moment.
+            {currentLanguage === "fr"
+              ? "Aucun historique de portefeuille ou statistique disponible pour le moment."
+              : currentLanguage === "ar"
+              ? "لا يوجد سجل محفظة أو إحصائيات متاحة في الوقت الحالي."
+              : "No wallet history or statistics available at the moment."}
           </Text>
         )}
     </Box>
