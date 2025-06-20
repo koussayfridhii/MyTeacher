@@ -47,7 +47,7 @@ const StreamVideoProvider = ({ children }) => {
       tokenProvider: fetchStreamToken,
     });
     setVideoClient(client);
-  }, [user, isLoggedIn]);
+  }, [user?._id, isLoggedIn]);
 
   if (!videoClient)
     return (
