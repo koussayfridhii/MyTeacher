@@ -97,11 +97,14 @@ export const updateLandingContent = async (req, res) => {
         if (key.includes('_en') || key.includes('_fr') || key.includes('_ar')) {
             const baseKey = key.substring(0, key.lastIndexOf('_'));
             const lang = key.substring(key.lastIndexOf('_') + 1);
-            if (!structuredUpdates[baseKey]) {
+
+            // More robust check: ensure baseKey is an object before assigning lang property
+            if (typeof structuredUpdates[baseKey] !== 'object' || structuredUpdates[baseKey] === null) {
                 structuredUpdates[baseKey] = {};
             }
             structuredUpdates[baseKey][lang] = updates[key];
         } else {
+            // For non-localized fields (e.g., image URLs, singleton flag)
             structuredUpdates[key] = updates[key];
         }
     }
