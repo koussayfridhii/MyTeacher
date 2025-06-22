@@ -17,4 +17,5 @@ export default defineConfig({
       usePolling: true,
     },
   },
+  assetsInclude: ["**/*.glb"], // Add this line to include .glb files as assets
 });

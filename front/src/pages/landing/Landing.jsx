@@ -62,7 +62,6 @@ import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import apiClient from "../../hooks/apiClient"; // For fetching content
 import { logout } from "../../redux/userSlice"; // Added logout action
 import axios from "axios"; // Added axios for logout API call
-
 // Create Motion-Wrapped Chakra Components
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
@@ -115,7 +114,7 @@ const Navbar = ({
       localStorage.removeItem("token");
       // Also remove "user" from localStorage if your app does that, like in userSlice initial state
       localStorage.removeItem("user");
-      navigate("/signin"); // Or to "/"
+      navigate("/"); // Or to "/"
     }
   };
 
@@ -908,7 +907,6 @@ const LandingPage = () => {
           </Box>
         </MotionFlex>
       </Box>
-
       <Box
         id="nos-objectifs-section"
         py={20}
