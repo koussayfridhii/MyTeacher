@@ -1,75 +1,84 @@
 import { useEffect, useRef } from "react";
-import * as THREE from 'three';
-import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPreset } from 'postprocessing';
+import * as THREE from "three";
+import {
+  BloomEffect,
+  EffectComposer,
+  EffectPass,
+  RenderPass,
+  SMAAEffect,
+  SMAAPreset,
+} from "postprocessing";
 
-import './Hyperspeed.css';
+import "./Hyperspeed.css";
 
-const Hyperspeed = ({ effectOptions = {
-  onSpeedUp: () => { },
-  onSlowDown: () => { },
-  distortion: 'turbulentDistortion',
-  length: 400,
-  roadWidth: 10,
-  islandWidth: 2,
-  lanesPerRoad: 4,
-  fov: 90,
-  fovSpeedUp: 150,
-  speedUp: 2,
-  carLightsFade: 0.4,
-  totalSideLightSticks: 20,
-  lightPairsPerRoadWay: 40,
-  shoulderLinesWidthPercentage: 0.05,
-  brokenLinesWidthPercentage: 0.1,
-  brokenLinesLengthPercentage: 0.5,
-  lightStickWidth: [0.12, 0.5],
-  lightStickHeight: [1.3, 1.7],
-  movingAwaySpeed: [60, 80],
-  movingCloserSpeed: [-120, -160],
-  carLightsLength: [400 * 0.03, 400 * 0.2],
-  carLightsRadius: [0.05, 0.14],
-  carWidthPercentage: [0.3, 0.5],
-  carShiftX: [-0.8, 0.8],
-  carFloorSeparation: [0, 5],
-  colors: {
-    roadColor: 0x080808,
-    islandColor: 0x0a0a0a,
-    background: 0x000000,
-    shoulderLines: 0xFFFFFF,
-    brokenLines: 0xFFFFFF,
-    leftCars: [0xD856BF, 0x6750A2, 0xC247AC],
-    rightCars: [0x03B3C3, 0x0E5EA5, 0x324555],
-    sticks: 0x03B3C3,
-  }
-} }) => {
+const Hyperspeed = ({
+  effectOptions = {
+    onSpeedUp: () => {},
+    onSlowDown: () => {},
+    distortion: "turbulentDistortion",
+    length: 400,
+    roadWidth: 10,
+    islandWidth: 2,
+    lanesPerRoad: 4,
+    fov: 90,
+    fovSpeedUp: 150,
+    speedUp: 2,
+    carLightsFade: 0.4,
+    totalSideLightSticks: 20,
+    lightPairsPerRoadWay: 40,
+    shoulderLinesWidthPercentage: 0.05,
+    brokenLinesWidthPercentage: 0.1,
+    brokenLinesLengthPercentage: 0.5,
+    lightStickWidth: [0.12, 0.5],
+    lightStickHeight: [1.3, 1.7],
+    movingAwaySpeed: [60, 80],
+    movingCloserSpeed: [-120, -160],
+    carLightsLength: [400 * 0.03, 400 * 0.2],
+    carLightsRadius: [0.05, 0.14],
+    carWidthPercentage: [0.3, 0.5],
+    carShiftX: [-0.8, 0.8],
+    carFloorSeparation: [0, 5],
+    colors: {
+      roadColor: 0x171923,
+      islandColor: 0x319795,
+      background: 0x319795,
+      shoulderLines: 0xffffff,
+      brokenLines: 0xffffff,
+      leftCars: [0x319795, 0x16610e, 0xf97a00],
+      rightCars: [0x03b3c3, 0x0e5ea5, 0x324555],
+      sticks: 0x03b3c3,
+    },
+  },
+}) => {
   const hyperspeed = useRef(null);
   useEffect(() => {
     const mountainUniforms = {
       uFreq: { value: new THREE.Vector3(3, 6, 10) },
-      uAmp: { value: new THREE.Vector3(30, 30, 20) }
+      uAmp: { value: new THREE.Vector3(30, 30, 20) },
     };
 
     const xyUniforms = {
       uFreq: { value: new THREE.Vector2(5, 2) },
-      uAmp: { value: new THREE.Vector2(25, 15) }
+      uAmp: { value: new THREE.Vector2(25, 15) },
     };
 
     const LongRaceUniforms = {
       uFreq: { value: new THREE.Vector2(2, 3) },
-      uAmp: { value: new THREE.Vector2(35, 10) }
+      uAmp: { value: new THREE.Vector2(35, 10) },
     };
 
     const turbulentUniforms = {
       uFreq: { value: new THREE.Vector4(4, 8, 8, 1) },
-      uAmp: { value: new THREE.Vector4(25, 5, 10, 10) }
+      uAmp: { value: new THREE.Vector4(25, 5, 10, 10) },
     };
 
     const deepUniforms = {
       uFreq: { value: new THREE.Vector2(4, 8) },
       uAmp: { value: new THREE.Vector2(10, 20) },
-      uPowY: { value: new THREE.Vector2(20, 2) }
+      uPowY: { value: new THREE.Vector2(20, 2) },
     };
 
-    let nsin = val => Math.sin(val) * 0.5 + 0.5;
+    let nsin = (val) => Math.sin(val) * 0.5 + 0.5;
 
     const distortions = {
       mountainDistortion: {
@@ -96,16 +105,16 @@ const Hyperspeed = ({ effectOptions = {
           let uAmp = mountainUniforms.uAmp.value;
           let distortion = new THREE.Vector3(
             Math.cos(progress * Math.PI * uFreq.x + time) * uAmp.x -
-            Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
+              Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
             nsin(progress * Math.PI * uFreq.y + time) * uAmp.y -
-            nsin(movementProgressFix * Math.PI * uFreq.y + time) * uAmp.y,
+              nsin(movementProgressFix * Math.PI * uFreq.y + time) * uAmp.y,
             nsin(progress * Math.PI * uFreq.z + time) * uAmp.z -
-            nsin(movementProgressFix * Math.PI * uFreq.z + time) * uAmp.z
+              nsin(movementProgressFix * Math.PI * uFreq.z + time) * uAmp.z
           );
           let lookAtAmp = new THREE.Vector3(2, 2, 2);
           let lookAtOffset = new THREE.Vector3(0, 0, -5);
           return distortion.multiply(lookAtAmp).add(lookAtOffset);
-        }
+        },
       },
       xyDistortion: {
         uniforms: xyUniforms,
@@ -128,15 +137,19 @@ const Hyperspeed = ({ effectOptions = {
           let uAmp = xyUniforms.uAmp.value;
           let distortion = new THREE.Vector3(
             Math.cos(progress * Math.PI * uFreq.x + time) * uAmp.x -
-            Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
-            Math.sin(progress * Math.PI * uFreq.y + time + Math.PI / 2) * uAmp.y -
-            Math.sin(movementProgressFix * Math.PI * uFreq.y + time + Math.PI / 2) * uAmp.y,
+              Math.cos(movementProgressFix * Math.PI * uFreq.x + time) * uAmp.x,
+            Math.sin(progress * Math.PI * uFreq.y + time + Math.PI / 2) *
+              uAmp.y -
+              Math.sin(
+                movementProgressFix * Math.PI * uFreq.y + time + Math.PI / 2
+              ) *
+                uAmp.y,
             0
           );
           let lookAtAmp = new THREE.Vector3(2, 0.4, 1);
           let lookAtOffset = new THREE.Vector3(0, 0, -3);
           return distortion.multiply(lookAtAmp).add(lookAtOffset);
-        }
+        },
       },
       LongRaceDistortion: {
         uniforms: LongRaceUniforms,
@@ -159,15 +172,15 @@ const Hyperspeed = ({ effectOptions = {
           let uAmp = LongRaceUniforms.uAmp.value;
           let distortion = new THREE.Vector3(
             Math.sin(progress * Math.PI * uFreq.x + time) * uAmp.x -
-            Math.sin(camProgress * Math.PI * uFreq.x + time) * uAmp.x,
+              Math.sin(camProgress * Math.PI * uFreq.x + time) * uAmp.x,
             Math.sin(progress * Math.PI * uFreq.y + time) * uAmp.y -
-            Math.sin(camProgress * Math.PI * uFreq.y + time) * uAmp.y,
+              Math.sin(camProgress * Math.PI * uFreq.y + time) * uAmp.y,
             0
           );
           let lookAtAmp = new THREE.Vector3(1, 1, 0);
           let lookAtOffset = new THREE.Vector3(0, 0, -5);
           return distortion.multiply(lookAtAmp).add(lookAtOffset);
-        }
+        },
       },
       turbulentDistortion: {
         uniforms: turbulentUniforms,
@@ -202,13 +215,21 @@ const Hyperspeed = ({ effectOptions = {
           const uFreq = turbulentUniforms.uFreq.value;
           const uAmp = turbulentUniforms.uAmp.value;
 
-          const getX = p =>
+          const getX = (p) =>
             Math.cos(Math.PI * p * uFreq.x + time) * uAmp.x +
-            Math.pow(Math.cos(Math.PI * p * uFreq.y + time * (uFreq.y / uFreq.x)), 2) * uAmp.y;
+            Math.pow(
+              Math.cos(Math.PI * p * uFreq.y + time * (uFreq.y / uFreq.x)),
+              2
+            ) *
+              uAmp.y;
 
-          const getY = p =>
+          const getY = (p) =>
             -nsin(Math.PI * p * uFreq.z + time) * uAmp.z -
-            Math.pow(nsin(Math.PI * p * uFreq.w + time / (uFreq.z / uFreq.w)), 5) * uAmp.w;
+            Math.pow(
+              nsin(Math.PI * p * uFreq.w + time / (uFreq.z / uFreq.w)),
+              5
+            ) *
+              uAmp.w;
 
           let distortion = new THREE.Vector3(
             getX(progress) - getX(progress + 0.007),
@@ -218,7 +239,7 @@ const Hyperspeed = ({ effectOptions = {
           let lookAtAmp = new THREE.Vector3(-2, -5, 0);
           let lookAtOffset = new THREE.Vector3(0, 0, -10);
           return distortion.multiply(lookAtAmp).add(lookAtOffset);
-        }
+        },
       },
       turbulentDistortionStill: {
         uniforms: turbulentUniforms,
@@ -248,7 +269,7 @@ const Hyperspeed = ({ effectOptions = {
               0.
             );
           }
-        `
+        `,
       },
       deepDistortionStill: {
         uniforms: deepUniforms,
@@ -277,7 +298,7 @@ const Hyperspeed = ({ effectOptions = {
               0.
             );
           }
-        `
+        `,
       },
       deepDistortion: {
         uniforms: deepUniforms,
@@ -312,8 +333,8 @@ const Hyperspeed = ({ effectOptions = {
           const uAmp = deepUniforms.uAmp.value;
           const uPowY = deepUniforms.uPowY.value;
 
-          const getX = p => Math.sin(p * Math.PI * uFreq.x + time) * uAmp.x;
-          const getY = p =>
+          const getX = (p) => Math.sin(p * Math.PI * uFreq.x + time) * uAmp.x;
+          const getY = (p) =>
             Math.pow(p * uPowY.x, uPowY.y) +
             Math.sin(p * Math.PI * uFreq.y + time) * uAmp.y;
 
@@ -325,9 +346,9 @@ const Hyperspeed = ({ effectOptions = {
           let lookAtAmp = new THREE.Vector3(-2, -4, 0);
           let lookAtOffset = new THREE.Vector3(0, 0, -10);
           return distortion.multiply(lookAtAmp).add(lookAtOffset);
-        }
-      }
-    }
+        },
+      },
+    };
 
     class App {
       constructor(container, options = {}) {
@@ -335,15 +356,19 @@ const Hyperspeed = ({ effectOptions = {
         if (this.options.distortion == null) {
           this.options.distortion = {
             uniforms: distortion_uniforms,
-            getDistortion: distortion_vertex
+            getDistortion: distortion_vertex,
           };
         }
         this.container = container;
         this.renderer = new THREE.WebGLRenderer({
           antialias: false,
-          alpha: true
+          alpha: true,
         });
-        this.renderer.setSize(container.offsetWidth, container.offsetHeight, false);
+        this.renderer.setSize(
+          container.offsetWidth,
+          container.offsetHeight,
+          false
+        );
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.composer = new EffectComposer(this.renderer);
         container.append(this.renderer.domElement);
@@ -369,7 +394,7 @@ const Hyperspeed = ({ effectOptions = {
         this.fogUniforms = {
           fogColor: { value: fog.color },
           fogNear: { value: fog.near },
-          fogFar: { value: fog.far }
+          fogFar: { value: fog.far },
         };
         this.clock = new THREE.Clock();
         this.assets = {};
@@ -423,7 +448,7 @@ const Hyperspeed = ({ effectOptions = {
           new BloomEffect({
             luminanceThreshold: 0.2,
             luminanceSmoothing: 0,
-            resolutionScale: 1
+            resolutionScale: 1,
           })
         );
 
@@ -432,7 +457,7 @@ const Hyperspeed = ({ effectOptions = {
           new SMAAEffect({
             preset: SMAAPreset.MEDIUM,
             searchImage: SMAAEffect.searchImageDataURL,
-            areaImage: SMAAEffect.areaImageDataURL
+            areaImage: SMAAEffect.areaImageDataURL,
           })
         );
         this.renderPass.renderToScreen = false;
@@ -578,7 +603,7 @@ const Hyperspeed = ({ effectOptions = {
 
     const distortion_uniforms = {
       uDistortionX: { value: new THREE.Vector2(80, 3) },
-      uDistortionY: { value: new THREE.Vector2(-40, 2.5) }
+      uDistortionY: { value: new THREE.Vector2(-40, 2.5) },
     };
 
     const distortion_vertex = `
@@ -602,13 +627,15 @@ const Hyperspeed = ({ effectOptions = {
       }
     `;
 
-    const random = base => {
-      if (Array.isArray(base)) return Math.random() * (base[1] - base[0]) + base[0];
+    const random = (base) => {
+      if (Array.isArray(base))
+        return Math.random() * (base[1] - base[0]) + base[0];
       return Math.random() * base;
     };
 
-    const pickRandom = arr => {
-      if (Array.isArray(arr)) return arr[Math.floor(Math.random() * arr.length)];
+    const pickRandom = (arr) => {
+      if (Array.isArray(arr))
+        return arr[Math.floor(Math.random() * arr.length)];
       return arr;
     };
 
@@ -648,7 +675,7 @@ const Hyperspeed = ({ effectOptions = {
 
         let colors = this.colors;
         if (Array.isArray(colors)) {
-          colors = colors.map(c => new THREE.Color(c));
+          colors = colors.map((c) => new THREE.Color(c));
         } else {
           colors = new THREE.Color(colors);
         }
@@ -659,7 +686,8 @@ const Hyperspeed = ({ effectOptions = {
           let speed = random(this.speed);
 
           let carLane = i % options.lanesPerRoad;
-          let laneX = carLane * laneWidth - options.roadWidth / 2 + laneWidth / 2;
+          let laneX =
+            carLane * laneWidth - options.roadWidth / 2 + laneWidth / 2;
 
           let carWidth = random(options.carWidthPercentage) * laneWidth;
           let carShiftX = random(options.carShiftX) * laneWidth;
@@ -697,11 +725,19 @@ const Hyperspeed = ({ effectOptions = {
 
         instanced.setAttribute(
           "aOffset",
-          new THREE.InstancedBufferAttribute(new Float32Array(aOffset), 3, false)
+          new THREE.InstancedBufferAttribute(
+            new Float32Array(aOffset),
+            3,
+            false
+          )
         );
         instanced.setAttribute(
           "aMetrics",
-          new THREE.InstancedBufferAttribute(new Float32Array(aMetrics), 3, false)
+          new THREE.InstancedBufferAttribute(
+            new Float32Array(aMetrics),
+            3,
+            false
+          )
         );
         instanced.setAttribute(
           "aColor",
@@ -716,14 +752,14 @@ const Hyperspeed = ({ effectOptions = {
             {
               uTime: { value: 0 },
               uTravelLength: { value: options.length },
-              uFade: { value: this.fade }
+              uFade: { value: this.fade },
             },
             this.webgl.fogUniforms,
             options.distortion.uniforms
-          )
+          ),
         });
 
-        material.onBeforeCompile = shader => {
+        material.onBeforeCompile = (shader) => {
           shader.vertexShader = shader.vertexShader.replace(
             "#include <getDistortion_vertex>",
             options.distortion.getDistortion
@@ -810,7 +846,7 @@ const Hyperspeed = ({ effectOptions = {
 
         let colors = options.colors.sticks;
         if (Array.isArray(colors)) {
-          colors = colors.map(c => new THREE.Color(c));
+          colors = colors.map((c) => new THREE.Color(c));
         } else {
           colors = new THREE.Color(colors);
         }
@@ -831,7 +867,11 @@ const Hyperspeed = ({ effectOptions = {
 
         instanced.setAttribute(
           "aOffset",
-          new THREE.InstancedBufferAttribute(new Float32Array(aOffset), 1, false)
+          new THREE.InstancedBufferAttribute(
+            new Float32Array(aOffset),
+            1,
+            false
+          )
         );
         instanced.setAttribute(
           "aColor",
@@ -839,7 +879,11 @@ const Hyperspeed = ({ effectOptions = {
         );
         instanced.setAttribute(
           "aMetrics",
-          new THREE.InstancedBufferAttribute(new Float32Array(aMetrics), 2, false)
+          new THREE.InstancedBufferAttribute(
+            new Float32Array(aMetrics),
+            2,
+            false
+          )
         );
 
         const material = new THREE.ShaderMaterial({
@@ -849,14 +893,14 @@ const Hyperspeed = ({ effectOptions = {
           uniforms: Object.assign(
             {
               uTravelLength: { value: options.length },
-              uTime: { value: 0 }
+              uTime: { value: 0 },
             },
             this.webgl.fogUniforms,
             options.distortion.uniforms
-          )
+          ),
         });
 
-        material.onBeforeCompile = shader => {
+        material.onBeforeCompile = (shader) => {
           shader.vertexShader = shader.vertexShader.replace(
             "#include <getDistortion_vertex>",
             options.distortion.getDistortion
@@ -943,18 +987,32 @@ const Hyperspeed = ({ effectOptions = {
         );
         let uniforms = {
           uTravelLength: { value: options.length },
-          uColor: { value: new THREE.Color(isRoad ? options.colors.roadColor : options.colors.islandColor) },
-          uTime: this.uTime
+          uColor: {
+            value: new THREE.Color(
+              isRoad ? options.colors.roadColor : options.colors.islandColor
+            ),
+          },
+          uTime: this.uTime,
         };
 
         if (isRoad) {
           uniforms = Object.assign(uniforms, {
             uLanes: { value: options.lanesPerRoad },
-            uBrokenLinesColor: { value: new THREE.Color(options.colors.brokenLines) },
-            uShoulderLinesColor: { value: new THREE.Color(options.colors.shoulderLines) },
-            uShoulderLinesWidthPercentage: { value: options.shoulderLinesWidthPercentage },
-            uBrokenLinesLengthPercentage: { value: options.brokenLinesLengthPercentage },
-            uBrokenLinesWidthPercentage: { value: options.brokenLinesWidthPercentage }
+            uBrokenLinesColor: {
+              value: new THREE.Color(options.colors.brokenLines),
+            },
+            uShoulderLinesColor: {
+              value: new THREE.Color(options.colors.shoulderLines),
+            },
+            uShoulderLinesWidthPercentage: {
+              value: options.shoulderLinesWidthPercentage,
+            },
+            uBrokenLinesLengthPercentage: {
+              value: options.brokenLinesLengthPercentage,
+            },
+            uBrokenLinesWidthPercentage: {
+              value: options.brokenLinesWidthPercentage,
+            },
           });
         }
 
@@ -966,10 +1024,10 @@ const Hyperspeed = ({ effectOptions = {
             uniforms,
             this.webgl.fogUniforms,
             options.distortion.uniforms
-          )
+          ),
         });
 
-        material.onBeforeCompile = shader => {
+        material.onBeforeCompile = (shader) => {
           shader.vertexShader = shader.vertexShader.replace(
             "#include <getDistortion_vertex>",
             options.distortion.getDistortion
@@ -1083,7 +1141,7 @@ const Hyperspeed = ({ effectOptions = {
     }
 
     (function () {
-      const container = document.getElementById('lights');
+      const container = document.getElementById("lights");
       effectOptions.distortion = distortions[effectOptions.distortion];
 
       const myApp = new App(container, effectOptions);
@@ -1092,9 +1150,7 @@ const Hyperspeed = ({ effectOptions = {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <div id="lights" ref={hyperspeed}></div>
-  );
-}
+  return <div id="lights" ref={hyperspeed}></div>;
+};
 
 export default Hyperspeed;
