@@ -196,12 +196,17 @@ export default function Carousel({
               }}
               transition={effectiveTransition}
             >
-              <div className={`carousel-item-header ${round ? "round" : ""}`}>
-                <span className="carousel-icon-container">{item.icon}</span>
-              </div>
+              {item.imageUrl && (
+                <img
+                  src={item.imageUrl}
+                  alt={item.imageAlt || item.title}
+                  className="carousel-item-image"
+                />
+              )}
+              {/* Removed carousel-item-header and icon */}
               <div className="carousel-item-content">
                 <div className="carousel-item-title">{item.title}</div>
-                <p className="carousel-item-description">{item.description}</p>
+                {item.description && <p className="carousel-item-description">{item.description}</p>}
               </div>
             </motion.div>
           );

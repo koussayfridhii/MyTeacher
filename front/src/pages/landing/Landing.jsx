@@ -680,35 +680,45 @@ const LandingPage = () => {
   const objectivesCarouselItems = [
     {
       id: 1,
-      icon: <CheckCircleIcon color="green.500" />, // Or your preferred icon
+      icon: <CheckCircleIcon color="green.500" />,
       title: getText("objective1_text", "Objective 1 default text."),
-      description: "", // Carousel component expects a description, can be empty
+      description: "",
+      imageUrl: getText("objective1_image_url"),
+      imageAlt: getText("objective1_image_alt", "Objective 1 Image"),
     },
     {
       id: 2,
       icon: <CheckCircleIcon color="green.500" />,
       title: getText("objective2_text", "Objective 2 default text."),
       description: "",
+      imageUrl: getText("objective2_image_url"),
+      imageAlt: getText("objective2_image_alt", "Objective 2 Image"),
     },
     {
       id: 3,
       icon: <CheckCircleIcon color="green.500" />,
       title: getText("objective3_text", "Objective 3 default text."),
       description: "",
+      imageUrl: getText("objective3_image_url"),
+      imageAlt: getText("objective3_image_alt", "Objective 3 Image"),
     },
     {
       id: 4,
       icon: <CheckCircleIcon color="green.500" />,
       title: getText("objective4_text", "Objective 4 default text."),
       description: "",
+      imageUrl: getText("objective4_image_url"),
+      imageAlt: getText("objective4_image_alt", "Objective 4 Image"),
     },
     {
       id: 5,
       icon: <CheckCircleIcon color="green.500" />,
       title: getText("objective5_text", "Objective 5 default text."),
       description: "",
+      imageUrl: getText("objective5_image_url"),
+      imageAlt: getText("objective5_image_alt", "Objective 5 Image"),
     },
-  ].filter(item => item.title && item.title !== `Objective ${item.id} default text.`); // Filter out empty/default items if necessary
+  ].filter(item => item.title && item.title !== `Objective ${item.id} default text.` && item.title.trim() !== "");
 
   if (isLoadingContent) {
     return (

@@ -75,36 +75,13 @@
   transform: translateX(-50%);
 }
 
-.carousel-item-header {
-  margin-bottom: 12px; /* Adjusted spacing */
-  /* padding: 20px; */ /* Padding is now on .carousel-item */
-  /* padding-top: 20px; */
-  display: flex; /* To allow icon centering if needed */
-  justify-content: center;
-  align-items: center;
-}
-
-.carousel-icon-container {
-  display: flex;
-  height: 40px; /* Increased icon container size */
-  width: 40px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: var(--chakra-colors-teal-500); /* Theme: Use teal */
-  margin-bottom: 8px; /* Space below icon */
-}
-
-.carousel-icon {
-  /* The icon itself is a React component, color is set via Chakra's color prop */
-  /* height: 16px; */
-  /* width: 16px; */
-  /* color: #060010; */
-}
+/* Removed .carousel-item-header, .carousel-icon-container, and .carousel-icon styles as they are no longer used */
 
 .carousel-item-content {
   /* padding: 20px; */ /* Padding is now on .carousel-item */
   /* padding-bottom: 20px; */
+  margin-top: auto; /* If there's an image, push content down. If no image, content starts at top. */
+                  /* This also helps vertically center if .carousel-item has fixed height and content is short */
 }
 
 .carousel-item-title {
@@ -157,4 +134,21 @@
 .rtl-text-align .carousel-item-title,
 .rtl-text-align .carousel-item-description {
   text-align: right;
+}
+
+.carousel-item-image {
+  width: 100%; /* Make image responsive within the item */
+  max-height: 180px; /* Limit image height */
+  object-fit: cover; /* Cover the area, might crop */
+  border-radius: calc(var(--outer-r) - var(--p-distance) - 1px) calc(var(--outer-r) - var(--p-distance) - 1px) 0 0; /* Match top corners of item */
+  margin-bottom: 12px; /* Space between image and content (title) */
+}
+
+/* Removed .carousel-item-header rule as the element is gone */
+
+.carousel-item.round .carousel-item-image {
+  border-radius: 50%; /* For round carousel items, if image is used */
+  width: 80%; /* Example size for round image */
+  height: 80%; /* Example size for round image */
+  margin-bottom: 8px;
 }
