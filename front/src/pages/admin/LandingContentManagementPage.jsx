@@ -63,6 +63,7 @@ const contentFields = {
   nav_about: { label: "Nav Link: About Us", type: "text" },
   nav_teachers: { label: "Nav Link: Teachers", type: "text" },
   nav_contact: { label: "Nav Link: Contact", type: "text" },
+  nav_objectives: { label: "Nav Link: Objectives", type: "text" }, // Added for Objectives nav link
   navbar_signin: { label: "Navbar Sign In Button", type: "text" },
   navbar_signup: { label: "Navbar Sign Up Button", type: "text" },
   language_english: { label: "Language Selector: English", type: "text" },
@@ -687,6 +688,7 @@ const LandingContentManagementPage = () => {
         "nav_about",
         "nav_teachers",
         "nav_contact",
+        "nav_objectives", // Added nav_objectives field to navbar section
         "navbar_signin",
         "navbar_signup",
         "language_english",

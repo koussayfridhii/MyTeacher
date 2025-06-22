@@ -63,6 +63,7 @@ export const getLandingContent = async (req, res) => {
         nav_about: { en: "About Us", fr: "À Propos", ar: "من نحن" },
         nav_teachers: { en: "Teachers", fr: "Enseignants", ar: "المدرسون" },
         nav_contact: { en: "Contact", fr: "Contact", ar: "اتصل بنا" },
+        nav_objectives: { en: "Objectives", fr: "Objectifs", ar: "الأهداف" }, // Default for nav_objectives
         navbar_signin: { en: "Sign In", fr: "Se Connecter", ar: "تسجيل الدخول" },
         navbar_signup: { en: "Sign Up", fr: "S'inscrire", ar: "إنشاء حساب" },
         language_english: { en: "English", fr: "Anglais", ar: "الإنجليزية" },

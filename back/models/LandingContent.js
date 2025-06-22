@@ -23,6 +23,7 @@ const landingContentSchema = new mongoose.Schema(
     nav_about: localizedStringSchema,
     nav_teachers: localizedStringSchema,
     nav_contact: localizedStringSchema,
+    nav_objectives: localizedStringSchema, // Added field for Objectives nav link text
     navbar_signin: localizedStringSchema,
     navbar_signup: localizedStringSchema,
     language_english: localizedStringSchema,
