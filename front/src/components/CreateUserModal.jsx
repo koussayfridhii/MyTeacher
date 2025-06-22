@@ -97,6 +97,13 @@ const CreateUserModal = ({
         .map((p) => p.trim())
         .filter(Boolean);
     }
+    // Handle max_hours_per_week: if empty string or undefined, set to null
+    if (user.role === "admin" && showTeacherFields) {
+      if (data.max_hours_per_week === '' || data.max_hours_per_week === undefined) {
+        data.max_hours_per_week = null;
+      }
+    }
+
     // if admin and creating student, include coordinatorId
     if (user.role === "admin" && !showTeacherFields && data.coordinatorId) {
       data.coordinator = data.coordinatorId;
@@ -296,6 +303,25 @@ const CreateUserModal = ({
                     {errors.programs?.message}
                   </FormErrorMessage>
                 </FormControl>
+
+                {/* Max Weekly Hours - only for Admin creating Teacher */}
+                {user.role === "admin" && (
+                   <FormControl isInvalid={errors.max_hours_per_week}>
+                    <FormLabel>{labels.maxWeeklyHours || "Max Weekly Hours"}</FormLabel>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...register("max_hours_per_week", {
+                        valueAsNumber: true, // Ensure it's treated as a number
+                        min: { value: 0, message: "Cannot be negative" },
+                      })}
+                      placeholder="e.g., 10 (leave blank for no limit)"
+                    />
+                    <FormErrorMessage>
+                      {errors.max_hours_per_week?.message}
+                    </FormErrorMessage>
+                  </FormControl>
+                )}
               </>
             )}
           </VStack>

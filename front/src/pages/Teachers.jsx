@@ -20,6 +20,7 @@ import {
 import { useSelector } from "react-redux";
 import { withAuthorization } from "../HOC/Protect";
 import CreateTeacherModal from "../components/CreateUserModal";
+import EditTeacherModal from "../components/EditTeacherModal"; // Import EditTeacherModal
 import { Link } from "react-router-dom";
 import { useGetUsers, useApproveUser } from "../hooks/useGetUsers";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,7 +30,9 @@ const Teachers = () => {
   const language = useSelector((state) => state.language.language);
   const user = useSelector((state) => state.user.user);
   const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure();
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure(); // For Edit Modal
+  const [selectedTeacher, setSelectedTeacher] = useState(null); // To store teacher being edited
   const isMyTeachers = user.role === "admin";
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
@@ -57,6 +60,11 @@ const Teachers = () => {
       firstName: "First Name",
       lastName: "Last Name",
       mobile: "Mobile Number",
+      maxWeeklyHours: "Max Weekly Hours", // Added for English
+      editTeacher: "Edit Teacher",       // Added for English
+      save: "Save",                     // Added for English
+      editBtn: "Edit",                  // Added for English
+      cancel: "Cancel",                 // Added for English
     },
     fr: {
       title: "Gérer les enseignants",
@@ -80,6 +88,11 @@ const Teachers = () => {
       firstName: "Prénom",
       lastName: "Nom de famille",
       mobile: "Numéro de téléphone",
+      maxWeeklyHours: "Heures max/semaine",
+      editTeacher: "Modifier Enseignant",
+      save: "Enregistrer",
+      editBtn: "Modifier",
+      cancel: "Annuler",
     },
     ar: {
       title: "إدارة المعلمين",
@@ -103,10 +116,44 @@ const Teachers = () => {
       firstName: "الاسم الأول",
       lastName: "الاسم الأخير",
       mobile: "رقم الهاتف",
+      maxWeeklyHours: "ساعات العمل القصوى/الأسبوع",
+      editTeacher: "تعديل بيانات المعلم",
+      save: "حفظ",
+      editBtn: "تعديل",
+      cancel: "إلغاء",
     },
   };
 
   const labels = t[language] || t.en;
+  labels.en = { // Ensure English fallback has all keys
+    title: "Manage Teachers",
+    search: "Search...",
+    balance: "Balance",
+    subject: "Subject",
+    program: "Program",
+    approve: "Approve",
+    disapprove: "Disapprove",
+    status: "Status",
+    prev: "Previous",
+    next: "Next",
+    approvedMsg: "Teacher approved",
+    disapprovedMsg: "Teacher disapproved",
+    errorMsg: "Action failed",
+    createBtn: "Create Teacher",
+    modalTitle: "New Teacher",
+    submit: "Submit",
+    email: "Email",
+    password: "Password",
+    firstName: "First Name",
+    lastName: "Last Name",
+    mobile: "Mobile Number",
+    maxWeeklyHours: "Max Weekly Hours",
+    editTeacher: "Edit Teacher",
+    save: "Save",
+    editBtn: "Edit",
+    cancel: "Cancel",
+  };
+
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -200,7 +247,7 @@ const Teachers = () => {
       <HStack justify="space-between">
         <Heading mb={4}>{labels.title}</Heading>
         {isMyTeachers && (
-          <Button onClick={onOpen} colorScheme="blue">
+          <Button onClick={onCreateOpen} colorScheme="blue">
             {labels.createBtn}
           </Button>
         )}
@@ -216,12 +263,24 @@ const Teachers = () => {
       />
 
       <CreateTeacherModal
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={isCreateOpen}
+        onClose={onCreateClose}
         labels={labels}
         onCreate={handleCreate}
         showTeacherFields
       />
+
+      {selectedTeacher && (
+        <EditTeacherModal
+          isOpen={isEditOpen}
+          onClose={() => {
+            onEditClose();
+            setSelectedTeacher(null);
+          }}
+          teacher={selectedTeacher}
+          labels={labels}
+        />
+      )}
 
       <Table variant="simple">
         <Thead>
@@ -236,6 +295,7 @@ const Teachers = () => {
             {isMyTeachers && <Th>{labels.balance}</Th>}
             <Th>{labels.subject}</Th>
             <Th>{labels.program}</Th>
+            {isMyTeachers && <Th>{labels.maxWeeklyHours}</Th>}
             <Th>{labels.status}</Th>
             {isMyTeachers && (
               <Th>{language === "ar" ? "التفاعل" : "Actions"}</Th>
@@ -260,10 +320,21 @@ const Teachers = () => {
                   ? tchr.programs.join(", ")
                   : tchr.programs ?? "-"}
               </Td>
+              {isMyTeachers && <Td>{tchr.max_hours_per_week ?? "-"}</Td>}
               <Td>{tchr.isApproved ? "✔️" : "❌"}</Td>
               {isMyTeachers && (
                 <Td>
                   <HStack spacing={2}>
+                     <Button
+                       size="sm"
+                       colorScheme="blue"
+                       onClick={() => {
+                         setSelectedTeacher(tchr);
+                         onEditOpen();
+                       }}
+                     >
+                       {labels.editBtn || "Edit"}
+                     </Button>
                     <Button
                       size="sm"
                       colorScheme="green"

@@ -2,6 +2,14 @@ import Class from "../models/Class.js";
 import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
 import Plan from "../models/Plan.js";
+import dayjs from "dayjs";
+import weekOfYear from "dayjs/plugin/weekOfYear.js"; // For week calculations
+import isBetween from "dayjs/plugin/isBetween.js"; // To check if a date is within a week
+
+dayjs.extend(weekOfYear);
+dayjs.extend(isBetween);
+
+const DEFAULT_CLASS_DURATION_HOURS = 2;
 
 // @route   POST /api/classes
 // @access  admin, coordinator
@@ -33,6 +41,42 @@ export const createClass = async (req, res, next) => {
     if (isNaN(startsAt)) {
       return res.status(400).json({ error: "Invalid date format" });
     }
+
+    // 3) Validate Teacher's Max Hours
+    const teacherDoc = await User.findById(teacher);
+    if (!teacherDoc) {
+      return res.status(404).json({ error: "Teacher not found." });
+    }
+    if (teacherDoc.role !== "teacher") {
+      return res.status(400).json({ error: "Assigned user is not a teacher." });
+    }
+
+    if (teacherDoc.max_hours_per_week !== null && teacherDoc.max_hours_per_week !== undefined && teacherDoc.max_hours_per_week >= 0) {
+      const classDate = dayjs(startsAt);
+      const weekStart = classDate.startOf('week');
+      const weekEnd = classDate.endOf('week');
+
+      const existingClassesThisWeek = await Class.find({
+        teacher: teacherDoc._id,
+        date: {
+          $gte: weekStart.toDate(),
+          $lte: weekEnd.toDate(),
+        },
+      });
+
+      let currentWeeklyHours = 0;
+      existingClassesThisWeek.forEach(() => {
+        // Assuming each class has a fixed duration defined by DEFAULT_CLASS_DURATION_HOURS
+        currentWeeklyHours += DEFAULT_CLASS_DURATION_HOURS;
+      });
+
+      if (currentWeeklyHours + DEFAULT_CLASS_DURATION_HOURS > teacherDoc.max_hours_per_week) {
+        return res.status(400).json({
+          error: `Cannot schedule class. Teacher's maximum weekly hours (${teacherDoc.max_hours_per_week}h) would be exceeded. Currently scheduled: ${currentWeeklyHours}h.`,
+        });
+      }
+    }
+
     const plan = await Plan.findById(groupe);
     // if exact match not found, fall back to 10 per student
     const cost = plan.cost;

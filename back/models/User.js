@@ -112,6 +112,28 @@ const userSchema = new mongoose.Schema(
         return !(this.role === "teacher" || this.role === "student");
       },
     },
+
+    // Max hours per week (only for teachers)
+    max_hours_per_week: {
+      type: Number,
+      validate: {
+        validator: function(val) {
+          // If the field is not being set (i.e., value is null or undefined), it's always valid as it's optional.
+          if (val === null || typeof val === 'undefined') {
+            return true;
+          }
+          // If a value is provided, it must be a number and non-negative.
+          // The controller is responsible for ensuring this field is only set on 'teacher' roles.
+          if (typeof val === 'number' && val >= 0) {
+            return true;
+          }
+          return false; // Invalid if it's not null/undefined AND not a non-negative number.
+        },
+        message: props => `Invalid value for max_hours_per_week: '${props.value}'. If provided, value must be a non-negative number.`
+      },
+      default: null, // Default to null, meaning no limit
+    },
+
     isAssigned: {
       type: Boolean,
       default: false,

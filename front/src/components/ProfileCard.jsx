@@ -32,6 +32,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useGetUsers } from "./../hooks/useGetUsers";
 import { logout, login as loginAction } from "../redux/userSlice";
 import axios from "axios";
+import EditTeacherModal from "./EditTeacherModal"; // Import EditTeacherModal
 
 export default function ProfileCard() {
   const dispatch = useDispatch();
@@ -41,7 +42,8 @@ export default function ProfileCard() {
   const connectedUser = useSelector((state) => state.user.user);
   const [user, setUser] = useState({});
   const { data: users = [], isLoading } = useGetUsers();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure(); // For self-edit modal
+  const { isOpen: isAdminEditOpen, onOpen: onAdminEditOpen, onClose: onAdminEditClose } = useDisclosure(); // For admin editing teacher
   const token = localStorage.getItem("token");
 
   const [formData, setFormData] = useState({
@@ -234,7 +236,16 @@ export default function ProfileCard() {
             <ChakraImage boxSize="6" src="/assets/icons/phone.gif" />
             <Text>{user.mobileNumber}</Text>
           </Stack>
-          {isMe && (
+
+          {user?.role === "teacher" && (
+            <Stack align="center" justify="start" direction="row" mt={6}>
+              {/* Placeholder for an icon if desired */}
+              <Text fontWeight="bold" minW="120px">Max Weekly Hours:</Text>
+              <Text>{user.max_hours_per_week !== null && user.max_hours_per_week !== undefined ? user.max_hours_per_week : "Not set"}</Text>
+            </Stack>
+          )}
+
+          {isMe && ( // User viewing their own profile
             <Stack mt={8} direction="row" spacing={4}>
               <Button
                 flex={1}
@@ -262,9 +273,24 @@ export default function ProfileCard() {
               </Button>
             </Stack>
           )}
+
+          {!isMe && connectedUser?.role === 'admin' && user?.role === 'teacher' && (
+             <Stack mt={8} direction="row" spacing={4} justify="center">
+              <Button
+                flex={1}
+                fontSize="sm"
+                rounded="full"
+                colorScheme="purple"
+                onClick={onAdminEditOpen}
+              >
+                Admin Edit Teacher
+              </Button>
+            </Stack>
+          )}
         </Box>
       </Center>
 
+      {/* Modal for user editing their own profile */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
@@ -387,6 +413,21 @@ export default function ProfileCard() {
           </form>
         </ModalContent>
       </Modal>
+
+      {/* Modal for Admin editing a Teacher's max_hours_per_week */}
+      {user && connectedUser?.role === 'admin' && user?.role === 'teacher' && !isMe && (
+        <EditTeacherModal
+          isOpen={isAdminEditOpen}
+          onClose={onAdminEditClose}
+          teacher={user}
+          labels={{ /* Pass appropriate labels if needed, or rely on defaults in EditTeacherModal */
+            editTeacher: "Admin Edit Teacher Max Hours",
+            maxWeeklyHours: "Max Weekly Hours",
+            save: "Save",
+            cancel: "Cancel",
+          }}
+        />
+      )}
     </>
   );
 }
