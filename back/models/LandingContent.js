@@ -59,6 +59,16 @@ const landingContentSchema = new mongoose.Schema(
     objective3_text: localizedStringSchema,
     objective4_text: localizedStringSchema,
     objective5_text: localizedStringSchema,
+    objective1_image_url: { type: String, trim: true, default: "" },
+    objective1_image_alt: localizedStringSchema,
+    objective2_image_url: { type: String, trim: true, default: "" },
+    objective2_image_alt: localizedStringSchema,
+    objective3_image_url: { type: String, trim: true, default: "" },
+    objective3_image_alt: localizedStringSchema,
+    objective4_image_url: { type: String, trim: true, default: "" },
+    objective4_image_alt: localizedStringSchema,
+    objective5_image_url: { type: String, trim: true, default: "" },
+    objective5_image_alt: localizedStringSchema,
 
     // Teachers Section
     teachers_title: localizedStringSchema,
