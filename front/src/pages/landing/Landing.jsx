@@ -48,7 +48,7 @@ import {
   FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
-import { LuLoader2 } from "react-icons/lu"; // Loading icon
+import { Loader2 as LuLoader2 } from "lucide-react"; // Corrected import for loader icon
 
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
