@@ -65,6 +65,7 @@ import { logout } from "../../redux/userSlice"; // Added logout action
 import axios from "axios"; // Added axios for logout API call
 import Carousel from "../../components/Carousel/Carousel"; // Corrected import path
 import "../../components/Carousel/Carousel.css"; // Import Carousel CSS
+import Hyperspeed from "../../components/Hyperspeed"; // Import Hyperspeed component
 // Create Motion-Wrapped Chakra Components
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
@@ -762,6 +763,7 @@ const LandingPage = () => {
 
   return (
     <Box>
+      <Hyperspeed />
       <Navbar
         content={landingContent}
         navBgColor={navBgColor}

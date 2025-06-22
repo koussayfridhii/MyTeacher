@@ -70,6 +70,7 @@
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.5",
     "three": "^0.167.1",
+    "postprocessing": "^6.35.4",
     "vaul": "^1.1.2"
   },
   "devDependencies": {
