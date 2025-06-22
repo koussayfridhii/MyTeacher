@@ -1,8 +1,9 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { useRecordings } from "../hooks/useRecordings";
+import { withAuthorization } from "../HOC/Protect";
 
-export default function Recorder() {
+function Recorder() {
   const token = useSelector((state) => state.user.token);
   const { recordings, downloadRecording } = useRecordings(token);
   return (
@@ -21,3 +22,5 @@ export default function Recorder() {
     </ul>
   );
 }
+
+export default withAuthorization(Recorder, ["admin", "coordinator"]);

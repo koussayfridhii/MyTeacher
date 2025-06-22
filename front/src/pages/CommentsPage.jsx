@@ -22,6 +22,7 @@ import {
   Flex,
 } from "@chakra-ui/react";
 // Removed: import { t } from '../utils/translations';
+import { withAuthorization } from "../HOC/Protect";
 
 const CommentsPage = () => {
   const [comments, setComments] = useState([]);
@@ -569,4 +570,4 @@ const CommentsPage = () => {
   );
 };
 
-export default CommentsPage;
+export default withAuthorization(CommentsPage, ["admin", "coordinator"]);

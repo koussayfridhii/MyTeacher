@@ -1,8 +1,9 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { useScheduleMeeting } from "../hooks/useScheduleMeeting";
+import { withAuthorization } from "../HOC/Protect";
 
-export default function ScheduleForm() {
+function ScheduleForm() {
   const token = useSelector((state) => state.user.token);
   const { schedule, loading } = useScheduleMeeting(token);
   const handleSubmit = (e) => {
@@ -44,3 +45,5 @@ export default function ScheduleForm() {
     </form>
   );
 }
+
+export default withAuthorization(ScheduleForm, ["admin", "teacher", "coordinator"]);

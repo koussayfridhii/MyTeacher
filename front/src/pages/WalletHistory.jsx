@@ -28,6 +28,7 @@ import apiClient from "../hooks/apiClient";
 import { format } from "date-fns"; // For date formatting
 import { useSelector } from "react-redux"; // Import useSelector
 import { useMemo } from "react"; // Import useMemo
+import { withAuthorization } from "../HOC/Protect";
 
 const WalletHistory = () => {
   const currentLanguage = useSelector((state) => state.language.language); // Get current language
@@ -332,4 +333,4 @@ const WalletHistory = () => {
   );
 };
 
-export default WalletHistory;
+export default withAuthorization(WalletHistory, ["student", "teacher"]);
