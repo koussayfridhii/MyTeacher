@@ -127,11 +127,12 @@ const userSchema = new mongoose.Schema(
           // If not a teacher, this field should not be set
           return val === null || typeof val === 'undefined';
         },
-        message: props => {
-          if (props.value !== null && typeof props.value !== 'undefined' && this.role !== "teacher") {
+        message: function(props) { // Changed to a regular function
+          // `this` now correctly refers to the document being validated.
+          if (this.role !== "teacher" && props.value !== null && typeof props.value !== 'undefined') {
             return 'max_hours_per_week can only be set for users with role "teacher".';
           }
-          if (props.value < 0) {
+          if (props.value !== null && typeof props.value !== 'undefined' && props.value < 0) { // Also check if props.value is not null/undefined before comparing
             return 'max_hours_per_week cannot be negative.';
           }
           return 'Invalid value for max_hours_per_week.';
