@@ -93,7 +93,7 @@ const Navbar = ({
   const navLinks = [
     { text: getNavText("nav_features", "navFeatures"), sectionId: "features-section" },
     { text: getNavText("nav_about", "navAbout"), sectionId: "about-us-section" },
-    { text: getNavText("nav_objectives", "navObjectives"), sectionId: "nos-objectifs-section" },
+    { text: getNavText("nav_objectives", "nav_objectives"), sectionId: "nos-objectifs-section" }, // Fallback key changed to nav_objectives
     { text: getNavText("nav_teachers", "navTeachers"), sectionId: "teachers-section" },
     { text: getNavText("nav_contact", "navContact"), sectionId: "contact-section" },
   ];

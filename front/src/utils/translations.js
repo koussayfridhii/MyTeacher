@@ -173,6 +173,7 @@ const translations = {
     navAbout: "About Us",
     navTeachers: "Teachers",
     navContact: "Contact",
+    // navObjectives: "Objectives", // Removed fallback translation
     backToTopAria: "Scroll back to top",
     "global.action.acceptMark": "Accept ✓",
     "global.action.rejectMark": "Reject ✕",
@@ -814,6 +815,7 @@ const translations = {
     navAbout: "À Propos",
     navTeachers: "Professeurs",
     navContact: "Contact",
+    // navObjectives: "Objectifs", // Removed fallback translation
     backToTopAria: "Retour en haut",
     "global.action.acceptMark": "FR: Accept ✓",
     "global.action.rejectMark": "FR: Reject ✕",
@@ -1468,6 +1470,7 @@ const translations = {
     navAbout: "من نحن",
     navTeachers: "المدربون",
     navContact: "اتصل بنا",
+    // navObjectives: "الأهداف", // Removed fallback translation
     backToTopAria: "العودة للأعلى",
     "global.action.acceptMark": "الموافقة ✓",
     "global.action.rejectMark": "رفض ✕",
