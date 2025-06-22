@@ -534,6 +534,26 @@ const LandingPage = () => {
   const recommendedBadgeColor = useColorModeValue("white", "gray.800");
   const testimonialImageBorderColor = useColorModeValue("teal.300", "teal.500");
 
+  // Define teacherColors at the top level of the component
+  const teacherColors = [
+    {
+      border: useColorModeValue("teal.400", "teal.200"),
+      title: useColorModeValue("teal.500", "teal.300"),
+    },
+    {
+      border: useColorModeValue("purple.400", "purple.200"),
+      title: useColorModeValue("purple.500", "purple.300"),
+    },
+    {
+      border: useColorModeValue("orange.400", "orange.200"),
+      title: useColorModeValue("orange.500", "orange.300"),
+    },
+    {
+      border: useColorModeValue("pink.400", "pink.200"),
+      title: useColorModeValue("pink.500", "pink.300"),
+    },
+  ];
+
   // Testimonials data will now be derived from landingContent
   const getTestimonialsData = () => {
     if (!landingContent) return [];
@@ -631,24 +651,7 @@ const LandingPage = () => {
   const getTeachersData = () => {
     if (!landingContent) return [];
     const data = [];
-    const teacherColors = [
-      {
-        border: useColorModeValue("teal.400", "teal.200"),
-        title: useColorModeValue("teal.500", "teal.300"),
-      },
-      {
-        border: useColorModeValue("purple.400", "purple.200"),
-        title: useColorModeValue("purple.500", "purple.300"),
-      },
-      {
-        border: useColorModeValue("orange.400", "orange.200"),
-        title: useColorModeValue("orange.500", "orange.300"),
-      },
-      {
-        border: useColorModeValue("pink.400", "pink.200"),
-        title: useColorModeValue("pink.500", "pink.300"),
-      },
-    ];
+    // teacherColors is now defined at the component's top level
     for (let i = 1; i <= 4; i++) {
       // Assuming up to 4 teachers
       if (landingContent[`teacher${i}_name`]) {
