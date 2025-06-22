@@ -34,7 +34,9 @@
   /* border: 1px solid #555; */ /* Theme: Use Chakra's border system */
   border-radius: calc(var(--outer-r) - var(--p-distance));
   /* background-color: #0d0716; */ /* Theme: Use Chakra's bg colors */
-  background-color: var(--chakra-colors-chakra-body-bg); /* Adapts to light/dark mode */
+  background-color: var(
+    --chakra-colors-chakra-body-bg
+  ); /* Adapts to light/dark mode */
   box-shadow: var(--chakra-shadows-md);
   overflow: hidden;
   cursor: grab;
@@ -81,7 +83,7 @@
   /* padding: 20px; */ /* Padding is now on .carousel-item */
   /* padding-bottom: 20px; */
   margin-top: auto; /* If there's an image, push content down. If no image, content starts at top. */
-                  /* This also helps vertically center if .carousel-item has fixed height and content is short */
+  /* This also helps vertically center if .carousel-item has fixed height and content is short */
 }
 
 .carousel-item-title {
@@ -122,11 +124,15 @@
   background-color: var(--chakra-colors-gray-300); /* Default indicator color */
 }
 .carousel-indicator.active {
-  background-color: var(--chakra-colors-teal-500); /* Theme: Active indicator color */
+  background-color: var(
+    --chakra-colors-teal-500
+  ); /* Theme: Active indicator color */
 }
 
 .carousel-indicator.inactive {
-  background-color: var(--chakra-colors-gray-300); /* Theme: Inactive indicator color */
+  background-color: var(
+    --chakra-colors-gray-300
+  ); /* Theme: Inactive indicator color */
   /* _dark: { background-color: var(--chakra-colors-gray-600) } */ /* For dark mode */
 }
 
@@ -139,8 +145,9 @@
 .carousel-item-image {
   width: 100%; /* Make image responsive within the item */
   max-height: 180px; /* Limit image height */
-  object-fit: cover; /* Cover the area, might crop */
-  border-radius: calc(var(--outer-r) - var(--p-distance) - 1px) calc(var(--outer-r) - var(--p-distance) - 1px) 0 0; /* Match top corners of item */
+  object-fit: contain; /* Cover the area, might crop */
+  border-radius: calc(var(--outer-r) - var(--p-distance) - 1px)
+    calc(var(--outer-r) - var(--p-distance) - 1px) 0 0; /* Match top corners of item */
   margin-bottom: 12px; /* Space between image and content (title) */
 }
 
