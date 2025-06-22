@@ -304,6 +304,10 @@ export const getAllUsers = async (req, res, next) => {
             select: "firstName lastName",
           },
         },
+        {
+          path: "parent", // Populate the parent field
+          select: "_id fullName email", // Select the fields you need from the Parent model
+        },
       ]);
 
     // Gather all user IDs to fetch wallets in one go

@@ -56,8 +56,15 @@ const EditParentModal = ({ isOpen, onClose, parentData }) => {
   } = useCoordinators();
 
   const studentsForSelect = useMemo(() => {
-    return allUsers?.filter((u) => u.role === "student") || [];
-  }, [allUsers]);
+    if (!allUsers) return [];
+    return allUsers.filter((u) => {
+      if (u.role !== "student") return false;
+      // Student is available if:
+      // 1. They have no parent assigned OR
+      // 2. They are assigned to the current parent being edited
+      return !u.parent || u.parent?._id === parentData?._id;
+    });
+  }, [allUsers, parentData]);
 
   const { mutate: updateParentMutate, isLoading: isUpdatingParent } =
     useUpdateParent();

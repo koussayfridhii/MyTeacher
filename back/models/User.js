@@ -129,6 +129,26 @@ const userSchema = new mongoose.Schema(
         ref: "Class",
       },
     ],
+
+    // Parent assignment for students
+    parent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Parent",
+      default: null,
+      validate: {
+        validator: async function (parentId) {
+          if (!parentId) return true; // Allow null or undefined
+          // Only validate if role is student
+          if (this.role === "student") {
+            const Parent = mongoose.model("Parent");
+            const parentDoc = await Parent.findById(parentId);
+            return !!parentDoc;
+          }
+          return true; // For other roles, this field is not strictly validated
+        },
+        message: "Parent must be a valid ID from the Parent collection.",
+      },
+    },
   },
   { timestamps: true }
 );

@@ -30,6 +30,7 @@ import { useGetParents, useDeleteParent } from "../hooks/useParents"; // Updated
 import CreateParentModal from "../components/CreateParentModal";
 import EditParentModal from "../components/EditParentModal";
 import { withAuthorization } from "../HOC/Protect.jsx"; // Corrected import
+// import { t } from "../../utils/translations"; // Removing this import
 
 const Parents = () => {
   const toast = useToast();
@@ -307,6 +308,13 @@ const Parents = () => {
               </Th>
               <Th>
                 {currentLanguage === "fr"
+                  ? "Soldes Totaux des Étudiants"
+                  : currentLanguage === "ar"
+                  ? "إجمالي أرصدة الطلاب"
+                  : "Total Student Balances"}
+              </Th>
+              <Th>
+                {currentLanguage === "fr"
                   ? "Actions"
                   : currentLanguage === "ar"
                   ? "الإجراءات"
@@ -332,6 +340,7 @@ const Parents = () => {
                     : "N/A"}
                 </Td>
                 <Td>{parent.isAssigned ? "✔️" : "❌"}</Td>
+                <Td>{parent.totalStudentBalances?.toFixed(2) || "0.00"}</Td>
                 <Td>
                   <HStack spacing={2}>
                     <Button
