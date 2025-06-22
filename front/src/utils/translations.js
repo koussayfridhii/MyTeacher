@@ -630,6 +630,7 @@ const translations = {
     "walletHistoryPage.table.header.balanceAfter": "Balance After",
     "walletHistoryPage.table.header.description": "Description",
     "walletHistoryPage.title": "Wallet History",
+    totalStudentBalances: "Total Student Balances",
   },
   fr: {
     parents: "Parents",
@@ -1294,6 +1295,7 @@ const translations = {
     "walletHistoryPage.table.header.balanceAfter": "FR: Balance After",
     "walletHistoryPage.table.header.description": "FR: Description",
     "walletHistoryPage.title": "FR: Wallet History",
+    totalStudentBalances: "Soldes Totaux des Étudiants",
   },
   ar: {
     parents: "أولياء الأمور",
@@ -1913,6 +1915,7 @@ const translations = {
     "walletHistoryPage.table.header.balanceAfter": "AR: Balance After",
     "walletHistoryPage.table.header.description": "AR: Description",
     "walletHistoryPage.title": "AR: Wallet History",
+    totalStudentBalances: "إجمالي أرصدة الطلاب",
   },
 };
 

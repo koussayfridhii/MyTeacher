@@ -1,5 +1,6 @@
 import Parent from "../models/Parent.js";
 import User from "../models/User.js";
+import Wallet from "../models/Wallet.js"; // Import Wallet model
 
 // @desc    Create a new parent
 // @route   POST /api/parents
@@ -93,11 +94,59 @@ export const createParent = async (req, res) => {
 export const getAllParents = async (req, res) => {
   try {
     const parents = await Parent.find()
-      .populate("students", "firstName lastName email")
-      .populate("coordinator", "firstName lastName email");
-    res.status(200).json(parents);
+      .populate("students", "firstName lastName email") // Keep basic student info
+      .populate("coordinator", "firstName lastName email")
+      .lean(); // Use .lean() for plain JS objects to modify them
+
+    if (!parents || parents.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Collect all student IDs from all parents
+    const allStudentIds = parents.reduce((acc, parent) => {
+      if (parent.students && parent.students.length > 0) {
+        parent.students.forEach(student => {
+          // Ensure student._id is valid before adding
+          if (student && student._id) {
+            acc.push(student._id);
+          }
+        });
+      }
+      return acc;
+    }, []);
+
+    let studentWalletsMap = {};
+    if (allStudentIds.length > 0) {
+      // Fetch wallets for all collected student IDs
+      const studentWallets = await Wallet.find({ user: { $in: allStudentIds } }).select("user balance");
+      // Create a map of studentId to balance
+      studentWalletsMap = studentWallets.reduce((map, wallet) => {
+        map[wallet.user.toString()] = wallet.balance;
+        return map;
+      }, {});
+    }
+
+    // Add totalStudentBalances to each parent
+    const parentsWithStudentBalances = parents.map(parent => {
+      let totalStudentBalances = 0;
+      if (parent.students && parent.students.length > 0) {
+        parent.students.forEach(student => {
+          // student object here is from the populate("students", "firstName lastName email")
+          // So student._id should be the correct ID to lookup in studentWalletsMap
+          if (student && student._id) {
+            totalStudentBalances += studentWalletsMap[student._id.toString()] || 0;
+          }
+        });
+      }
+      return {
+        ...parent,
+        totalStudentBalances
+      };
+    });
+
+    res.status(200).json(parentsWithStudentBalances);
   } catch (error) {
-    console.error(error);
+    console.error("Error in getAllParents:", error);
     res.status(500).json({ message: "Server error while fetching parents" });
   }
 };
