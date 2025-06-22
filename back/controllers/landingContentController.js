@@ -46,40 +46,69 @@ const structureData = (flatData) => {
 
 export const getLandingContent = async (req, res) => {
   try {
-    const lang = req.query.lang || "en"; // Default to English
     let content = await LandingContent.findOne({ singleton: true });
 
     if (!content) {
       // Create a default content document if it doesn't exist
-      content = new LandingContent({
-        // Initialize with some default english values or leave empty
-        // This ensures the admin panel has something to edit from the start
+      const defaultLocalizedText = { en: '', fr: '', ar: '' };
+      const initialContentData = {
         singleton: true,
-        hero_title: { en: "Welcome to Our Platform!" },
-        hero_subtitle: { en: "Discover amazing features." },
-        // ... other fields can be initialized here
-      });
+        hero_title: { en: "Welcome to Our Platform!", fr: "Bienvenue sur Notre Plateforme!", ar: "!مرحبا بكم في منصتنا" },
+        hero_subtitle: { en: "Discover amazing features.", fr: "Découvrez des fonctionnalités étonnantes.", ar: ".اكتشف ميزات مذهلة" },
+        hero_cta_button: { en: "Get Started", fr: "Commencer", ar: "ابدأ" },
+        navbar_logo_text: { en: "Be First Learning", fr: "Be First Learning", ar: "Be First Learning" },
+        navbar_logo_image_alt: { ...defaultLocalizedText },
+        nav_features: { en: "Features", fr: "Fonctionnalités", ar: "الميزات" },
+        nav_pricing: { en: "Pricing", fr: "Tarifs", ar: "الأسعار" },
+        nav_about: { en: "About Us", fr: "À Propos", ar: "من نحن" },
+        nav_teachers: { en: "Teachers", fr: "Enseignants", ar: "المدرسون" },
+        nav_contact: { en: "Contact", fr: "Contact", ar: "اتصل بنا" },
+        navbar_signin: { en: "Sign In", fr: "Se Connecter", ar: "تسجيل الدخول" },
+        navbar_signup: { en: "Sign Up", fr: "S'inscrire", ar: "إنشاء حساب" },
+        language_english: { en: "English", fr: "Anglais", ar: "الإنجليزية" },
+        language_french: { en: "French", fr: "Français", ar: "الفرنسية" },
+        language_arabic: { en: "Arabic", fr: "Arabe", ar: "العربية" },
+        features_title: { ...defaultLocalizedText, en: "Our Features" },
+        // Initialize other localized fields to ensure structure
+      };
+
+      // Auto-initialize all other localizedStringSchema fields if not explicitly set above
+      const schema = LandingContent.schema;
+      for (const path in schema.paths) {
+        if (schema.paths[path].schema && schema.paths[path].schema.paths && schema.paths[path].schema.paths.en) { // Check for localizedStringSchema structure
+          if (!initialContentData[path]) { // If not already set by specific defaults
+            initialContentData[path] = { en: '', fr: '', ar: '' };
+          }
+        }
+      }
+      content = new LandingContent(initialContentData);
       await content.save();
     }
 
-    const localizedContent = {};
     const contentObj = content.toObject();
 
-    for (const key in contentObj) {
+    if (req.query.lang) { // Public page request: process for a specific language
+      const lang = req.query.lang;
+      const localizedResponse = {};
+      for (const key in contentObj) {
         if (key === "singleton" || key === "_id" || key === "createdAt" || key === "updatedAt" || key === "__v") {
-            localizedContent[key] = contentObj[key];
-            continue;
+          localizedResponse[key] = contentObj[key];
+          continue;
         }
-
-        if (typeof contentObj[key] === 'object' && contentObj[key] !== null && (contentObj[key].hasOwnProperty('en') || contentObj[key].hasOwnProperty('fr') || contentObj[key].hasOwnProperty('ar'))) {
-            localizedContent[key.replace(/_(en|fr|ar)$/, '')] = contentObj[key][lang] || contentObj[key]['en'] || "";
+        // Check if the field is a localized object (has en, fr, ar properties)
+        if (contentObj[key] && typeof contentObj[key] === 'object' &&
+            (contentObj[key].hasOwnProperty('en') || contentObj[key].hasOwnProperty('fr') || contentObj[key].hasOwnProperty('ar'))) {
+          localizedResponse[key] = contentObj[key][lang] || contentObj[key]['en'] || ""; // Fallback to 'en'
         } else {
-            // Direct assignment for non-localized fields (like image URLs)
-            localizedContent[key] = contentObj[key];
+          // Non-localized field (e.g., image URL, social media URL)
+          localizedResponse[key] = contentObj[key];
         }
+      }
+      return res.status(200).json(localizedResponse);
+    } else { // Admin panel request: return the full raw object for editing
+      return res.status(200).json(contentObj);
     }
 
-    res.status(200).json(localizedContent);
   } catch (error) {
     console.error("Error fetching landing content:", error);
     res.status(500).json({ message: "Error fetching landing content", error: error.message });
