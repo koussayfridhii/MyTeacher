@@ -425,10 +425,9 @@ const Hyperspeed = ({
         this.tick = this.tick.bind(this);
         this.init = this.init.bind(this);
         this.setSize = this.setSize.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
-
+        this.onScroll = this.onScroll.bind(this); // Add this
         window.addEventListener("resize", this.onWindowResize.bind(this));
+        window.addEventListener("scroll", this.onScroll); // Add this
       }
 
       onWindowResize() {
@@ -511,23 +510,29 @@ const Hyperspeed = ({
           -(options.roadWidth + options.islandWidth / 2)
         );
 
-        this.container.addEventListener("mousedown", this.onMouseDown);
-        this.container.addEventListener("mouseup", this.onMouseUp);
-        this.container.addEventListener("mouseout", this.onMouseUp);
-
         this.tick();
       }
 
-      onMouseDown(ev) {
-        if (this.options.onSpeedUp) this.options.onSpeedUp(ev);
-        this.fovTarget = this.options.fovSpeedUp;
-        this.speedUpTarget = this.options.speedUp;
-      }
+      onScroll() {
+        const scrollY = window.scrollY;
+        const docHeight =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = scrollY / docHeight;
 
-      onMouseUp(ev) {
-        if (this.options.onSlowDown) this.options.onSlowDown(ev);
-        this.fovTarget = this.options.fov;
-        this.speedUpTarget = 0;
+        // Adjust these values as needed for desired sensitivity
+        const maxFov = this.options.fovSpeedUp;
+        const minFov = this.options.fov;
+        const maxSpeedUp = this.options.speedUp;
+
+        this.fovTarget = minFov + (maxFov - minFov) * scrollPercent;
+        this.speedUpTarget = maxSpeedUp * scrollPercent;
+
+        // Optional: Add a little boost when scrolling starts/stops for more dynamic effect
+        if (scrollPercent > 0 && scrollPercent < 1) {
+          if (this.options.onSpeedUp) this.options.onSpeedUp();
+        } else {
+          if (this.options.onSlowDown) this.options.onSlowDown();
+        }
       }
 
       update(delta) {
