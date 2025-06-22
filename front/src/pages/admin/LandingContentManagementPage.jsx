@@ -148,17 +148,17 @@ const contentFields = {
   form_field_email_placeholder: { label: "Contact Form: Email Placeholder", type: "text" },
   form_field_message: { label: "Contact Form: Message Label", type: "text" },
   form_field_message_placeholder: { label: "Contact Form: Message Placeholder", type: "text" },
-  form_submit_button: { label: "Contact Form: Submit Button Text", type: "text" },
+  form_submit_button: { label: "Contact Form: Submit Button Text", type: "text" }, // This is multilingual
 
-  footer_social_twitter_url: { label: "Footer: Twitter URL", type: "text" },
-  footer_social_twitter_aria: { label: "Footer: Twitter Aria Label", type: "text" },
-  footer_social_facebook_url: { label: "Footer: Facebook URL", type: "text" },
+  footer_social_twitter_url: { label: "Footer: Twitter URL", type: "text", isLocalized: false },
+  footer_social_twitter_aria: { label: "Footer: Twitter Aria Label", type: "text" }, // isLocalized defaults to true (or not present means true for text types)
+  footer_social_facebook_url: { label: "Footer: Facebook URL", type: "text", isLocalized: false },
   footer_social_facebook_aria: { label: "Footer: Facebook Aria Label", type: "text" },
-  footer_social_linkedin_url: { label: "Footer: LinkedIn URL", type: "text" },
+  footer_social_linkedin_url: { label: "Footer: LinkedIn URL", type: "text", isLocalized: false },
   footer_social_linkedin_aria: { label: "Footer: LinkedIn Aria Label", type: "text" },
-  footer_social_youtube_url: { label: "Footer: YouTube URL", type: "text" },
-  footer_social_youtube_aria: { label: "Footer: YouTube Aria Label", type: "text" }, // Renamed from _github_aria
-  footer_copyright: { label: "Footer: Copyright Text", type: "text" }, // Note: {year} will be dynamic in frontend
+  footer_social_youtube_url: { label: "Footer: YouTube URL", type: "text", isLocalized: false },
+  footer_social_youtube_aria: { label: "Footer: YouTube Aria Label", type: "text" },
+  footer_copyright: { label: "Footer: Copyright Text", type: "text" },
   back_to_top_aria: { label: "Back to Top Button Aria Label", type: "text" },
 };
 
@@ -403,6 +403,22 @@ const LandingContentManagementPage = () => {
   }
 
   const renderFormField = (fieldKey, fieldConfig) => {
+    // Handle non-localized text fields (like URLs)
+    if (fieldConfig.type === "text" && fieldConfig.isLocalized === false) {
+      return (
+        <FormControl key={fieldKey} mb={6}>
+          <FormLabel htmlFor={fieldKey} fontWeight="bold">{fieldConfig.label}</FormLabel>
+          <Input
+            id={fieldKey}
+            type="text" // Could be "url" for better semantics/validation, but "text" is fine
+            value={content[fieldKey] || ""}
+            onChange={(e) => handleInputChange(e, fieldKey, null)} // Pass null for langCode
+            placeholder={`Enter ${fieldConfig.label}`}
+          />
+        </FormControl>
+      );
+    }
+
     if (fieldConfig.type === "image") {
       const imageUrl = content[fieldKey] || fieldConfig.default || "";
       return (
@@ -415,7 +431,7 @@ const LandingContentManagementPage = () => {
             type="text" // To show the URL
             id={fieldKey}
             value={imageUrl}
-            onChange={(e) => handleInputChange(e, fieldKey)}
+            onChange={(e) => handleInputChange(e, fieldKey, null)} // Pass null for langCode
             placeholder="Enter image URL or upload new"
             mb={2}
           />
