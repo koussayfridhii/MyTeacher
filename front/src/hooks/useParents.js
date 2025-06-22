@@ -45,6 +45,7 @@ export const useCreateParent = () => {
     mutationFn: createParent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["parents"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Invalidate users query
     },
   });
 };
@@ -64,6 +65,7 @@ export const useUpdateParent = () => {
       queryClient.invalidateQueries({
         queryKey: ["parent", variables.parentId],
       });
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Invalidate users query
     },
   });
 };
@@ -104,6 +106,7 @@ export const useAddStudentToParent = () => {
       queryClient.invalidateQueries({
         queryKey: ["parent", variables.parentId],
       });
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Invalidate users query
     },
   });
 };
@@ -125,6 +128,7 @@ export const useRemoveStudentFromParent = () => {
       queryClient.invalidateQueries({
         queryKey: ["parent", variables.parentId],
       });
+      queryClient.invalidateQueries({ queryKey: ["users"] }); // Invalidate users query
     },
   });
 };
