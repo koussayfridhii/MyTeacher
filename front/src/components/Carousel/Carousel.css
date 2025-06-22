@@ -2,14 +2,22 @@
 	Installed from https://reactbits.dev/default/
 */
 
+/*
+	Installed from https://reactbits.dev/default/
+  Modified for Be First Learning landing page theme
+*/
+
 .carousel-container {
   position: relative;
   overflow: hidden;
-  border: 1px solid #555;
-  border-radius: 24px;
+  /* border: 1px solid #555; */ /* Theme: Use Chakra's border system or remove if not needed */
+  border-radius: 24px; /* Or use Chakra theme values */
   padding: 16px;
   --outer-r: 24px;
   --p-distance: 12px;
+  max-width: 500px; /* Or adjust as needed */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .carousel-track {
@@ -21,19 +29,25 @@
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  border: 1px solid #555;
+  align-items: center; /* Center items for objective display */
+  justify-content: center; /* Center content vertically */
+  /* border: 1px solid #555; */ /* Theme: Use Chakra's border system */
   border-radius: calc(var(--outer-r) - var(--p-distance));
-  background-color: #0d0716;
+  /* background-color: #0d0716; */ /* Theme: Use Chakra's bg colors */
+  background-color: var(--chakra-colors-chakra-body-bg); /* Adapts to light/dark mode */
+  box-shadow: var(--chakra-shadows-md);
   overflow: hidden;
   cursor: grab;
+  min-height: 150px; /* Ensure items have some height */
+  padding: 20px; /* Add padding inside item */
+  text-align: center; /* Center text */
 }
 
 .carousel-item:active {
   cursor: grabbing;
 }
 
+/* Round styles are not used for objectives, can be removed or kept for future use */
 .carousel-container.round {
   border: 1px solid #555;
 }
@@ -61,79 +75,86 @@
   transform: translateX(-50%);
 }
 
-.carousel-indicator.active {
-  background-color: #333333;
-}
-
-.carousel-indicator.inactive {
-  background-color: rgba(51, 51, 51, 0.4);
-}
-
 .carousel-item-header {
-  margin-bottom: 16px;
-  padding: 20px;
-  padding-top: 20px;
+  margin-bottom: 12px; /* Adjusted spacing */
+  /* padding: 20px; */ /* Padding is now on .carousel-item */
+  /* padding-top: 20px; */
+  display: flex; /* To allow icon centering if needed */
+  justify-content: center;
+  align-items: center;
 }
 
 .carousel-icon-container {
   display: flex;
-  height: 28px;
-  width: 28px;
+  height: 40px; /* Increased icon container size */
+  width: 40px;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #fff;
+  background-color: var(--chakra-colors-teal-500); /* Theme: Use teal */
+  margin-bottom: 8px; /* Space below icon */
 }
 
 .carousel-icon {
-  height: 16px;
-  width: 16px;
-  color: #060010;
+  /* The icon itself is a React component, color is set via Chakra's color prop */
+  /* height: 16px; */
+  /* width: 16px; */
+  /* color: #060010; */
 }
 
 .carousel-item-content {
-  padding: 20px;
-  padding-bottom: 20px;
+  /* padding: 20px; */ /* Padding is now on .carousel-item */
+  /* padding-bottom: 20px; */
 }
 
 .carousel-item-title {
   margin-bottom: 4px;
-  font-weight: 900;
-  font-size: 18px;
-  color: #fff;
+  font-weight: 600; /* Chakra's semibold */
+  font-size: var(--chakra-fontSizes-lg); /* Chakra's lg size */
+  color: var(--chakra-colors-chakra-body-text); /* Adapts to light/dark mode */
 }
 
 .carousel-item-description {
-  font-size: 14px;
-  color: #fff;
+  font-size: var(--chakra-fontSizes-md); /* Chakra's md size */
+  color: var(--chakra-colors-gray-600); /* Theme: Subtle text color */
+  /* _dark: { color: var(--chakra-colors-gray-400) } */ /* Handled by var(--chakra-colors-chakra-body-text) or specific dark mode color */
 }
 
 .carousel-indicators-container {
   display: flex;
   width: 100%;
   justify-content: center;
+  margin-top: 20px; /* Increased top margin */
 }
 
 .carousel-indicators {
-  margin-top: 16px;
+  /* margin-top: 16px; */ /* Moved to container */
   display: flex;
-  width: 150px;
-  justify-content: space-between;
-  padding: 0 32px;
+  width: auto; /* Allow it to size based on content */
+  gap: 8px; /* Space between indicators */
+  /* justify-content: space-between; */ /* Not needed with gap */
+  /* padding: 0 32px; */ /* Not needed if centered */
 }
 
 .carousel-indicator {
-  height: 8px;
-  width: 8px;
+  height: 10px; /* Slightly larger indicators */
+  width: 10px;
   border-radius: 50%;
   cursor: pointer;
   transition: background-color 150ms;
+  background-color: var(--chakra-colors-gray-300); /* Default indicator color */
 }
-
 .carousel-indicator.active {
-  background-color: #fff;
+  background-color: var(--chakra-colors-teal-500); /* Theme: Active indicator color */
 }
 
 .carousel-indicator.inactive {
-  background-color: #555;
+  background-color: var(--chakra-colors-gray-300); /* Theme: Inactive indicator color */
+  /* _dark: { background-color: var(--chakra-colors-gray-600) } */ /* For dark mode */
+}
+
+/* Helper for RTL text alignment if passed via itemClassName prop */
+.rtl-text-align .carousel-item-title,
+.rtl-text-align .carousel-item-description {
+  text-align: right;
 }

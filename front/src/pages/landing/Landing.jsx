@@ -26,6 +26,7 @@ import {
   ListItem,
   ListIcon,
   ButtonGroup,
+  // Import Carousel and its CSS
   useColorMode,
   useColorModeValue,
   Link as ChakraLink,
@@ -62,6 +63,8 @@ import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import apiClient from "../../hooks/apiClient"; // For fetching content
 import { logout } from "../../redux/userSlice"; // Added logout action
 import axios from "axios"; // Added axios for logout API call
+import Carousel from "../../components/Carousel/Carousel"; // Corrected import path
+import "../../components/Carousel/Carousel.css"; // Import Carousel CSS
 // Create Motion-Wrapped Chakra Components
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
@@ -673,6 +676,40 @@ const LandingPage = () => {
   // Helper to get text, with fallback
   const getText = (key, fallback = "") => landingContent?.[key] || fallback;
 
+  // Prepare objectives data for Carousel
+  const objectivesCarouselItems = [
+    {
+      id: 1,
+      icon: <CheckCircleIcon color="green.500" />, // Or your preferred icon
+      title: getText("objective1_text", "Objective 1 default text."),
+      description: "", // Carousel component expects a description, can be empty
+    },
+    {
+      id: 2,
+      icon: <CheckCircleIcon color="green.500" />,
+      title: getText("objective2_text", "Objective 2 default text."),
+      description: "",
+    },
+    {
+      id: 3,
+      icon: <CheckCircleIcon color="green.500" />,
+      title: getText("objective3_text", "Objective 3 default text."),
+      description: "",
+    },
+    {
+      id: 4,
+      icon: <CheckCircleIcon color="green.500" />,
+      title: getText("objective4_text", "Objective 4 default text."),
+      description: "",
+    },
+    {
+      id: 5,
+      icon: <CheckCircleIcon color="green.500" />,
+      title: getText("objective5_text", "Objective 5 default text."),
+      description: "",
+    },
+  ].filter(item => item.title && item.title !== `Objective ${item.id} default text.`); // Filter out empty/default items if necessary
+
   if (isLoadingContent) {
     return (
       <Flex justify="center" align="center" height="100vh" direction="column">
@@ -918,33 +955,22 @@ const LandingPage = () => {
         <Heading as="h2" size="2xl" mb={10} fontWeight="bold">
           {getText("objectives_title", "Our Objectives")}
         </Heading>
-        <List
-          spacing={3}
-          maxW="container.md"
-          mx="auto"
-          textAlign={currentLanguage === "ar" ? "right" : "left"}
-        >
-          <ListItem>
-            <ListIcon as={CheckCircleIcon} color="green.500" />
-            {getText("objective1_text", "Objective 1 default text.")}
-          </ListItem>
-          <ListItem>
-            <ListIcon as={CheckCircleIcon} color="green.500" />
-            {getText("objective2_text", "Objective 2 default text.")}
-          </ListItem>
-          <ListItem>
-            <ListIcon as={CheckCircleIcon} color="green.500" />
-            {getText("objective3_text", "Objective 3 default text.")}
-          </ListItem>
-          <ListItem>
-            <ListIcon as={CheckCircleIcon} color="green.500" />
-            {getText("objective4_text", "Objective 4 default text.")}
-          </ListItem>
-          <ListItem>
-            <ListIcon as={CheckCircleIcon} color="green.500" />
-            {getText("objective5_text", "Objective 5 default text.")}
-          </ListItem>
-        </List>
+        {objectivesCarouselItems.length > 0 ? (
+          <Carousel
+            items={objectivesCarouselItems}
+            baseWidth={400} // Adjusted for better display with padding
+            autoplay={true}
+            autoplayDelay={3500}
+            loop={true}
+            // Pass currentLanguage to potentially adjust text alignment if Carousel component supports it
+            // itemClassName={currentLanguage === "ar" ? "rtl-text-align" : ""}
+            // The Carousel.css now handles basic theming using Chakra CSS variables.
+          />
+        ) : (
+          <Text textAlign="center" py={10}>
+            {getText("no_objectives_available", "Objectives will be listed here soon.")}
+          </Text>
+        )}
       </Box>
 
       <Box
