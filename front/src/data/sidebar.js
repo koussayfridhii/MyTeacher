@@ -104,6 +104,17 @@ export const sidebarLinks = [
     authorizedRoles: ["coordinator", "admin"],
   },
   {
+    imgURL: "/assets/icons/student.svg",
+    route: "/dashboard/mystudents",
+    label: {
+      ar: "طلابي",
+      en: "My Students",
+      fr: "Mes Étudiants",
+    },
+
+    authorizedRoles: ["coordinator"],
+  },
+  {
     imgURL: "/assets/icons/parent.svg", // Placeholder icon, consider a more specific one if available
     route: "/dashboard/parents",
     label: {
@@ -124,17 +135,7 @@ export const sidebarLinks = [
 
   //   authorizedRoles: ["coordinator"],
   // },
-  {
-    imgURL: "/assets/icons/student.svg",
-    route: "/dashboard/mystudents",
-    label: {
-      ar: "طلابي",
-      en: "My Students",
-      fr: "Mes Étudiants",
-    },
 
-    authorizedRoles: ["coordinator"],
-  },
   {
     imgURL: "/assets/icons/coordinators.svg",
     route: "/dashboard/coordinators",
@@ -186,6 +187,16 @@ export const sidebarLinks = [
       fr: "Commentaires", // French for "Comments"
     },
     authorizedRoles: ["admin", "coordinator"],
+  },
+  {
+    imgURL: "/assets/icons/content.svg", // Placeholder icon, update if a better one exists
+    route: "/dashboard/landing-content",
+    label: {
+      ar: "المحتوى", // Arabic for "Content"
+      en: "Content",
+      fr: "Contenu", // French for "Content"
+    },
+    authorizedRoles: ["admin"],
   },
 ];
 
