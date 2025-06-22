@@ -40,7 +40,9 @@ const WalletHistory = lazy(() => import("./pages/WalletHistory.jsx"));
 const Parents = lazy(() => import("./pages/Parents.jsx"));
 const PaymentProof = lazy(() => import("./pages/PaymentProof.jsx"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage.jsx"));
-const LandingContentManagementPage = lazy(() => import("./pages/admin/LandingContentManagementPage.jsx")); // Import new admin page
+const LandingContentManagementPage = lazy(() =>
+  import("./pages/admin/LandingContentManagementPage.jsx")
+); // Import new admin page
 const AdminRoute = lazy(() => import("./components/AdminRoute.jsx")); // Import AdminRoute
 
 // Potential Client Pages
@@ -106,17 +108,10 @@ const router = createBrowserRouter([
             path: "potential-clients/:id",
             element: <PotentialClientDetailView />,
           },
-          // Admin Routes
           {
-            path: "admin", // Group admin routes under /dashboard/admin
-            element: <AdminRoute />, // Protect this whole branch
-            children: [
-              {
-                path: "landing-content",
-                element: <LandingContentManagementPage />,
-              },
-              // Add other admin pages here if needed
-            ],
+            // Admin Routes
+            path: "landing-content",
+            element: <LandingContentManagementPage />,
           },
           {
             path: "meeting",
