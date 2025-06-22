@@ -37,13 +37,18 @@ export const createParent = async (req, res) => {
         .json({ message: "User not authorized to create a parent" });
     }
 
-    // Validate student IDs
+    // Validate student IDs and check if they are already assigned to another parent
     if (students && students.length > 0) {
       for (const studentId of students) {
         const studentUser = await User.findById(studentId);
         if (!studentUser || studentUser.role !== "student") {
           return res.status(400).json({
             message: `Invalid Student ID: ${studentId} or user is not a student`,
+          });
+        }
+        if (studentUser.parent) {
+          return res.status(400).json({
+            message: `Student ${studentUser.firstName} ${studentUser.lastName} is already assigned to another parent.`,
           });
         }
       }
@@ -59,6 +64,13 @@ export const createParent = async (req, res) => {
     });
 
     await parent.save();
+
+    // Update the parent field for each assigned student
+    if (students && students.length > 0) {
+      for (const studentId of students) {
+        await User.findByIdAndUpdate(studentId, { parent: parent._id });
+      }
+    }
 
     const populatedParent = await Parent.findById(parent._id)
       .populate("students", "firstName lastName email")
@@ -136,7 +148,51 @@ export const updateParent = async (req, res) => {
     parent.fullName = fullName || parent.fullName;
     parent.email = email || parent.email;
     parent.mobileNumber = mobileNumber || parent.mobileNumber;
-    parent.students = students || parent.students;
+
+    // Handle student updates
+    if (students) {
+      const oldStudentIds = parent.students.map((s) => s.toString());
+      const newStudentIds = students.map((s) => s.toString());
+
+      const studentsToAdd = newStudentIds.filter(
+        (id) => !oldStudentIds.includes(id)
+      );
+      const studentsToRemove = oldStudentIds.filter(
+        (id) => !newStudentIds.includes(id)
+      );
+
+      // Check if students to add are already assigned to another parent
+      for (const studentId of studentsToAdd) {
+        const studentUser = await User.findById(studentId);
+        if (!studentUser || studentUser.role !== "student") {
+          return res.status(400).json({
+            message: `Invalid Student ID: ${studentId} or user is not a student.`,
+          });
+        }
+        // Allow if student is currently assigned to THIS parent (e.g. no change)
+        // Or if student.parent is null
+        if (studentUser.parent && studentUser.parent.toString() !== parent._id.toString()) {
+          return res.status(400).json({
+            message: `Student ${studentUser.firstName} ${studentUser.lastName} is already assigned to another parent.`,
+          });
+        }
+      }
+
+      // Update parent field for students to add
+      for (const studentId of studentsToAdd) {
+        await User.findByIdAndUpdate(studentId, { parent: parent._id });
+      }
+
+      // Clear parent field for students to remove
+      for (const studentId of studentsToRemove) {
+        await User.findByIdAndUpdate(studentId, { parent: null });
+      }
+      parent.students = students; // Assign the new list of student IDs
+    } else if (students === null || students === undefined) {
+      // If students field is explicitly passed as null/undefined, keep existing students
+      // This means no change to the students list unless `students: []` is passed
+    }
+
 
     if (role === "admin" && coordinatorId) {
       const coordinatorUser = await User.findById(coordinatorId);
@@ -188,11 +244,14 @@ export const deleteParent = async (req, res) => {
       return res.status(404).json({ message: "Parent not found" });
     }
 
-    // In a real application, you might want to handle related data,
-    // e.g., what happens to students linked to this parent.
-    // For now, just deleting the parent document.
+    // Clear the parent field for all students associated with this parent
+    if (parent.students && parent.students.length > 0) {
+      for (const studentId of parent.students) {
+        await User.findByIdAndUpdate(studentId, { parent: null });
+      }
+    }
 
-    await parent.deleteOne(); // Use deleteOne() or remove() based on Mongoose version
+    await parent.deleteOne();
 
     res.status(200).json({ message: "Parent deleted successfully" });
   } catch (error) {
@@ -225,15 +284,32 @@ export const addStudentToParent = async (req, res) => {
         .json({ message: "Invalid Student ID or user is not a student" });
     }
 
-    // Prevent duplicate students
+    // Check if student is already assigned to ANY parent
+    if (studentUser.parent) {
+      if (studentUser.parent.toString() === parentId) {
+        return res
+          .status(400)
+          .json({ message: "Student already added to this parent" });
+      } else {
+        return res.status(400).json({
+          message: `Student ${studentUser.firstName} ${studentUser.lastName} is already assigned to another parent.`,
+        });
+      }
+    }
+
+    // Prevent duplicate students (this check is technically redundant if studentUser.parent check is comprehensive)
+    // However, keeping it as a safeguard for direct manipulation or edge cases.
     if (parent.students.includes(studentId)) {
       return res
         .status(400)
-        .json({ message: "Student already added to this parent" });
+        .json({ message: "Student already added to this parent (direct check)" });
     }
 
     parent.students.push(studentId);
     await parent.save();
+
+    // Update student's parent field
+    await User.findByIdAndUpdate(studentId, { parent: parent._id });
 
     const populatedParent = await Parent.findById(parentId)
       .populate("students", "firstName lastName email")
@@ -269,6 +345,9 @@ export const removeStudentFromParent = async (req, res) => {
 
     parent.students.splice(studentIndex, 1);
     await parent.save();
+
+    // Clear student's parent field
+    await User.findByIdAndUpdate(studentId, { parent: null });
 
     const populatedParent = await Parent.findById(parentId)
       .populate("students", "firstName lastName email")

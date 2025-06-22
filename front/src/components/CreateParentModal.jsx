@@ -56,7 +56,8 @@ const CreateParentModal = ({ isOpen, onClose, language }) => {
   } = useCoordinators();
 
   const studentsForSelect = useMemo(() => {
-    return allUsers?.filter((u) => u.role === "student") || [];
+    // Filter for students who do not have a parent assigned yet
+    return allUsers?.filter((u) => u.role === "student" && !u.parent) || [];
   }, [allUsers]);
 
   const { mutate: createParentMutate, isLoading: isCreatingParent } =
