@@ -31,19 +31,17 @@ const Hyperspeed = ({ effectOptions = {
   carShiftX: [-0.8, 0.8],
   carFloorSeparation: [0, 5],
   colors: {
-    roadColor: 0x080808, // Dark gray for road
-    islandColor: 0x0a0a0a, // Slightly lighter dark gray for island
-    background: 0x000000, // Black background
-    shoulderLines: 0x319795, // Teal for shoulder lines (Chakra teal.500)
-    brokenLines: 0x4FD1C5, // Lighter teal for broken lines (Chakra teal.300)
-    leftCars: [0x319795, 0x2C7A7B, 0x285E61], // Shades of teal for left cars (teal.500, teal.700, teal.800)
-    rightCars: [0x38B2AC, 0x319795, 0x2C7A7B], // Shades of teal for right cars (teal.400, teal.500, teal.700)
-    sticks: 0x4FD1C5, // Lighter teal for light sticks (Chakra teal.300)
+    roadColor: 0x080808,
+    islandColor: 0x0a0a0a,
+    background: 0x000000,
+    shoulderLines: 0xFFFFFF,
+    brokenLines: 0xFFFFFF,
+    leftCars: [0xD856BF, 0x6750A2, 0xC247AC],
+    rightCars: [0x03B3C3, 0x0E5EA5, 0x324555],
+    sticks: 0x03B3C3,
   }
 } }) => {
   const hyperspeed = useRef(null);
-  const appRef = useRef(null); // Ref to store the App instance
-
   useEffect(() => {
     const mountainUniforms = {
       uFreq: { value: new THREE.Vector3(3, 6, 10) },
@@ -398,36 +396,14 @@ const Hyperspeed = ({ effectOptions = {
         this.speedUpTarget = 0;
         this.speedUp = 0;
         this.timeOffset = 0;
-        this.baseSpeed = 0.01; // Initial slow speed
-        this.maxSpeedUp = options.speedUp; // Max speed up factor
 
         this.tick = this.tick.bind(this);
         this.init = this.init.bind(this);
         this.setSize = this.setSize.bind(this);
-        // Remove mouse down/up events for speed control
-        // this.onMouseDown = this.onMouseDown.bind(this);
-        // this.onMouseUp = this.onMouseUp.bind(this);
-        this.handleScroll = this.handleScroll.bind(this);
+        this.onMouseDown = this.onMouseDown.bind(this);
+        this.onMouseUp = this.onMouseUp.bind(this);
 
         window.addEventListener("resize", this.onWindowResize.bind(this));
-        window.addEventListener("scroll", this.handleScroll);
-      }
-
-      handleScroll() {
-        const scrollY = window.scrollY || window.pageYOffset;
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        // Increase speed based on scroll position, up to maxSpeedUp
-        // The scrollFactor will go from 0 to 1 as the user scrolls
-        let scrollFactor = Math.min(scrollY / (maxScroll * 0.5), 1); // Reach max speed at 50% scroll for more noticeable effect
-
-        // Apply a non-linear curve to make the speed increase more gradually at first
-        scrollFactor = Math.pow(scrollFactor, 2);
-
-        this.speedUpTarget = this.baseSpeed + scrollFactor * (this.maxSpeedUp - this.baseSpeed);
-
-        // FOV can also be adjusted based on scroll if desired
-        // For now, let's keep fovTarget as it was, or link it to scrollFactor too
-        // Example: this.fovTarget = this.options.fov + scrollFactor * (this.options.fovSpeedUp - this.options.fov);
       }
 
       onWindowResize() {
@@ -510,15 +486,24 @@ const Hyperspeed = ({ effectOptions = {
           -(options.roadWidth + options.islandWidth / 2)
         );
 
-        // Remove mouse event listeners for speed control
-        // this.container.addEventListener("mousedown", this.onMouseDown);
-        // this.container.addEventListener("mouseup", this.onMouseUp);
-        // this.container.addEventListener("mouseout", this.onMouseUp);
-        this.handleScroll(); // Initialize speed based on current scroll position
+        this.container.addEventListener("mousedown", this.onMouseDown);
+        this.container.addEventListener("mouseup", this.onMouseUp);
+        this.container.addEventListener("mouseout", this.onMouseUp);
+
         this.tick();
       }
 
-      // Removed onMouseDown and onMouseUp as speed is now scroll-controlled
+      onMouseDown(ev) {
+        if (this.options.onSpeedUp) this.options.onSpeedUp(ev);
+        this.fovTarget = this.options.fovSpeedUp;
+        this.speedUpTarget = this.options.speedUp;
+      }
+
+      onMouseUp(ev) {
+        if (this.options.onSlowDown) this.options.onSlowDown(ev);
+        this.fovTarget = this.options.fov;
+        this.speedUpTarget = 0;
+      }
 
       update(delta) {
         let lerpPercentage = Math.exp(-(-60 * Math.log2(1 - 0.1)) * delta);
@@ -571,9 +556,6 @@ const Hyperspeed = ({ effectOptions = {
 
       dispose() {
         this.disposed = true;
-        window.removeEventListener("resize", this.onWindowResize.bind(this));
-        window.removeEventListener("scroll", this.handleScroll);
-        // Ensure to clean up other event listeners if any were added to this.container
       }
 
       setSize(width, height, updateStyles) {
@@ -1100,39 +1082,15 @@ const Hyperspeed = ({ effectOptions = {
       return needResize;
     }
 
-    // Ensure effectOptions.distortion is correctly resolved before App instantiation
-    const resolvedDistortion = effectOptions.distortion && typeof effectOptions.distortion === 'string'
-      ? distortions[effectOptions.distortion]
-      : effectOptions.distortion;
+    (function () {
+      const container = document.getElementById('lights');
+      effectOptions.distortion = distortions[effectOptions.distortion];
 
-    if (!resolvedDistortion) {
-      console.error("Distortion effect not found:", effectOptions.distortion);
-      // Optionally, fall back to a default distortion or handle error
-      // For example, effectOptions.distortion = distortions.turbulentDistortion;
-      return; // Or throw an error
-    }
-
-    const currentEffectOptions = { ...effectOptions, distortion: resolvedDistortion };
-
-
-    const container = hyperspeed.current; // Use the ref
-    if (container) {
-      appRef.current = new App(container, currentEffectOptions);
-      appRef.current.loadAssets().then(appRef.current.init);
-    }
-
-    // Cleanup function
-    return () => {
-      if (appRef.current) {
-        appRef.current.dispose();
-        appRef.current = null;
-      }
-      // Remove scroll listener if it was added to window directly by App,
-      // though it's better if App class handles its own listener removal in dispose.
-      // window.removeEventListener('scroll', appRef.current?.handleScroll); // Example, ensure proper removal
-    };
+      const myApp = new App(container, effectOptions);
+      myApp.loadAssets().then(myApp.init);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectOptions]); // Add effectOptions to dependency array if it can change
+  }, []);
 
   return (
     <div id="lights" ref={hyperspeed}></div>

@@ -65,7 +65,7 @@ import { logout } from "../../redux/userSlice"; // Added logout action
 import axios from "axios"; // Added axios for logout API call
 import Carousel from "../../components/Carousel/Carousel"; // Corrected import path
 import "../../components/Carousel/Carousel.css"; // Import Carousel CSS
-import Hyperspeed from "../../components/Hyperspeed"; // Import Hyperspeed component
+import Hyperspeed from "../../components/Hyperspeed"; // Import Hyperspeed
 // Create Motion-Wrapped Chakra Components
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
@@ -429,104 +429,9 @@ const Navbar = ({
   );
 };
 
-// Custom hook to consolidate all useColorModeValue calls
-const useLandingPageThemeColors = () => {
-  const navBgColor = useColorModeValue("teal.500", "gray.800");
-  const navTextColor = useColorModeValue("white", "white"); // Navbar text is white in both modes for this design
-  const navButtonHoverBg = useColorModeValue("teal.700", "gray.700"); // Adjusted for dark mode too
-  const navLinkHoverColor = useColorModeValue("teal.200", "teal.300");
-  const navSignUpButtonBg = useColorModeValue("white", "gray.50");
-  const navSignUpButtonColor = useColorModeValue("teal.500", "gray.800");
-  const navSignUpButtonHoverBg = useColorModeValue("gray.100", "gray.300");
-
-  const subtleTextColor = useColorModeValue("gray.600", "gray.400");
-  const sectionSubtleBg = useColorModeValue("gray.50", "gray.800"); // For Teachers section
-  const cardBg = useColorModeValue("#fff", "gray.700");
-  const cardBorderColor = useColorModeValue("gray.200", "gray.600");
-  const aboutUsTextColor = useColorModeValue("gray.700", "gray.200");
-  const testimonialCardBg = useColorModeValue("white", "gray.700");
-  const testimonialQuoteColor = useColorModeValue("gray.700", "gray.200");
-  const testimonialRoleColor = useColorModeValue("gray.500", "gray.400");
-  const footerBorderColor = useColorModeValue("gray.200", "gray.700");
-  const testimonialsSectionBg = useColorModeValue("teal.50", "teal.900"); // Adjusted for better dark mode
-  const proPlanBorderColor = useColorModeValue("teal.500", "teal.300");
-  const recommendedBadgeBg = useColorModeValue("teal.500", "teal.300");
-  const recommendedBadgeColor = useColorModeValue("white", "gray.800");
-  const testimonialImageBorderColor = useColorModeValue("teal.300", "teal.500");
-
-  const teacherColors = [
-    {
-      border: useColorModeValue("teal.400", "teal.200"),
-      title: useColorModeValue("teal.500", "teal.300"),
-    },
-    {
-      border: useColorModeValue("purple.400", "purple.200"),
-      title: useColorModeValue("purple.500", "purple.300"),
-    },
-    {
-      border: useColorModeValue("orange.400", "orange.200"),
-      title: useColorModeValue("orange.500", "orange.300"),
-    },
-    {
-      border: useColorModeValue("pink.400", "pink.200"),
-      title: useColorModeValue("pink.500", "pink.300"),
-    },
-  ];
-
-  return {
-    navBgColor,
-    navTextColor,
-    navButtonHoverBg,
-    navLinkHoverColor,
-    navSignUpButtonBg,
-    navSignUpButtonColor,
-    navSignUpButtonHoverBg,
-    subtleTextColor,
-    sectionSubtleBg,
-    cardBg,
-    cardBorderColor,
-    aboutUsTextColor,
-    testimonialCardBg,
-    testimonialQuoteColor,
-    testimonialRoleColor,
-    footerBorderColor,
-    testimonialsSectionBg,
-    proPlanBorderColor,
-    recommendedBadgeBg,
-    recommendedBadgeColor,
-    testimonialImageBorderColor,
-    teacherColors,
-  };
-};
-
 const LandingPage = () => {
   const dispatch = useDispatch();
   const currentLanguage = useSelector((state) => state.language.language); // Used for API call and language selector
-  const {
-    navBgColor,
-    navTextColor,
-    navButtonHoverBg,
-    navLinkHoverColor,
-    navSignUpButtonBg,
-    navSignUpButtonColor,
-    navSignUpButtonHoverBg,
-    subtleTextColor,
-    sectionSubtleBg,
-    cardBg,
-    cardBorderColor,
-    aboutUsTextColor,
-    testimonialCardBg,
-    testimonialQuoteColor,
-    testimonialRoleColor,
-    footerBorderColor,
-    testimonialsSectionBg,
-    proPlanBorderColor,
-    recommendedBadgeBg,
-    recommendedBadgeColor,
-    testimonialImageBorderColor,
-    teacherColors,
-  } = useLandingPageThemeColors();
-
   const { user } = useSelector((state) => state.user); // Access user state
   const token = localStorage.getItem("token"); // Access token
 
@@ -604,7 +509,30 @@ const LandingPage = () => {
     };
   }, [showScroll]);
 
-  // All useColorModeValue calls are now consolidated in useLandingPageThemeColors
+  // Define color mode values for Navbar props
+  const navBgColor = useColorModeValue("teal.500", "gray.800");
+  const navTextColor = useColorModeValue("white", "white"); // Navbar text is white in both modes for this design
+  const navButtonHoverBg = useColorModeValue("teal.700", "gray.700"); // Adjusted for dark mode too
+  const navLinkHoverColor = useColorModeValue("teal.200", "teal.300");
+  const navSignUpButtonBg = useColorModeValue("white", "gray.50");
+  const navSignUpButtonColor = useColorModeValue("teal.500", "gray.800");
+  const navSignUpButtonHoverBg = useColorModeValue("gray.100", "gray.300");
+
+  // Text color definitions
+  const subtleTextColor = useColorModeValue("gray.600", "gray.400");
+  const sectionSubtleBg = useColorModeValue("gray.50", "gray.800"); // For Teachers section
+  const cardBg = useColorModeValue("#fff", "gray.700");
+  const cardBorderColor = useColorModeValue("gray.200", "gray.600");
+  const aboutUsTextColor = useColorModeValue("gray.700", "gray.200");
+  const testimonialCardBg = useColorModeValue("white", "gray.700");
+  const testimonialQuoteColor = useColorModeValue("gray.700", "gray.200");
+  const testimonialRoleColor = useColorModeValue("gray.500", "gray.400");
+  const footerBorderColor = useColorModeValue("gray.200", "gray.700");
+  const testimonialsSectionBg = useColorModeValue("teal.50", "teal.900"); // Adjusted for better dark mode
+  const proPlanBorderColor = useColorModeValue("teal.500", "teal.300");
+  const recommendedBadgeBg = useColorModeValue("teal.500", "teal.300");
+  const recommendedBadgeColor = useColorModeValue("white", "gray.800");
+  const testimonialImageBorderColor = useColorModeValue("teal.300", "teal.500");
 
   // Testimonials data will now be derived from landingContent
   const getTestimonialsData = () => {
@@ -703,7 +631,24 @@ const LandingPage = () => {
   const getTeachersData = () => {
     if (!landingContent) return [];
     const data = [];
-    // teacherColors is now defined at the component's top level
+    const teacherColors = [
+      {
+        border: useColorModeValue("teal.400", "teal.200"),
+        title: useColorModeValue("teal.500", "teal.300"),
+      },
+      {
+        border: useColorModeValue("purple.400", "purple.200"),
+        title: useColorModeValue("purple.500", "purple.300"),
+      },
+      {
+        border: useColorModeValue("orange.400", "orange.200"),
+        title: useColorModeValue("orange.500", "orange.300"),
+      },
+      {
+        border: useColorModeValue("pink.400", "pink.200"),
+        title: useColorModeValue("pink.500", "pink.300"),
+      },
+    ];
     for (let i = 1; i <= 4; i++) {
       // Assuming up to 4 teachers
       if (landingContent[`teacher${i}_name`]) {
