@@ -33,8 +33,9 @@ import {
 import { FaUpload } from "react-icons/fa";
 import apiClient from "../../hooks/apiClient";
 import { t } from "../../utils/translations";
-import ReactQuill from 'react-quill'; // Import ReactQuill
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+// import ReactQuill from 'react-quill'; // REMOVE ReactQuill
+// import 'react-quill/dist/quill.snow.css'; // REMOVE Quill styles
+import LexicalEditor from "../../components/LexicalEditor"; // IMPORT LexicalEditor
 
 const languages = [
   { code: "en", name: "English" },
@@ -240,19 +241,23 @@ const LandingContentManagementPage = () => {
     }
   }, [fetchContent, currentUser, toast]);
 
-  const handleInputChange = (value, fieldName, langCode = null, isQuill = false) => {
+  const handleInputChange = (e, fieldName, langCode = null) => {
     // For Quill, value is the HTML string. For others, it's e.target.value.
-    const actualValue = isQuill ? value : value.target.value;
+    const actualValue = e.target.value; // Reverted to standard event handling
     const key = langCode ? `${fieldName}_${langCode}` : fieldName;
     setContent((prev) => ({ ...prev, [key]: actualValue }));
   };
 
   // Specific handler for Quill to make it cleaner in the JSX
-  const handleQuillChange = (html, fieldName, langCode) => {
-    const key = langCode ? `${fieldName}_${langCode}` : fieldName;
-    setContent((prev) => ({ ...prev, [key]: html }));
-  };
+  // const handleQuillChange = (html, fieldName, langCode) => { // REMOVE
+  //   const key = langCode ? `${fieldName}_${langCode}` : fieldName; // REMOVE
+  //   setContent((prev) => ({ ...prev, [key]: html })); // REMOVE
+  // }; // REMOVE
 
+  const handleRichTextChange = (htmlString, fieldName, langCode) => {
+    const key = langCode ? `${fieldName}_${langCode}` : fieldName;
+    setContent((prev) => ({ ...prev, [key]: htmlString }));
+  };
 
   const handleFileChange = async (e, fieldName) => {
     const file = e.target.files[0];
@@ -449,24 +454,9 @@ const LandingContentManagementPage = () => {
             {languages.map((lang) => (
               <TabPanel key={lang.code} p={0} pt={4}>
                 {fieldConfig.type === "richtext" ? (
-                  <ReactQuill
-                    theme="snow"
+                  <LexicalEditor
                     value={content[`${fieldKey}_${lang.code}`] || ""}
-                    onChange={(html) => handleQuillChange(html, fieldKey, lang.code)}
-                    modules={{
-                      toolbar: [
-                        [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-                        [{size: []}],
-                        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                        [{'list': 'ordered'}, {'list': 'bullet'},
-                         {'indent': '-1'}, {'indent': '+1'}],
-                        ['link', 'image', 'video'], // Add image and video if you have handling for them
-                        ['clean'],
-                        [{ 'color': [] }, { 'background': [] }], // Color and background color
-                        [{ 'align': [] }], // Text alignment
-                      ],
-                    }}
-                    style={{ minHeight: '200px', backgroundColor: 'white', color: 'black' }} // Basic styling
+                    onChange={(html) => handleRichTextChange(html, fieldKey, lang.code)}
                   />
                 ) : fieldConfig.type === "textarea" ? (
                   <Textarea
