@@ -66,6 +66,8 @@ export const getLandingContent = async (req, res) => {
         nav_objectives: { en: "Objectives", fr: "Objectifs", ar: "الأهداف" }, // Default for nav_objectives
         navbar_signin: { en: "Sign In", fr: "Se Connecter", ar: "تسجيل الدخول" },
         navbar_signup: { en: "Sign Up", fr: "S'inscrire", ar: "إنشاء حساب" },
+        navbar_dashboard: { en: "Dashboard", fr: "Tableau de bord", ar: "لوحة التحكم" }, // Default for Dashboard button
+        navbar_logout: { en: "Logout", fr: "Déconnexion", ar: "تسجيل الخروج" },        // Default for Logout button
         language_english: { en: "English", fr: "Anglais", ar: "الإنجليزية" },
         language_french: { en: "French", fr: "Français", ar: "الفرنسية" },
         language_arabic: { en: "Arabic", fr: "Arabe", ar: "العربية" },

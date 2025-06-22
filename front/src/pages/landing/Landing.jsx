@@ -58,8 +58,10 @@ import {
 import { Loader2 as LuLoader2 } from "lucide-react"; // Corrected import for loader icon
 
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import apiClient from "../../hooks/apiClient"; // For fetching content
+import { logout } from "../../redux/userSlice"; // Added logout action
+import axios from "axios"; // Added axios for logout API call
 
 // Create Motion-Wrapped Chakra Components
 const MotionBox = motion(Box);
@@ -68,7 +70,6 @@ const MotionSimpleGrid = motion(SimpleGrid);
 // const MotionHeading = motion(Heading); // Not explicitly used in this refactor for section titles, but good to have if needed.
 
 const Navbar = ({
-  // currentLanguage and dispatch are available via Redux useSelector/useDispatch if needed for the language selector
   // t function is available globally if imported, or can be passed if preferred
   content, // Pass fetched content to Navbar
   navBgColor,
@@ -82,8 +83,39 @@ const Navbar = ({
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure(); // For Drawer
   const btnRef = React.useRef(); // For Drawer focus
+
   const currentLanguageFromRedux = useSelector((state) => state.language.language);
+  const { user } = useSelector((state) => state.user); // Get user from Redux state
+  const token = localStorage.getItem("token"); // Get token
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // For navigation after logout
+
+  // Import logout action - this needs to be at the top-level imports of the file, will adjust later if direct import in component is not standard
+  // For now, assuming logout action is available or will be imported correctly.
+  // Actual import: import { logout } from "../../redux/userSlice"; needs to be at file top.
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/logout`, // Ensure VITE_API_URL is correct
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      // Handle or log error if needed, but proceed with client-side logout
+      console.error("Logout API call failed:", error);
+    } finally {
+      dispatch(logout());
+      localStorage.removeItem("token");
+      // Also remove "user" from localStorage if your app does that, like in userSlice initial state
+      localStorage.removeItem("user");
+      navigate("/signin"); // Or to "/"
+    }
+  };
 
   const getNavText = (key, fallbackKey) => content?.[key] || t(fallbackKey, currentLanguageFromRedux);
   const logoImageUrl = content?.navbar_logo_image_url;
@@ -131,19 +163,32 @@ const Navbar = ({
 
   const desktopControls = (
     <HStack spacing={{ base: 2, md: 3 }} display={{ base: "none", md: "flex" }}>
-      <Button variant="ghost" as={Link} to="/signin" _hover={{ bg: navButtonHoverBg }}>
-        {getNavText("navbar_signin", "navbarSignIn")}
-      </Button>
-      <Button
-        variant="solid"
-        as={Link}
-        bg={navSignUpButtonBg}
-        color={navSignUpButtonColor}
-        _hover={{ bg: navSignUpButtonHoverBg }}
-        to="/signup"
-      >
-        {getNavText("navbar_signup", "navbarSignUp")}
-      </Button>
+      {token && user ? (
+        <>
+          <Button variant="ghost" as={Link} to="/dashboard" _hover={{ bg: navButtonHoverBg }}>
+            {getNavText("navbar_dashboard", "navbar_dashboard")}
+          </Button>
+          <Button variant="ghost" colorScheme="red" onClick={handleLogout} _hover={{ bg: navButtonHoverBg }}>
+            {getNavText("navbar_logout", "navbar_logout")}
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button variant="ghost" as={Link} to="/signin" _hover={{ bg: navButtonHoverBg }}>
+            {getNavText("navbar_signin", "navbarSignIn")}
+          </Button>
+          <Button
+            variant="solid"
+            as={Link}
+            bg={navSignUpButtonBg}
+            color={navSignUpButtonColor}
+            _hover={{ bg: navSignUpButtonHoverBg }}
+            to="/signup"
+          >
+            {getNavText("navbar_signup", "navbarSignUp")}
+          </Button>
+        </>
+      )}
       <Select
         value={currentLanguageFromRedux}
         onChange={(e) => dispatch(languageReducer(e.target.value))}
@@ -203,22 +248,35 @@ const Navbar = ({
                 </ChakraLink>
               ))}
               <hr /> {/* Divider */}
-              <Button variant="ghost" as={Link} to="/signin" onClick={onClose} width="full" justifyContent="start">
-                {getNavText("navbar_signin", "navbarSignIn")}
-              </Button>
-              <Button
-                variant="solid"
-                as={Link}
-                bg={navSignUpButtonBg}
-                color={navSignUpButtonColor}
-                _hover={{ bg: navSignUpButtonHoverBg }}
-                to="/signup"
-                onClick={onClose}
-                width="full"
-                justifyContent="start"
-              >
-                {getNavText("navbar_signup", "navbarSignUp")}
-              </Button>
+              {token && user ? (
+                <>
+                  <Button variant="ghost" as={Link} to="/dashboard" onClick={onClose} width="full" justifyContent="start">
+                    {getNavText("navbar_dashboard", "navbar_dashboard")}
+                  </Button>
+                  <Button variant="ghost" colorScheme="red" onClick={() => { handleLogout(); onClose(); }} width="full" justifyContent="start">
+                    {getNavText("navbar_logout", "navbar_logout")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" as={Link} to="/signin" onClick={onClose} width="full" justifyContent="start">
+                    {getNavText("navbar_signin", "navbarSignIn")}
+                  </Button>
+                  <Button
+                    variant="solid"
+                    as={Link}
+                    bg={navSignUpButtonBg}
+                    color={navSignUpButtonColor}
+                    _hover={{ bg: navSignUpButtonHoverBg }}
+                    to="/signup"
+                    onClick={onClose}
+                    width="full"
+                    justifyContent="start"
+                  >
+                    {getNavText("navbar_signup", "navbarSignUp")}
+                  </Button>
+                </>
+              )}
               <Select
                 value={currentLanguageFromRedux}
                 onChange={(e) => {
