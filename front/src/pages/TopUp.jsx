@@ -148,4 +148,4 @@ const TopUp = () => {
   );
 };
 
-export default withAuthorization(TopUp, ["admin", "coordinator"]);
+export default withAuthorization(TopUp, ["admin"]);

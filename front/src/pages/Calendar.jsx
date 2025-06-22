@@ -39,6 +39,7 @@ import { useGetUsers } from "../hooks/useGetUsers";
 import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import MeetingModal from "../components/MeetingModal";
 import ReactSelect from "react-select";
+import { withAuthorization } from "../HOC/Protect";
 
 const CalendarPage = () => {
   const calendarRef = useRef(null);
@@ -658,4 +659,4 @@ const CalendarPage = () => {
   );
 };
 
-export default CalendarPage;
+export default withAuthorization(CalendarPage, ["admin", "teacher", "coordinator", "student"]);

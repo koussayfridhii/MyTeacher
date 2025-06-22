@@ -4,8 +4,9 @@ import { useGetCallById } from "../hooks/useGetCallById";
 import MeetingSetup from "./MeetingSetup";
 import MeetingRoom from "./MeetingRoom";
 import { useSelector } from "react-redux"; // Import useSelector
+import { withAuthorization } from "../HOC/Protect";
 
-export default function Instant() {
+function Instant() {
   const currentLanguage = useSelector((state) => state.language.language); // Get current language
   const token = localStorage.getItem("token");
   const [callId, setCallId] = useState(null);
@@ -47,3 +48,5 @@ export default function Instant() {
     </StreamCall>
   );
 }
+
+export default withAuthorization(Instant, ["admin", "teacher", "coordinator"]);

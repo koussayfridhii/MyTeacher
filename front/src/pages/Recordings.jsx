@@ -20,8 +20,4 @@ const PreviousPage = () => {
   );
 };
 
-export default withAuthorization(PreviousPage, [
-  "admin",
-  "coordinator",
-  // "teacher",
-]);
+export default withAuthorization(PreviousPage, ["admin", "coordinator"]);

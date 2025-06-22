@@ -29,6 +29,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useGetUsers } from "../hooks/useGetUsers";
 import dayjs from "dayjs";
+import { withAuthorization } from "../HOC/Protect";
 
 const labels = {
   student: { en: "Student", fr: "Élève", ar: "تلميذ" },
@@ -83,7 +84,7 @@ const fetchProofs = async () => {
   return data.data;
 };
 
-export default function PaymentProofsPage() {
+function PaymentProofsPage() {
   const language = useSelector((state) => state.language.language);
   const user = useSelector((state) => state.user.user);
   const toast = useToast();
@@ -442,3 +443,5 @@ export default function PaymentProofsPage() {
     </Box>
   );
 }
+
+export default withAuthorization(PaymentProofsPage, ["admin", "coordinator"]);
