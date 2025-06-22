@@ -347,12 +347,18 @@ const Navbar = ({
 const LandingPage = () => {
   const dispatch = useDispatch();
   const currentLanguage = useSelector((state) => state.language.language); // Used for API call and language selector
+  const { user } = useSelector((state) => state.user); // Access user state
+  const token = localStorage.getItem("token"); // Access token
+
   const [landingContent, setLandingContent] = useState(null);
   const [isLoadingContent, setIsLoadingContent] = useState(true);
   const [errorContent, setErrorContent] = useState(null);
 
   const [isAnnualBilling, setIsAnnualBilling] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+
+  // Determine Hero CTA button path based on auth state
+  const heroCtaPath = token && user ? "/dashboard" : "/signup";
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -629,7 +635,7 @@ const LandingPage = () => {
           </Text>
           <Button
             as={Link}
-            to="/signup"
+            to={heroCtaPath} // Use dynamic path
             colorScheme="whiteAlpha"
             size="lg"
             _hover={{ bg: "whiteAlpha.900", color: "teal.500" }}
