@@ -30,6 +30,12 @@ import {
   useColorModeValue,
   Link as ChakraLink,
   Image as ChakraImage,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
 } from "@chakra-ui/react";
 import {
   InfoIcon,
