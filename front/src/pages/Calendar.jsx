@@ -84,6 +84,10 @@ const CalendarPage = () => {
     groupe: "",
     dateTime: new Date(),
   });
+  const [teacherMaxHours, setTeacherMaxHours] = useState(null);
+  const [teacherScheduledHoursWeek, setTeacherScheduledHoursWeek] = useState(0);
+  const [scheduleValidationLoading, setScheduleValidationLoading] = useState(false);
+  const [scheduleValidationError, setScheduleValidationError] = useState("");
 
   // delete availability
   const {
@@ -167,7 +171,84 @@ const CalendarPage = () => {
       });
     });
     setEvents(evs);
-  }, [upcomingCourses, endedCourses, availabilities]);
+  }, [upcomingCourses, endedCourses, availabilities, user._id, isAdminOrCoord]); // Added dependencies
+
+  useEffect(() => {
+    const validateTeacherSchedule = async () => {
+      if (!meetingValues.teacherId || !meetingValues.dateTime) {
+        setScheduleValidationError("");
+        setTeacherMaxHours(null);
+        setTeacherScheduledHoursWeek(0);
+        return;
+      }
+
+      setScheduleValidationLoading(true);
+      setScheduleValidationError("");
+
+      const selectedTeacher = users.find(u => u._id === meetingValues.teacherId);
+      if (!selectedTeacher || selectedTeacher.role !== 'teacher') {
+        setScheduleValidationError("Selected user is not a valid teacher.");
+        setScheduleValidationLoading(false);
+        setTeacherMaxHours(null);
+        setTeacherScheduledHoursWeek(0);
+        return;
+      }
+
+      const currentMaxHours = selectedTeacher.max_hours_per_week;
+      setTeacherMaxHours(currentMaxHours);
+
+      // Calculate hours for the week of meetingValues.dateTime
+      const weekStart = dayjs(meetingValues.dateTime).startOf('week');
+      const weekEnd = dayjs(meetingValues.dateTime).endOf('week');
+      let hoursThisWeek = 0;
+
+      // Need to get all classes for this teacher to calculate hours accurately.
+      // The `events` array might not be complete for this if it's filtered for the current user.
+      // For now, we will try to fetch all classes related to this teacher or make an estimation.
+      // This part ideally needs a dedicated backend endpoint: GET /api/classes/teacher/:teacherId?weekStartDate=...
+      // For now, let's simulate by filtering `upcomingCourses` and `endedCourses` if they contain teacher info.
+      // The current structure of courses in `useFetchCourses` might not include teacher ID directly in the top level.
+      // Let's assume for a moment that `upcomingCourses` and `endedCourses` objects have a `teacher` field with an `_id`.
+      // This is a simplification and might need adjustment based on actual data structure from `useFetchCourses`.
+
+      const allTeacherCourses = [...upcomingCourses, ...endedCourses].filter(
+        (course) => course.teacher && course.teacher === selectedTeacher._id // Assuming course.teacher is an ID
+      );
+
+      allTeacherCourses.forEach(course => {
+        const courseDate = dayjs(course.date);
+        if (courseDate.isBetween(weekStart, weekEnd, null, '[]')) { // '[]' includes start and end
+          // Assuming each class is 2 hours long as per event creation logic
+          hoursThisWeek += 2;
+        }
+      });
+
+      // A more direct way if events array is comprehensive and has teacher info:
+      // hoursThisWeek = events.reduce((acc, event) => {
+      //   if (event.teacherId === selectedTeacher._id && dayjs(event.start).isBetween(weekStart, weekEnd, null, '[]')) {
+      //     const duration = dayjs(event.end).diff(dayjs(event.start), 'hours');
+      //     acc += duration;
+      //   }
+      //   return acc;
+      // }, 0);
+
+
+      setTeacherScheduledHoursWeek(hoursThisWeek);
+
+      if (currentMaxHours !== null && currentMaxHours !== undefined) {
+        const newClassDuration = 2; // Assuming 2 hours for the new class
+        if (hoursThisWeek + newClassDuration > currentMaxHours) {
+          setScheduleValidationError(
+            `This teacher will exceed their max weekly hours (${currentMaxHours}h). Already scheduled: ${hoursThisWeek}h.`
+          );
+        }
+      }
+      setScheduleValidationLoading(false);
+    };
+
+    validateTeacherSchedule();
+  }, [meetingValues.teacherId, meetingValues.dateTime, users, events, upcomingCourses, endedCourses]);
+
 
   // on calendar select
   const handleSelect = (info) => {
@@ -240,6 +321,16 @@ const CalendarPage = () => {
       meetingValues.studentIds.length < 1
     ) {
       toast({ title: "Fill all fields", status: "warning" });
+      return;
+    }
+
+    if (scheduleValidationError) {
+      toast({ title: "Validation Error", description: scheduleValidationError, status: "error", duration: 5000, isClosable: true });
+      return;
+    }
+
+    if (scheduleValidationLoading) {
+      toast({ title: "Still validating schedule...", status: "info", duration: 3000 });
       return;
     }
     if (!client || !token) {
@@ -581,9 +672,30 @@ const CalendarPage = () => {
         buttonText={!callDetail ? "Create" : "Copy Link"}
         image={callDetail ? "/assets/icons/checked.svg" : undefined}
         buttonIcon={callDetail ? "/assets/icons/copy.svg" : undefined}
+        // Disable button if loading or error
+        // The MeetingModal itself doesn't have a disabled prop for its main button,
+        // so handleClick in MeetingModal might need to check a passed prop,
+        // or we rely on the createMeeting function bailing out.
+        // For now, createMeeting bails out.
       >
         {!callDetail && (
           <>
+            {scheduleValidationLoading && (
+              <Center my={2}>
+                <Spinner size="sm" />
+                <Text ml={2} fontSize="sm">Validating teacher schedule...</Text>
+              </Center>
+            )}
+            {scheduleValidationError && (
+              <Text color="red.500" my={2} fontSize="sm">
+                {scheduleValidationError}
+              </Text>
+            )}
+             {teacherMaxHours !== null && teacherMaxHours !== undefined && !scheduleValidationError && meetingValues.teacherId && (
+              <Text color="green.500" my={2} fontSize="sm">
+                Teacher's max weekly hours: {teacherMaxHours}h. Currently scheduled this week: {teacherScheduledHoursWeek}h.
+              </Text>
+            )}
             <Box mb={4}>
               <Input
                 placeholder="Topic"

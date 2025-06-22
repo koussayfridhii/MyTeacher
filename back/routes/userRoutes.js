@@ -11,6 +11,7 @@ import {
   deleteAttendedClass,
   getCoordinators,
   getStudents,
+  updateUserByAdmin, // Import the new controller
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -35,5 +36,8 @@ router.get(
   getCoordinators
 );
 router.get("/students", auth, role("admin"), getStudents);
+
+// Admin updates any user
+router.patch("/:id", auth, role("admin"), updateUserByAdmin);
 
 export default router;

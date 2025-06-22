@@ -112,6 +112,34 @@ const userSchema = new mongoose.Schema(
         return !(this.role === "teacher" || this.role === "student");
       },
     },
+
+    // Max hours per week (only for teachers)
+    max_hours_per_week: {
+      type: Number,
+      validate: {
+        validator: function (val) {
+          // Allow null or undefined
+          if (val === null || typeof val === 'undefined') return true;
+          // Only validate if role is teacher
+          if (this.role === "teacher") {
+            return val >= 0; // Max hours should not be negative
+          }
+          // If not a teacher, this field should not be set
+          return val === null || typeof val === 'undefined';
+        },
+        message: props => {
+          if (props.value !== null && typeof props.value !== 'undefined' && this.role !== "teacher") {
+            return 'max_hours_per_week can only be set for users with role "teacher".';
+          }
+          if (props.value < 0) {
+            return 'max_hours_per_week cannot be negative.';
+          }
+          return 'Invalid value for max_hours_per_week.';
+        }
+      },
+      default: null, // Default to null, meaning no limit
+    },
+
     isAssigned: {
       type: Boolean,
       default: false,

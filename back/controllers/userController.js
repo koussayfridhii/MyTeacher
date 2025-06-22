@@ -58,6 +58,7 @@ export const createUser = async (req, res, next) => {
       coordinator,
       rib,
       about,
+      max_hours_per_week, // New field
     } = req.body;
 
     // Only coordinators or admins can create teacher/student
@@ -100,6 +101,10 @@ export const createUser = async (req, res, next) => {
       }
       if (programs) {
         userData.programs = Array.isArray(programs) ? programs : [programs];
+      }
+      // If admin is creating a teacher, allow setting max_hours_per_week
+      if (req.user.role === "admin" && max_hours_per_week !== undefined) {
+        userData.max_hours_per_week = Number(max_hours_per_week);
       }
     }
 
@@ -627,6 +632,118 @@ export const getCoordinators = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// @route   PATCH /api/users/:id
+// @access  Admin
+export const updateUserByAdmin = async (req, res, next) => {
+  try {
+    const userIdToUpdate = req.params.id;
+    const updates = req.body;
+
+    // Prevent non-admins from using this
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Insufficient permissions to update user." });
+    }
+
+    const userToUpdate = await User.findById(userIdToUpdate);
+    if (!userToUpdate) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Fields that admin can update
+    const allowedUpdates = [
+      "firstName",
+      "lastName",
+      "email",
+      "mobileNumber",
+      "title",
+      "role",
+      "profilePic",
+      "subject",
+      "programs",
+      "coordinator",
+      "isApproved",
+      "isAssigned",
+      "rib",
+      "about",
+      "max_hours_per_week",
+    ];
+
+    // Filter updates to only allowed fields
+    const filteredUpdates = Object.keys(updates)
+      .filter(key => allowedUpdates.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = updates[key];
+        return obj;
+      }, {});
+
+    // Special handling for max_hours_per_week:
+    // It should only be set if the user is a teacher.
+    // If role is being changed FROM teacher, or if it's not a teacher, set to null.
+    if (filteredUpdates.hasOwnProperty('max_hours_per_week')) {
+      if (userToUpdate.role === 'teacher' || (filteredUpdates.role && filteredUpdates.role === 'teacher')) {
+        if (filteredUpdates.max_hours_per_week === null || filteredUpdates.max_hours_per_week === '' || filteredUpdates.max_hours_per_week === undefined) {
+          filteredUpdates.max_hours_per_week = null;
+        } else {
+          filteredUpdates.max_hours_per_week = Number(filteredUpdates.max_hours_per_week);
+          if (isNaN(filteredUpdates.max_hours_per_week) || filteredUpdates.max_hours_per_week < 0) {
+            return res.status(400).json({ error: "Invalid value for max_hours_per_week. Must be a non-negative number or null." });
+          }
+        }
+      } else {
+        // If user is not a teacher, ensure max_hours_per_week is not set or is nulled
+        filteredUpdates.max_hours_per_week = null;
+      }
+    } else if (userToUpdate.role !== 'teacher' && userToUpdate.max_hours_per_week !== null) {
+      // If max_hours_per_week is not in updates, but user is not a teacher, ensure it's nulled
+      // This handles cases where role might be changed by the same update package
+      if (!filteredUpdates.role || (filteredUpdates.role && filteredUpdates.role !== 'teacher')) {
+         await User.findByIdAndUpdate(userIdToUpdate, { $set: { max_hours_per_week: null } }, { new: true, runValidators: true });
+      }
+    }
+
+    // If role is changed from teacher, nullify teacher-specific fields
+    if (filteredUpdates.role && filteredUpdates.role !== 'teacher' && userToUpdate.role === 'teacher') {
+        filteredUpdates.subject = null;
+        filteredUpdates.programs = [];
+        filteredUpdates.max_hours_per_week = null;
+    }
+
+
+    // Handle password update separately if provided
+    if (updates.password) {
+      if (updates.password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long." });
+      }
+      const hashed = await bcrypt.hash(updates.password, 10);
+      filteredUpdates.password = hashed;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userIdToUpdate, { $set: filteredUpdates }, { new: true, runValidators: true }).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found after update." });
+    }
+
+    // If the role was changed to something other than teacher, ensure max_hours_per_week is null
+    if (updatedUser.role !== 'teacher' && updatedUser.max_hours_per_week !== null) {
+        updatedUser.max_hours_per_week = null;
+        await updatedUser.save();
+    }
+
+
+    res.status(200).json({ message: "User updated successfully.", user: updatedUser });
+
+  } catch (err) {
+    // Mongoose validation errors can be detailed
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message });
+    }
+    next(err);
   }
 };
 
