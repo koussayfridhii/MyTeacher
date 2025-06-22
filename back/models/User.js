@@ -118,23 +118,18 @@ const userSchema = new mongoose.Schema(
       type: Number,
       validate: {
         validator: function(val) {
-          // `this` here refers to the document being validated/updated.
-          // Allow null or undefined, as the field is optional.
+          // If the field is not being set (i.e., value is null or undefined), it's always valid as it's optional.
           if (val === null || typeof val === 'undefined') {
             return true;
           }
-          // If a value is provided, it must be a non-negative number.
-          if (typeof val !== 'number' || val < 0) {
-            return false;
+          // If a value is provided, it must be a number and non-negative.
+          // The controller is responsible for ensuring this field is only set on 'teacher' roles.
+          if (typeof val === 'number' && val >= 0) {
+            return true;
           }
-          // If a value is provided (and it's a valid number by now) AND the role is not 'teacher', it's invalid.
-          if (this.role !== 'teacher') {
-            return false; // Only teachers can have this field set with a numeric value.
-          }
-          return true; // Teacher with a valid non-negative number.
+          return false; // Invalid if it's not null/undefined AND not a non-negative number.
         },
-        // Generic message. The validator function enforces the actual rules.
-        message: props => `Invalid value for max_hours_per_week: '${props.value}'. This field is optional, can only be set for teachers, and must be a non-negative number.`
+        message: props => `Invalid value for max_hours_per_week: '${props.value}'. If provided, value must be a non-negative number.`
       },
       default: null, // Default to null, meaning no limit
     },
