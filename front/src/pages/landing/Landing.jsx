@@ -84,7 +84,9 @@ const Navbar = ({
   const { isOpen, onOpen, onClose } = useDisclosure(); // For Drawer
   const btnRef = React.useRef(); // For Drawer focus
 
-  const currentLanguageFromRedux = useSelector((state) => state.language.language);
+  const currentLanguageFromRedux = useSelector(
+    (state) => state.language.language
+  );
   const { user } = useSelector((state) => state.user); // Get user from Redux state
   const token = localStorage.getItem("token"); // Get token
   const dispatch = useDispatch();
@@ -117,17 +119,33 @@ const Navbar = ({
     }
   };
 
-  const getNavText = (key, fallbackKey) => content?.[key] || t(fallbackKey, currentLanguageFromRedux);
+  const getNavText = (key, fallbackKey) =>
+    content?.[key] || t(fallbackKey, currentLanguageFromRedux);
   const logoImageUrl = content?.navbar_logo_image_url;
   const logoAltText = getNavText("navbar_logo_image_alt", "Site Logo");
   const logoTextFallback = getNavText("navbar_logo_text", "Be First Learning");
 
   const navLinks = [
-    { text: getNavText("nav_features", "navFeatures"), sectionId: "features-section" },
-    { text: getNavText("nav_about", "navAbout"), sectionId: "about-us-section" },
-    { text: getNavText("nav_objectives", "nav_objectives"), sectionId: "nos-objectifs-section" }, // Fallback key changed to nav_objectives
-    { text: getNavText("nav_teachers", "navTeachers"), sectionId: "teachers-section" },
-    { text: getNavText("nav_contact", "navContact"), sectionId: "contact-section" },
+    {
+      text: getNavText("nav_features", "navFeatures"),
+      sectionId: "features-section",
+    },
+    {
+      text: getNavText("nav_about", "navAbout"),
+      sectionId: "about-us-section",
+    },
+    {
+      text: getNavText("nav_objectives", "nav_objectives"),
+      sectionId: "nos-objectifs-section",
+    }, // Fallback key changed to nav_objectives
+    {
+      text: getNavText("nav_teachers", "navTeachers"),
+      sectionId: "teachers-section",
+    },
+    {
+      text: getNavText("nav_contact", "navContact"),
+      sectionId: "contact-section",
+    },
   ];
 
   const commonLinkStyles = {
@@ -150,7 +168,9 @@ const Navbar = ({
           href={`#${link.sectionId}`}
           onClick={(e) => {
             e.preventDefault();
-            document.getElementById(link.sectionId)?.scrollIntoView({ behavior: "smooth" });
+            document
+              .getElementById(link.sectionId)
+              ?.scrollIntoView({ behavior: "smooth" });
             onClose(); // Close drawer if open
           }}
           {...commonLinkStyles}
@@ -165,16 +185,31 @@ const Navbar = ({
     <HStack spacing={{ base: 2, md: 3 }} display={{ base: "none", md: "flex" }}>
       {token && user ? (
         <>
-          <Button variant="ghost" as={Link} to="/dashboard" _hover={{ bg: navButtonHoverBg }}>
+          <Button
+            variant="ghost"
+            as={Link}
+            to="/dashboard"
+            _hover={{ bg: navButtonHoverBg }}
+          >
             {getNavText("navbar_dashboard", "navbar_dashboard")}
           </Button>
-          <Button variant="ghost" colorScheme="red" onClick={handleLogout} _hover={{ bg: navButtonHoverBg }}>
+          <Button
+            variant="ghost"
+            colorScheme="red"
+            onClick={handleLogout}
+            _hover={{ bg: navButtonHoverBg }}
+          >
             {getNavText("navbar_logout", "navbar_logout")}
           </Button>
         </>
       ) : (
         <>
-          <Button variant="ghost" as={Link} to="/signin" _hover={{ bg: navButtonHoverBg }}>
+          <Button
+            variant="ghost"
+            as={Link}
+            to="/signin"
+            _hover={{ bg: navButtonHoverBg }}
+          >
             {getNavText("navbar_signin", "navbarSignIn")}
           </Button>
           <Button
@@ -198,9 +233,15 @@ const Navbar = ({
         w="auto"
         size="sm" // Smaller select for navbar
       >
-        <option value="en">{getNavText("language_english", "languageEnglish")}</option>
-        <option value="fr">{getNavText("language_french", "languageFrench")}</option>
-        <option value="ar">{getNavText("language_arabic", "languageArabic")}</option>
+        <option value="en">
+          {getNavText("language_english", "languageEnglish")}
+        </option>
+        <option value="fr">
+          {getNavText("language_french", "languageFrench")}
+        </option>
+        <option value="ar">
+          {getNavText("language_arabic", "languageArabic")}
+        </option>
       </Select>
       <IconButton
         aria-label="Toggle color mode"
@@ -225,11 +266,18 @@ const Navbar = ({
         _hover={{ bg: navButtonHoverBg }}
         color={navTextColor}
       />
-      <Drawer isOpen={isOpen} placement={currentLanguageFromRedux === "ar" ? "right" : "left"} onClose={onClose} finalFocusRef={btnRef}>
+      <Drawer
+        isOpen={isOpen}
+        placement={currentLanguageFromRedux === "ar" ? "right" : "left"}
+        onClose={onClose}
+        finalFocusRef={btnRef}
+      >
         <DrawerOverlay />
         <DrawerContent bg={navBgColor} color={navTextColor}>
           <DrawerCloseButton />
-          <DrawerHeader borderBottomWidth="1px">{getNavText("navbar_menu_title", "Menu")}</DrawerHeader>
+          <DrawerHeader borderBottomWidth="1px">
+            {getNavText("navbar_menu_title", "Menu")}
+          </DrawerHeader>
           <DrawerBody>
             <VStack spacing={4} align="stretch">
               {navLinks.map((link) => (
@@ -238,7 +286,9 @@ const Navbar = ({
                   href={`#${link.sectionId}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    document.getElementById(link.sectionId)?.scrollIntoView({ behavior: "smooth" });
+                    document
+                      .getElementById(link.sectionId)
+                      ?.scrollIntoView({ behavior: "smooth" });
                     onClose();
                   }}
                   {...commonLinkStyles}
@@ -250,16 +300,39 @@ const Navbar = ({
               <hr /> {/* Divider */}
               {token && user ? (
                 <>
-                  <Button variant="ghost" as={Link} to="/dashboard" onClick={onClose} width="full" justifyContent="start">
+                  <Button
+                    variant="ghost"
+                    as={Link}
+                    to="/dashboard"
+                    onClick={onClose}
+                    width="full"
+                    justifyContent="start"
+                  >
                     {getNavText("navbar_dashboard", "navbar_dashboard")}
                   </Button>
-                  <Button variant="ghost" colorScheme="red" onClick={() => { handleLogout(); onClose(); }} width="full" justifyContent="start">
+                  <Button
+                    variant="ghost"
+                    colorScheme="red"
+                    onClick={() => {
+                      handleLogout();
+                      onClose();
+                    }}
+                    width="full"
+                    justifyContent="start"
+                  >
                     {getNavText("navbar_logout", "navbar_logout")}
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" as={Link} to="/signin" onClick={onClose} width="full" justifyContent="start">
+                  <Button
+                    variant="ghost"
+                    as={Link}
+                    to="/signin"
+                    onClick={onClose}
+                    width="full"
+                    justifyContent="start"
+                  >
                     {getNavText("navbar_signin", "navbarSignIn")}
                   </Button>
                   <Button
@@ -288,9 +361,15 @@ const Navbar = ({
                 borderColor="teal.300"
                 w="full" // Full width in drawer
               >
-                <option value="en">{getNavText("language_english", "languageEnglish")}</option>
-                <option value="fr">{getNavText("language_french", "languageFrench")}</option>
-                <option value="ar">{getNavText("language_arabic", "languageArabic")}</option>
+                <option value="en">
+                  {getNavText("language_english", "languageEnglish")}
+                </option>
+                <option value="fr">
+                  {getNavText("language_french", "languageFrench")}
+                </option>
+                <option value="ar">
+                  {getNavText("language_arabic", "languageArabic")}
+                </option>
               </Select>
               <Button
                 leftIcon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
@@ -302,7 +381,9 @@ const Navbar = ({
                 width="full"
                 justifyContent="start"
               >
-                {colorMode === "light" ? getNavText("theme_dark", "Dark Mode") : getNavText("theme_light", "Light Mode")}
+                {colorMode === "light"
+                  ? getNavText("theme_dark", "Dark Mode")
+                  : getNavText("theme_light", "Light Mode")}
               </Button>
             </VStack>
           </DrawerBody>
@@ -310,7 +391,6 @@ const Navbar = ({
       </Drawer>
     </>
   );
-
 
   return (
     <Flex
@@ -328,7 +408,9 @@ const Navbar = ({
         <ChakraImage
           src={logoImageUrl}
           alt={logoAltText}
-          h={{ base: "30px", md: "40px" }}
+          w="180px"
+          h="50px"
+          objectFit="cover"
           fallbackSrc="https://via.placeholder.com/150x50?text=Logo"
         />
       ) : (
@@ -365,8 +447,13 @@ const LandingPage = () => {
       setIsLoadingContent(true);
       setErrorContent(null);
       try {
-        const response = await apiClient.get(`/landing-content?lang=${currentLanguage}`);
-        setLandingContent({...response.data, currentLanguage: currentLanguage});
+        const response = await apiClient.get(
+          `/landing-content?lang=${currentLanguage}`
+        );
+        setLandingContent({
+          ...response.data,
+          currentLanguage: currentLanguage,
+        });
       } catch (err) {
         setErrorContent(err.message || "Failed to load landing page content.");
         console.error("Failed to fetch landing content:", err);
@@ -448,12 +535,17 @@ const LandingPage = () => {
   const getTestimonialsData = () => {
     if (!landingContent) return [];
     const data = [];
-    for (let i = 1; i <= 3; i++) { // Assuming up to 3 testimonials based on schema
+    for (let i = 1; i <= 3; i++) {
+      // Assuming up to 3 testimonials based on schema
       if (landingContent[`testimonial${i}_quote`]) {
         data.push({
           quote: landingContent[`testimonial${i}_quote`] || "Missing quote",
-          avatarUrl: landingContent[`testimonial${i}_avatar_url`] || "https://via.placeholder.com/150",
-          avatarAlt: landingContent[`testimonial${i}_avatar_alt`] || `Testimonial ${i} avatar`,
+          avatarUrl:
+            landingContent[`testimonial${i}_avatar_url`] ||
+            "https://via.placeholder.com/150",
+          avatarAlt:
+            landingContent[`testimonial${i}_avatar_alt`] ||
+            `Testimonial ${i} avatar`,
           name: landingContent[`testimonial${i}_name`] || `Name ${i}`,
           role: landingContent[`testimonial${i}_role`] || `Role ${i}`,
         });
@@ -486,8 +578,8 @@ const LandingPage = () => {
 
   const currentTestimonial = testimonialsData[currentTestimonialIndex] || {};
 
-
-  const iconMap = { // This might not be needed if icons are URLs now
+  const iconMap = {
+    // This might not be needed if icons are URLs now
     InfoIcon: InfoIcon,
     CheckCircleIcon: CheckCircleIcon,
     SettingsIcon: SettingsIcon,
@@ -497,12 +589,16 @@ const LandingPage = () => {
   const getFeaturesData = () => {
     if (!landingContent) return [];
     const data = [];
-    for (let i = 1; i <= 3; i++) { // Assuming up to 3 features
+    for (let i = 1; i <= 3; i++) {
+      // Assuming up to 3 features
       if (landingContent[`feature${i}_title`]) {
         data.push({
-          iconUrl: landingContent[`feature${i}_icon_url`] || "https://via.placeholder.com/95",
+          iconUrl:
+            landingContent[`feature${i}_icon_url`] ||
+            "https://via.placeholder.com/95",
           title: landingContent[`feature${i}_title`] || `Feature ${i} Title`,
-          desc: landingContent[`feature${i}_desc`] || `Feature ${i} Description`,
+          desc:
+            landingContent[`feature${i}_desc`] || `Feature ${i} Description`,
         });
       }
     }
@@ -521,32 +617,53 @@ const LandingPage = () => {
       features: ["planBasicFeature1", "planBasicFeature2", "planBasicFeature3"],
       buttonVariant: "outline",
       isRecommended: false,
-      cardStyles: { /* ... */ },
+      cardStyles: {
+        /* ... */
+      },
     },
     // ... other plans
   ];
-
 
   // teachersData will be derived from landingContent
   const getTeachersData = () => {
     if (!landingContent) return [];
     const data = [];
     const teacherColors = [
-      { border: useColorModeValue("teal.400", "teal.200"), title: useColorModeValue("teal.500", "teal.300") },
-      { border: useColorModeValue("purple.400", "purple.200"), title: useColorModeValue("purple.500", "purple.300") },
-      { border: useColorModeValue("orange.400", "orange.200"), title: useColorModeValue("orange.500", "orange.300") },
-      { border: useColorModeValue("pink.400", "pink.200"), title: useColorModeValue("pink.500", "pink.300") },
+      {
+        border: useColorModeValue("teal.400", "teal.200"),
+        title: useColorModeValue("teal.500", "teal.300"),
+      },
+      {
+        border: useColorModeValue("purple.400", "purple.200"),
+        title: useColorModeValue("purple.500", "purple.300"),
+      },
+      {
+        border: useColorModeValue("orange.400", "orange.200"),
+        title: useColorModeValue("orange.500", "orange.300"),
+      },
+      {
+        border: useColorModeValue("pink.400", "pink.200"),
+        title: useColorModeValue("pink.500", "pink.300"),
+      },
     ];
-    for (let i = 1; i <= 4; i++) { // Assuming up to 4 teachers
+    for (let i = 1; i <= 4; i++) {
+      // Assuming up to 4 teachers
       if (landingContent[`teacher${i}_name`]) {
         data.push({
-          avatarUrl: landingContent[`teacher${i}_avatar_url`] || "https://via.placeholder.com/150",
-          avatarAlt: landingContent[`teacher${i}_avatar_alt`] || `Teacher ${i} Avatar`,
+          avatarUrl:
+            landingContent[`teacher${i}_avatar_url`] ||
+            "https://via.placeholder.com/150",
+          avatarAlt:
+            landingContent[`teacher${i}_avatar_alt`] || `Teacher ${i} Avatar`,
           name: landingContent[`teacher${i}_name`] || `Teacher ${i} Name`,
           title: landingContent[`teacher${i}_title`] || `Teacher ${i} Title`,
           bio: landingContent[`teacher${i}_bio`] || `Teacher ${i} Bio`,
-          avatarBorderColor: teacherColors[i-1]?.border || useColorModeValue("gray.400", "gray.200"),
-          titleColor: teacherColors[i-1]?.title || useColorModeValue("gray.500", "gray.300"),
+          avatarBorderColor:
+            teacherColors[i - 1]?.border ||
+            useColorModeValue("gray.400", "gray.200"),
+          titleColor:
+            teacherColors[i - 1]?.title ||
+            useColorModeValue("gray.500", "gray.300"),
         });
       }
     }
@@ -557,20 +674,30 @@ const LandingPage = () => {
   // Helper to get text, with fallback
   const getText = (key, fallback = "") => landingContent?.[key] || fallback;
 
-
   if (isLoadingContent) {
     return (
       <Flex justify="center" align="center" height="100vh" direction="column">
         <LuLoader2 size={50} className="animate-spin" />
-        <Text mt={4} fontSize="lg">Loading content...</Text>
+        <Text mt={4} fontSize="lg">
+          Loading content...
+        </Text>
       </Flex>
     );
   }
 
   if (errorContent) {
     return (
-      <Flex justify="center" align="center" height="100vh" direction="column" textAlign="center" p={4}>
-        <Heading size="md" color="red.500">Oops! Something went wrong.</Heading>
+      <Flex
+        justify="center"
+        align="center"
+        height="100vh"
+        direction="column"
+        textAlign="center"
+        p={4}
+      >
+        <Heading size="md" color="red.500">
+          Oops! Something went wrong.
+        </Heading>
         <Text mt={2}>We couldn't load the page content: {errorContent}</Text>
         <Text mt={1}>Please try refreshing the page or contact support.</Text>
       </Flex>
@@ -579,7 +706,8 @@ const LandingPage = () => {
 
   // Ensure landingContent is not null before rendering parts that depend on it
   if (!landingContent) {
-    return ( // Minimal fallback if content is null after loading (should ideally not happen if defaults are set)
+    return (
+      // Minimal fallback if content is null after loading (should ideally not happen if defaults are set)
       <Flex justify="center" align="center" height="100vh">
         <Text>Content not available.</Text>
       </Flex>
@@ -605,7 +733,10 @@ const LandingPage = () => {
         justify="center"
         minH="calc(100vh - 70px)"
         position="relative"
-        backgroundImage={`url('${getText("hero_image_url", "https://images.unsplash.com/photo-1557734864-c78b6dfef1b1?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")}')`}
+        backgroundImage={`url('${getText(
+          "hero_image_url",
+          "https://images.unsplash.com/photo-1557734864-c78b6dfef1b1?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        )}')`}
         backgroundSize="cover"
         backgroundPosition="center"
         backgroundRepeat="no-repeat"
@@ -628,7 +759,10 @@ const LandingPage = () => {
           p={8}
         >
           <Heading as="h2" size="2xl" color="white" fontWeight="bold">
-            {getText("hero_title", "Your educational partner, from school to professional life.")}
+            {getText(
+              "hero_title",
+              "Your educational partner, from school to professional life."
+            )}
           </Heading>
           <Text fontSize="xl" color="white" mb={2}>
             {getText("hero_subtitle", "Success starts with Be First Learning")}
@@ -678,13 +812,16 @@ const LandingPage = () => {
                 transition="box-shadow 0.2s"
               >
                 <Flex direction="column" align="center">
-                  <ChakraImage src={feature.iconUrl} alt={feature.title} boxSize={95} mb={3} />
+                  <ChakraImage
+                    src={feature.iconUrl}
+                    alt={feature.title}
+                    boxSize={95}
+                    mb={3}
+                  />
                   <Heading as="h3" size="lg" mb={3}>
                     {feature.title}
                   </Heading>
-                  <Text textAlign="center">
-                    {feature.desc}
-                  </Text>
+                  <Text textAlign="center">{feature.desc}</Text>
                 </Flex>
               </MotionBox>
             );
@@ -720,14 +857,47 @@ const LandingPage = () => {
             <Heading as="h2" size="2xl" mb={6} fontWeight="bold">
               {getText("about_us_title", "About Us")}
             </Heading>
-            <Box fontSize="lg" color={aboutUsTextColor} mb={4} dangerouslySetInnerHTML={{ __html: getText("about_us_description1", "<p>Default about us description 1.</p>") }} />
-            <Box fontSize="lg" color={aboutUsTextColor} mb={6} dangerouslySetInnerHTML={{ __html: getText("about_us_description2", "<p>Default about us description 2.</p>") }} />
-            <Box fontSize="lg" color={aboutUsTextColor} mb={6} dangerouslySetInnerHTML={{ __html: getText("about_us_description3", "<p>Default about us description 3.</p>") }} />
+            <Box
+              fontSize="lg"
+              color={aboutUsTextColor}
+              mb={4}
+              dangerouslySetInnerHTML={{
+                __html: getText(
+                  "about_us_description1",
+                  "<p>Default about us description 1.</p>"
+                ),
+              }}
+            />
+            <Box
+              fontSize="lg"
+              color={aboutUsTextColor}
+              mb={6}
+              dangerouslySetInnerHTML={{
+                __html: getText(
+                  "about_us_description2",
+                  "<p>Default about us description 2.</p>"
+                ),
+              }}
+            />
+            <Box
+              fontSize="lg"
+              color={aboutUsTextColor}
+              mb={6}
+              dangerouslySetInnerHTML={{
+                __html: getText(
+                  "about_us_description3",
+                  "<p>Default about us description 3.</p>"
+                ),
+              }}
+            />
           </Box>
 
           <Box flex="1" mt={{ base: 8, md: 0 }}>
             <Image
-              src={getText("about_us_image_url", "https://via.placeholder.com/500x400?text=About+Us+Image")}
+              src={getText(
+                "about_us_image_url",
+                "https://via.placeholder.com/500x400?text=About+Us+Image"
+              )}
               alt={getText("about_us_image_alt", "About us section image")}
               borderRadius="xl"
               boxShadow="2xl"
@@ -797,7 +967,12 @@ const LandingPage = () => {
           maxW="container.lg"
           mx="auto"
           px={{ base: 2, md: 4 }}
-          dangerouslySetInnerHTML={{ __html: getText("teachers_section_description", "<p>Default description for the teachers section.</p>") }}
+          dangerouslySetInnerHTML={{
+            __html: getText(
+              "teachers_section_description",
+              "<p>Default description for the teachers section.</p>"
+            ),
+          }}
         />
         <MotionSimpleGrid
           columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
@@ -846,7 +1021,12 @@ const LandingPage = () => {
               >
                 {teacher.title}
               </Text>
-              <Box fontSize="sm" color={subtleTextColor} px={2} dangerouslySetInnerHTML={{ __html: teacher.bio }} />
+              <Box
+                fontSize="sm"
+                color={subtleTextColor}
+                px={2}
+                dangerouslySetInnerHTML={{ __html: teacher.bio }}
+              />
             </MotionBox>
           ))}
         </MotionSimpleGrid>
@@ -857,89 +1037,108 @@ const LandingPage = () => {
         px={{ base: 4, md: 8 }}
         bg={testimonialsSectionBg}
       >
-        <Heading as="h2" size="2xl" textAlign="center" mb={12} fontWeight="bold">
+        <Heading
+          as="h2"
+          size="2xl"
+          textAlign="center"
+          mb={12}
+          fontWeight="bold"
+        >
           {getText("testimonials_title", "What Our Students Say")}
         </Heading>
         {testimonialsData.length > 0 && currentTestimonial && (
-        <MotionBox
-          maxW="lg"
-          mx="auto"
-          bg={testimonialCardBg}
-          p={10}
-          borderRadius="xl"
-          boxShadow="2xl"
-          position="relative"
-          variants={fadeInUpVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <Flex direction="column" align="center" textAlign="center">
-            <Image
-              src={currentTestimonial.avatarUrl}
-              alt={currentTestimonial.avatarAlt}
-              borderRadius="full"
-              boxSize="120px"
-              mx="auto"
-              mb={6}
-              objectFit="cover"
-              border="4px solid"
-              borderColor={testimonialImageBorderColor}
-            />
-            <Text
-              fontSize="xl"
-              fontStyle="italic"
-              color={testimonialQuoteColor}
-              mb={8}
-              minH={{ base: "120px", md: "100px" }} // This minH might need adjustment if HTML content varies a lot
-              dangerouslySetInnerHTML={{ __html: currentTestimonial.quote ? `"${currentTestimonial.quote}"` : "<p>Missing quote</p>"}}
-            />
-            {/* Quotes are often not wrapped in actual quote marks when coming from a WYSIWYG,
+          <MotionBox
+            maxW="lg"
+            mx="auto"
+            bg={testimonialCardBg}
+            p={10}
+            borderRadius="xl"
+            boxShadow="2xl"
+            position="relative"
+            variants={fadeInUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            <Flex direction="column" align="center" textAlign="center">
+              <Image
+                src={currentTestimonial.avatarUrl}
+                alt={currentTestimonial.avatarAlt}
+                borderRadius="full"
+                boxSize="120px"
+                mx="auto"
+                mb={6}
+                objectFit="cover"
+                border="4px solid"
+                borderColor={testimonialImageBorderColor}
+              />
+              <Text
+                fontSize="xl"
+                fontStyle="italic"
+                color={testimonialQuoteColor}
+                mb={8}
+                minH={{ base: "120px", md: "100px" }} // This minH might need adjustment if HTML content varies a lot
+                dangerouslySetInnerHTML={{
+                  __html: currentTestimonial.quote
+                    ? `"${currentTestimonial.quote}"`
+                    : "<p>Missing quote</p>",
+                }}
+              />
+              {/* Quotes are often not wrapped in actual quote marks when coming from a WYSIWYG,
                 so adding them here might be redundant if the editor adds them, or necessary if not.
                 For now, I'm wrapping the content in quotes.
                 A better approach for quotes from richtext might be to style a blockquote if the editor uses it.
             */}
-            <Heading as="h4" size="lg" fontWeight="semibold" mb={1}>
-              {currentTestimonial.name}
-            </Heading>
-            <Text color={testimonialRoleColor} fontSize="md">
-              {currentTestimonial.role}
-            </Text>
-          </Flex>
+              <Heading as="h4" size="lg" fontWeight="semibold" mb={1}>
+                {currentTestimonial.name}
+              </Heading>
+              <Text color={testimonialRoleColor} fontSize="md">
+                {currentTestimonial.role}
+              </Text>
+            </Flex>
 
-          <IconButton
-            aria-label={getText("prev_testimonial_aria", "Previous testimonial")}
-            icon={<ArrowLeftIcon />}
-            onClick={handlePrevTestimonial}
-            position="absolute"
-            left={{ base: 2, md: 4 }}
-            top="50%"
-            transform="translateY(-50%)"
-            isRound
-            size="lg"
-            variant="ghost"
-            colorScheme="teal"
-            isDisabled={testimonialsData.length <= 1}
-          />
-          <IconButton
-            aria-label={getText("next_testimonial_aria", "Next testimonial")}
-            icon={<ArrowRightIcon />}
-            onClick={handleNextTestimonial}
-            position="absolute"
-            right={{ base: 2, md: 4 }}
-            top="50%"
-            transform="translateY(-50%)"
-            isRound
-            size="lg"
-            variant="ghost"
-            colorScheme="teal"
-            isDisabled={testimonialsData.length <= 1}
-          />
-        </MotionBox>
+            <IconButton
+              aria-label={getText(
+                "prev_testimonial_aria",
+                "Previous testimonial"
+              )}
+              icon={<ArrowLeftIcon />}
+              onClick={handlePrevTestimonial}
+              position="absolute"
+              left={{ base: 2, md: 4 }}
+              top="50%"
+              transform="translateY(-50%)"
+              isRound
+              size="lg"
+              variant="ghost"
+              colorScheme="teal"
+              isDisabled={testimonialsData.length <= 1}
+            />
+            <IconButton
+              aria-label={getText("next_testimonial_aria", "Next testimonial")}
+              icon={<ArrowRightIcon />}
+              onClick={handleNextTestimonial}
+              position="absolute"
+              right={{ base: 2, md: 4 }}
+              top="50%"
+              transform="translateY(-50%)"
+              isRound
+              size="lg"
+              variant="ghost"
+              colorScheme="teal"
+              isDisabled={testimonialsData.length <= 1}
+            />
+          </MotionBox>
         )}
       </Box>
       <Box id="contact-section" py={20} px={{ base: 4, md: 8 }}>
-        <Heading as="h2" size="2xl" textAlign="center" mb={12} fontWeight="bold">
+        <Heading
+          as="h2"
+          size="2xl"
+          textAlign="center"
+          mb={12}
+          fontWeight="bold"
+        >
           {getText("contact_title", "Get In Touch")}
         </Heading>
         <MotionBox
@@ -959,7 +1158,10 @@ const LandingPage = () => {
               <FormLabel>{getText("form_field_name", "Your Name")}</FormLabel>
               <Input
                 type="text"
-                placeholder={getText("form_field_name_placeholder", "Enter your name")}
+                placeholder={getText(
+                  "form_field_name_placeholder",
+                  "Enter your name"
+                )}
               />
             </FormControl>
 
@@ -967,14 +1169,22 @@ const LandingPage = () => {
               <FormLabel>{getText("form_field_email", "Your Email")}</FormLabel>
               <Input
                 type="email"
-                placeholder={getText("form_field_email_placeholder", "Enter your email address")}
+                placeholder={getText(
+                  "form_field_email_placeholder",
+                  "Enter your email address"
+                )}
               />
             </FormControl>
 
             <FormControl id="contact-message" isRequired>
-              <FormLabel>{getText("form_field_message", "Your Message")}</FormLabel>
+              <FormLabel>
+                {getText("form_field_message", "Your Message")}
+              </FormLabel>
               <Textarea
-                placeholder={getText("form_field_message_placeholder", "Type your message here...")}
+                placeholder={getText(
+                  "form_field_message_placeholder",
+                  "Type your message here..."
+                )}
                 rows={6}
               />
             </FormControl>
@@ -999,52 +1209,73 @@ const LandingPage = () => {
         borderTopWidth="1px"
         borderColor={footerBorderColor}
         mt={16}
+        bg={useColorModeValue("gray.900", "#319795")}
+        textAlign="center"
       >
         <VStack spacing={4}>
           <HStack spacing={5}>
             <IconButton
               as="a"
               href={getText("footer_social_twitter_url", "#")}
-              aria-label={getText("footer_social_twitter_aria", "Follow us on Twitter")}
+              aria-label={getText(
+                "footer_social_twitter_aria",
+                "Follow us on Twitter"
+              )}
               icon={<FaXTwitter />}
               isRound
               variant="ghost"
-              colorScheme="blue"
-              target="_blank" rel="noopener noreferrer"
+              color="white"
+              target="_blank"
+              rel="noopener noreferrer"
             />
             <IconButton
               as="a"
               href={getText("footer_social_facebook_url", "#")}
-              aria-label={getText("footer_social_facebook_aria", "Follow us on Facebook")}
+              aria-label={getText(
+                "footer_social_facebook_aria",
+                "Follow us on Facebook"
+              )}
               icon={<FaFacebook />}
               isRound
               variant="ghost"
-              colorScheme="facebook"
-              target="_blank" rel="noopener noreferrer"
+              color="white"
+              target="_blank"
+              rel="noopener noreferrer"
             />
             <IconButton
               as="a"
               href={getText("footer_social_linkedin_url", "#")}
-              aria-label={getText("footer_social_linkedin_aria", "Follow us on LinkedIn")}
+              aria-label={getText(
+                "footer_social_linkedin_aria",
+                "Follow us on LinkedIn"
+              )}
               icon={<FaLinkedinIn />}
               isRound
               variant="ghost"
-              colorScheme="linkedin"
-              target="_blank" rel="noopener noreferrer"
+              color="white"
+              target="_blank"
+              rel="noopener noreferrer"
             />
             <IconButton
               as="a"
               href={getText("footer_social_youtube_url", "#")}
-              aria-label={getText("footer_social_youtube_aria", "Follow us on YouTube")}
+              aria-label={getText(
+                "footer_social_youtube_aria",
+                "Follow us on YouTube"
+              )}
               icon={<FaYoutube />}
               isRound
               variant="ghost"
-              colorScheme="red" // Changed to red for YouTube
-              target="_blank" rel="noopener noreferrer"
+              color="white"
+              target="_blank"
+              rel="noopener noreferrer"
             />
           </HStack>
-          <Text fontSize="sm" color={subtleTextColor}>
-            {getText("footer_copyright", `© ${new Date().getFullYear()} Be First Learning. All rights reserved.`).replace("{year}", new Date().getFullYear())}
+          <Text fontSize="sm" color="white">
+            {getText(
+              "footer_copyright",
+              `© ${new Date().getFullYear()} Be First Learning. All rights reserved.`
+            ).replace("{year}", new Date().getFullYear())}
           </Text>
         </VStack>
       </Box>
