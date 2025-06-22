@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from 'three';
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPreset } from 'postprocessing';
 
-// import './Hyperspeed.css'; // Removed as styles are inline and file is deleted
+import './Hyperspeed.css';
 
 const Hyperspeed = ({ effectOptions = {
   onSpeedUp: () => { },
@@ -1135,7 +1135,7 @@ const Hyperspeed = ({ effectOptions = {
   }, [effectOptions]); // Add effectOptions to dependency array if it can change
 
   return (
-    <div id="lights" ref={hyperspeed} style={{ width: '100%', height: '100%', position: 'fixed', top: 0, left: 0, zIndex: -1 }}></div>
+    <div id="lights" ref={hyperspeed}></div>
   );
 }
 
