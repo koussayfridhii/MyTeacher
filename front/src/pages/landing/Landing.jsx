@@ -30,6 +30,12 @@ import {
   useColorModeValue,
   Link as ChakraLink,
   Image as ChakraImage,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
 } from "@chakra-ui/react";
 import {
   InfoIcon,
@@ -41,6 +47,7 @@ import {
   SunIcon,
   MoonIcon,
   ArrowUpIcon,
+  HamburgerIcon, // Import HamburgerIcon
 } from "@chakra-ui/icons";
 import {
   FaFacebook,
@@ -51,8 +58,10 @@ import {
 import { Loader2 as LuLoader2 } from "lucide-react"; // Corrected import for loader icon
 
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import apiClient from "../../hooks/apiClient"; // For fetching content
+import { logout } from "../../redux/userSlice"; // Added logout action
+import axios from "axios"; // Added axios for logout API call
 
 // Create Motion-Wrapped Chakra Components
 const MotionBox = motion(Box);
@@ -61,7 +70,6 @@ const MotionSimpleGrid = motion(SimpleGrid);
 // const MotionHeading = motion(Heading); // Not explicitly used in this refactor for section titles, but good to have if needed.
 
 const Navbar = ({
-  // currentLanguage and dispatch are available via Redux useSelector/useDispatch if needed for the language selector
   // t function is available globally if imported, or can be passed if preferred
   content, // Pass fetched content to Navbar
   navBgColor,
@@ -73,23 +81,236 @@ const Navbar = ({
   navLinkHoverColor,
 }) => {
   const { colorMode, toggleColorMode } = useColorMode();
-  const currentLanguageFromRedux = useSelector((state) => state.language.language); // For <Select> value
-  const dispatch = useDispatch(); // For <Select> onChange
+  const { isOpen, onOpen, onClose } = useDisclosure(); // For Drawer
+  const btnRef = React.useRef(); // For Drawer focus
 
-  // Use dynamic data from content, fallback to t function or hardcoded keys if not available
+  const currentLanguageFromRedux = useSelector((state) => state.language.language);
+  const { user } = useSelector((state) => state.user); // Get user from Redux state
+  const token = localStorage.getItem("token"); // Get token
+  const dispatch = useDispatch();
+  const navigate = useNavigate(); // For navigation after logout
+
+  // Import logout action - this needs to be at the top-level imports of the file, will adjust later if direct import in component is not standard
+  // For now, assuming logout action is available or will be imported correctly.
+  // Actual import: import { logout } from "../../redux/userSlice"; needs to be at file top.
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/logout`, // Ensure VITE_API_URL is correct
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      // Handle or log error if needed, but proceed with client-side logout
+      console.error("Logout API call failed:", error);
+    } finally {
+      dispatch(logout());
+      localStorage.removeItem("token");
+      // Also remove "user" from localStorage if your app does that, like in userSlice initial state
+      localStorage.removeItem("user");
+      navigate("/signin"); // Or to "/"
+    }
+  };
+
   const getNavText = (key, fallbackKey) => content?.[key] || t(fallbackKey, currentLanguageFromRedux);
   const logoImageUrl = content?.navbar_logo_image_url;
   const logoAltText = getNavText("navbar_logo_image_alt", "Site Logo");
   const logoTextFallback = getNavText("navbar_logo_text", "Be First Learning");
 
-
   const navLinks = [
     { text: getNavText("nav_features", "navFeatures"), sectionId: "features-section" },
-    // { text: getNavText("nav_pricing", "navPricing"), sectionId: "pricing-section" },
     { text: getNavText("nav_about", "navAbout"), sectionId: "about-us-section" },
+    { text: getNavText("nav_objectives", "nav_objectives"), sectionId: "nos-objectifs-section" }, // Fallback key changed to nav_objectives
     { text: getNavText("nav_teachers", "navTeachers"), sectionId: "teachers-section" },
     { text: getNavText("nav_contact", "navContact"), sectionId: "contact-section" },
   ];
+
+  const commonLinkStyles = {
+    fontWeight: "medium",
+    _hover: {
+      textDecoration: "none",
+      color: navLinkHoverColor,
+    },
+  };
+
+  const desktopNavLinks = (
+    <HStack
+      spacing={{ md: 4, lg: 6 }}
+      display={{ base: "none", md: "flex" }}
+      as="nav"
+    >
+      {navLinks.map((link) => (
+        <ChakraLink
+          key={link.sectionId}
+          href={`#${link.sectionId}`}
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById(link.sectionId)?.scrollIntoView({ behavior: "smooth" });
+            onClose(); // Close drawer if open
+          }}
+          {...commonLinkStyles}
+        >
+          {link.text}
+        </ChakraLink>
+      ))}
+    </HStack>
+  );
+
+  const desktopControls = (
+    <HStack spacing={{ base: 2, md: 3 }} display={{ base: "none", md: "flex" }}>
+      {token && user ? (
+        <>
+          <Button variant="ghost" as={Link} to="/dashboard" _hover={{ bg: navButtonHoverBg }}>
+            {getNavText("navbar_dashboard", "navbar_dashboard")}
+          </Button>
+          <Button variant="ghost" colorScheme="red" onClick={handleLogout} _hover={{ bg: navButtonHoverBg }}>
+            {getNavText("navbar_logout", "navbar_logout")}
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button variant="ghost" as={Link} to="/signin" _hover={{ bg: navButtonHoverBg }}>
+            {getNavText("navbar_signin", "navbarSignIn")}
+          </Button>
+          <Button
+            variant="solid"
+            as={Link}
+            bg={navSignUpButtonBg}
+            color={navSignUpButtonColor}
+            _hover={{ bg: navSignUpButtonHoverBg }}
+            to="/signup"
+          >
+            {getNavText("navbar_signup", "navbarSignUp")}
+          </Button>
+        </>
+      )}
+      <Select
+        value={currentLanguageFromRedux}
+        onChange={(e) => dispatch(languageReducer(e.target.value))}
+        color={useColorModeValue("black", "black")}
+        bg={useColorModeValue("white", "white")}
+        borderColor="teal.300"
+        w="auto"
+        size="sm" // Smaller select for navbar
+      >
+        <option value="en">{getNavText("language_english", "languageEnglish")}</option>
+        <option value="fr">{getNavText("language_french", "languageFrench")}</option>
+        <option value="ar">{getNavText("language_arabic", "languageArabic")}</option>
+      </Select>
+      <IconButton
+        aria-label="Toggle color mode"
+        icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+        onClick={toggleColorMode}
+        variant="ghost"
+        _hover={{ bg: navButtonHoverBg }}
+        color={navTextColor}
+      />
+    </HStack>
+  );
+
+  const mobileDrawer = (
+    <>
+      <IconButton
+        ref={btnRef}
+        aria-label="Open menu"
+        icon={<HamburgerIcon />}
+        onClick={onOpen}
+        variant="ghost"
+        display={{ base: "flex", md: "none" }}
+        _hover={{ bg: navButtonHoverBg }}
+        color={navTextColor}
+      />
+      <Drawer isOpen={isOpen} placement={currentLanguageFromRedux === "ar" ? "right" : "left"} onClose={onClose} finalFocusRef={btnRef}>
+        <DrawerOverlay />
+        <DrawerContent bg={navBgColor} color={navTextColor}>
+          <DrawerCloseButton />
+          <DrawerHeader borderBottomWidth="1px">{getNavText("navbar_menu_title", "Menu")}</DrawerHeader>
+          <DrawerBody>
+            <VStack spacing={4} align="stretch">
+              {navLinks.map((link) => (
+                <ChakraLink
+                  key={link.sectionId}
+                  href={`#${link.sectionId}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById(link.sectionId)?.scrollIntoView({ behavior: "smooth" });
+                    onClose();
+                  }}
+                  {...commonLinkStyles}
+                  py={2} // Add padding for better touch target
+                >
+                  {link.text}
+                </ChakraLink>
+              ))}
+              <hr /> {/* Divider */}
+              {token && user ? (
+                <>
+                  <Button variant="ghost" as={Link} to="/dashboard" onClick={onClose} width="full" justifyContent="start">
+                    {getNavText("navbar_dashboard", "navbar_dashboard")}
+                  </Button>
+                  <Button variant="ghost" colorScheme="red" onClick={() => { handleLogout(); onClose(); }} width="full" justifyContent="start">
+                    {getNavText("navbar_logout", "navbar_logout")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" as={Link} to="/signin" onClick={onClose} width="full" justifyContent="start">
+                    {getNavText("navbar_signin", "navbarSignIn")}
+                  </Button>
+                  <Button
+                    variant="solid"
+                    as={Link}
+                    bg={navSignUpButtonBg}
+                    color={navSignUpButtonColor}
+                    _hover={{ bg: navSignUpButtonHoverBg }}
+                    to="/signup"
+                    onClick={onClose}
+                    width="full"
+                    justifyContent="start"
+                  >
+                    {getNavText("navbar_signup", "navbarSignUp")}
+                  </Button>
+                </>
+              )}
+              <Select
+                value={currentLanguageFromRedux}
+                onChange={(e) => {
+                  dispatch(languageReducer(e.target.value));
+                  // onClose(); // Optionally close drawer on language change
+                }}
+                color={useColorModeValue("black", "black")}
+                bg={useColorModeValue("white", "white")}
+                borderColor="teal.300"
+                w="full" // Full width in drawer
+              >
+                <option value="en">{getNavText("language_english", "languageEnglish")}</option>
+                <option value="fr">{getNavText("language_french", "languageFrench")}</option>
+                <option value="ar">{getNavText("language_arabic", "languageArabic")}</option>
+              </Select>
+              <Button
+                leftIcon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+                onClick={() => {
+                  toggleColorMode();
+                  // onClose(); // Optionally close drawer on theme change
+                }}
+                variant="ghost"
+                width="full"
+                justifyContent="start"
+              >
+                {colorMode === "light" ? getNavText("theme_dark", "Dark Mode") : getNavText("theme_light", "Light Mode")}
+              </Button>
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
+  );
+
 
   return (
     <Flex
@@ -101,14 +322,14 @@ const Navbar = ({
       paddingX={{ base: "1.5rem", md: "3rem" }}
       bg={navBgColor}
       color={navTextColor}
-      dir={currentLanguageFromRedux === "ar" ? "rtl" : "ltr"} // Use Redux lang for direction
+      dir={currentLanguageFromRedux === "ar" ? "rtl" : "ltr"}
     >
       {logoImageUrl ? (
         <ChakraImage
           src={logoImageUrl}
           alt={logoAltText}
-          h={{ base: "30px", md: "40px" }} // Adjust height as needed
-          fallbackSrc="https://via.placeholder.com/150x50?text=Logo" // Optional: if image fails to load
+          h={{ base: "30px", md: "40px" }}
+          fallbackSrc="https://via.placeholder.com/150x50?text=Logo"
         />
       ) : (
         <Heading as="h1" size="lg" letterSpacing={"-.1rem"}>
@@ -116,74 +337,9 @@ const Navbar = ({
         </Heading>
       )}
 
-      {/* Navigation Links - hidden on small screens, visible on md and up */}
-      <HStack
-        spacing={{ base: 2, md: 4, lg: 6 }} // Responsive spacing
-        display={{ base: "none", md: "flex" }} // Hide on base, show on md+
-        as="nav"
-      >
-        {navLinks.map((link) => (
-          <ChakraLink
-            key={link.sectionId}
-            href={`#${link.sectionId}`}
-            onClick={(e) => {
-              e.preventDefault();
-              document
-                .getElementById(link.sectionId)
-                ?.scrollIntoView({ behavior: "smooth" });
-            }}
-            fontWeight="medium"
-            _hover={{
-              textDecoration: "none",
-              color: navLinkHoverColor,
-            }}
-          >
-            {link.text}
-          </ChakraLink>
-        ))}
-      </HStack>
-
-      {/* Right-side controls: Auth, Lang, ColorMode */}
-      <HStack spacing={{ base: 2, md: 3 }}>
-        <Button
-          variant="ghost"
-          as={Link}
-          to="signin"
-          _hover={{ bg: navButtonHoverBg }}
-        >
-          {getNavText("navbar_signin", "navbarSignIn")}
-        </Button>
-        <Button
-          variant="solid"
-          as={Link}
-          bg={navSignUpButtonBg}
-          color={navSignUpButtonColor}
-          _hover={{ bg: navSignUpButtonHoverBg }}
-          to="/signup"
-        >
-          {getNavText("navbar_signup", "navbarSignUp")}
-        </Button>
-        <Select
-          value={currentLanguageFromRedux} // Use value from Redux
-          onChange={(e) => dispatch(languageReducer(e.target.value))}
-          color={useColorModeValue("black", "black")}
-          bg={useColorModeValue("white", "white")}
-          borderColor="teal.300"
-          w="auto"
-        >
-          <option value="en">{getNavText("language_english", "languageEnglish")}</option>
-          <option value="fr">{getNavText("language_french", "languageFrench")}</option>
-          <option value="ar">{getNavText("language_arabic", "languageArabic")}</option>
-        </Select>
-        <IconButton
-          aria-label="Toggle color mode"
-          icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-          onClick={toggleColorMode}
-          variant="ghost"
-          _hover={{ bg: navButtonHoverBg }} // Use consistent hover from props
-          color={navTextColor} // Use navTextColor
-        />
-      </HStack>
+      {desktopNavLinks}
+      {desktopControls}
+      {mobileDrawer}
     </Flex>
   );
 };
@@ -191,12 +347,18 @@ const Navbar = ({
 const LandingPage = () => {
   const dispatch = useDispatch();
   const currentLanguage = useSelector((state) => state.language.language); // Used for API call and language selector
+  const { user } = useSelector((state) => state.user); // Access user state
+  const token = localStorage.getItem("token"); // Access token
+
   const [landingContent, setLandingContent] = useState(null);
   const [isLoadingContent, setIsLoadingContent] = useState(true);
   const [errorContent, setErrorContent] = useState(null);
 
   const [isAnnualBilling, setIsAnnualBilling] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+
+  // Determine Hero CTA button path based on auth state
+  const heroCtaPath = token && user ? "/dashboard" : "/signup";
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -473,7 +635,7 @@ const LandingPage = () => {
           </Text>
           <Button
             as={Link}
-            to="/signup"
+            to={heroCtaPath} // Use dynamic path
             colorScheme="whiteAlpha"
             size="lg"
             _hover={{ bg: "whiteAlpha.900", color: "teal.500" }}
