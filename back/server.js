@@ -19,6 +19,7 @@ import parentRoutes from "./routes/parentRoutes.js";
 import potentialClientRoutes from "./routes/potenitalClientRoutes.js";
 import paymentProuveRoutes from "./routes/paymentProuveRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import landingContentRoutes from "./routes/landingContentRoutes.js"; // Import new routes
 
 connectDB();
 
@@ -63,6 +64,8 @@ app.use("/api/parents", parentRoutes);
 app.use("/api/potential-clients", potentialClientRoutes);
 app.use("/api/payment-prouve", paymentProuveRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/landing-content", landingContentRoutes); // Use new routes
+
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");
 });

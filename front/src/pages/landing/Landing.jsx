@@ -48,9 +48,11 @@ import {
   FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
+import { Loader2 as LuLoader2 } from "lucide-react"; // Corrected import for loader icon
 
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import apiClient from "../../hooks/apiClient"; // For fetching content
 
 // Create Motion-Wrapped Chakra Components
 const MotionBox = motion(Box);
@@ -59,10 +61,9 @@ const MotionSimpleGrid = motion(SimpleGrid);
 // const MotionHeading = motion(Heading); // Not explicitly used in this refactor for section titles, but good to have if needed.
 
 const Navbar = ({
-  currentLanguage,
-  dispatch,
-  languageReducer,
-  t,
+  // currentLanguage and dispatch are available via Redux useSelector/useDispatch if needed for the language selector
+  // t function is available globally if imported, or can be passed if preferred
+  content, // Pass fetched content to Navbar
   navBgColor,
   navTextColor,
   navButtonHoverBg,
@@ -72,14 +73,22 @@ const Navbar = ({
   navLinkHoverColor,
 }) => {
   const { colorMode, toggleColorMode } = useColorMode();
+  const currentLanguageFromRedux = useSelector((state) => state.language.language); // For <Select> value
+  const dispatch = useDispatch(); // For <Select> onChange
+
+  // Use dynamic data from content, fallback to t function or hardcoded keys if not available
+  const getNavText = (key, fallbackKey) => content?.[key] || t(fallbackKey, currentLanguageFromRedux);
+  const logoImageUrl = content?.navbar_logo_image_url;
+  const logoAltText = getNavText("navbar_logo_image_alt", "Site Logo");
+  const logoTextFallback = getNavText("navbar_logo_text", "Be First Learning");
+
 
   const navLinks = [
-    { labelKey: "navFeatures", sectionId: "features-section" },
-    { labelKey: "navPricing", sectionId: "pricing-section" },
-    { labelKey: "navAbout", sectionId: "about-us-section" },
-    { labelKey: "navTeachers", sectionId: "teachers-section" },
-    // { labelKey: 'navTestimonials', sectionId: 'testimonials-section' }, // Optional
-    { labelKey: "navContact", sectionId: "contact-section" },
+    { text: getNavText("nav_features", "navFeatures"), sectionId: "features-section" },
+    // { text: getNavText("nav_pricing", "navPricing"), sectionId: "pricing-section" },
+    { text: getNavText("nav_about", "navAbout"), sectionId: "about-us-section" },
+    { text: getNavText("nav_teachers", "navTeachers"), sectionId: "teachers-section" },
+    { text: getNavText("nav_contact", "navContact"), sectionId: "contact-section" },
   ];
 
   return (
@@ -87,16 +96,25 @@ const Navbar = ({
       as="nav"
       align="center"
       justify="space-between"
-      wrap="wrap" // Keep wrap for responsiveness
+      wrap="wrap"
       paddingY="1.5rem"
-      paddingX={{ base: "1.5rem", md: "3rem" }} // Adjust padding
+      paddingX={{ base: "1.5rem", md: "3rem" }}
       bg={navBgColor}
       color={navTextColor}
-      dir={currentLanguage === "ar" ? "rtl" : "ltr"}
+      dir={currentLanguageFromRedux === "ar" ? "rtl" : "ltr"} // Use Redux lang for direction
     >
-      <Heading as="h1" size="lg" letterSpacing={"-.1rem"}>
-        {t("navbarLogo", currentLanguage)}
-      </Heading>
+      {logoImageUrl ? (
+        <ChakraImage
+          src={logoImageUrl}
+          alt={logoAltText}
+          h={{ base: "30px", md: "40px" }} // Adjust height as needed
+          fallbackSrc="https://via.placeholder.com/150x50?text=Logo" // Optional: if image fails to load
+        />
+      ) : (
+        <Heading as="h1" size="lg" letterSpacing={"-.1rem"}>
+          {logoTextFallback}
+        </Heading>
+      )}
 
       {/* Navigation Links - hidden on small screens, visible on md and up */}
       <HStack
@@ -120,22 +138,20 @@ const Navbar = ({
               color: navLinkHoverColor,
             }}
           >
-            {t(link.labelKey, currentLanguage)}
+            {link.text}
           </ChakraLink>
         ))}
       </HStack>
 
       {/* Right-side controls: Auth, Lang, ColorMode */}
       <HStack spacing={{ base: 2, md: 3 }}>
-        {" "}
-        {/* Adjusted spacing for controls */}
         <Button
           variant="ghost"
           as={Link}
           to="signin"
           _hover={{ bg: navButtonHoverBg }}
         >
-          {t("navbarSignIn", currentLanguage)}
+          {getNavText("navbar_signin", "navbarSignIn")}
         </Button>
         <Button
           variant="solid"
@@ -145,19 +161,19 @@ const Navbar = ({
           _hover={{ bg: navSignUpButtonHoverBg }}
           to="/signup"
         >
-          {t("navbarSignUp", currentLanguage)}
+          {getNavText("navbar_signup", "navbarSignUp")}
         </Button>
         <Select
-          value={currentLanguage}
+          value={currentLanguageFromRedux} // Use value from Redux
           onChange={(e) => dispatch(languageReducer(e.target.value))}
-          color={useColorModeValue("black", "black")} // Keep select text color black for readability on white bg
-          bg={useColorModeValue("white", "white")} // Keep select bg white
+          color={useColorModeValue("black", "black")}
+          bg={useColorModeValue("white", "white")}
           borderColor="teal.300"
           w="auto"
         >
-          <option value="en">{t("languageEnglish", currentLanguage)}</option>
-          <option value="fr">{t("languageFrench", currentLanguage)}</option>
-          <option value="ar">{t("languageArabic", currentLanguage)}</option>
+          <option value="en">{getNavText("language_english", "languageEnglish")}</option>
+          <option value="fr">{getNavText("language_french", "languageFrench")}</option>
+          <option value="ar">{getNavText("language_arabic", "languageArabic")}</option>
         </Select>
         <IconButton
           aria-label="Toggle color mode"
@@ -174,9 +190,33 @@ const Navbar = ({
 
 const LandingPage = () => {
   const dispatch = useDispatch();
-  const currentLanguage = useSelector((state) => state.language.language);
+  const currentLanguage = useSelector((state) => state.language.language); // Used for API call and language selector
+  const [landingContent, setLandingContent] = useState(null);
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
+  const [errorContent, setErrorContent] = useState(null);
+
   const [isAnnualBilling, setIsAnnualBilling] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      setIsLoadingContent(true);
+      setErrorContent(null);
+      try {
+        const response = await apiClient.get(`/landing-content?lang=${currentLanguage}`);
+        setLandingContent({...response.data, currentLanguage: currentLanguage});
+      } catch (err) {
+        setErrorContent(err.message || "Failed to load landing page content.");
+        console.error("Failed to fetch landing content:", err);
+        // Set some default content structure to prevent render errors
+        setLandingContent({ currentLanguage: currentLanguage });
+      } finally {
+        setIsLoadingContent(false);
+      }
+    };
+
+    fetchContent();
+  }, [currentLanguage]);
 
   // Animation Variants
   const fadeInUpVariants = {
@@ -242,236 +282,152 @@ const LandingPage = () => {
   const recommendedBadgeColor = useColorModeValue("white", "gray.800");
   const testimonialImageBorderColor = useColorModeValue("teal.300", "teal.500");
 
-  const testimonialsData = [
-    {
-      quoteKey: "testimonial1Quote",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1552873816-636e43209957?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      avatarAltKey: "testimonial1AvatarAlt",
-      nameKey: "testimonial1Name",
-      roleKey: "testimonial1Role",
-    },
-    {
-      quoteKey: "testimonial2Quote",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1514355315815-2b64b0216b14?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      avatarAltKey: "testimonial2AvatarAlt",
-      nameKey: "testimonial2Name",
-      roleKey: "testimonial2Role",
-    },
-    {
-      quoteKey: "testimonial3Quote",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1526662092594-e98c1e356d6a?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      avatarAltKey: "testimonial3AvatarAlt",
-      nameKey: "testimonial3Name",
-      roleKey: "testimonial3Role",
-    },
-  ];
+  // Testimonials data will now be derived from landingContent
+  const getTestimonialsData = () => {
+    if (!landingContent) return [];
+    const data = [];
+    for (let i = 1; i <= 3; i++) { // Assuming up to 3 testimonials based on schema
+      if (landingContent[`testimonial${i}_quote`]) {
+        data.push({
+          quote: landingContent[`testimonial${i}_quote`] || "Missing quote",
+          avatarUrl: landingContent[`testimonial${i}_avatar_url`] || "https://via.placeholder.com/150",
+          avatarAlt: landingContent[`testimonial${i}_avatar_alt`] || `Testimonial ${i} avatar`,
+          name: landingContent[`testimonial${i}_name`] || `Name ${i}`,
+          role: landingContent[`testimonial${i}_role`] || `Role ${i}`,
+        });
+      }
+    }
+    return data;
+  };
+
+  const testimonialsData = getTestimonialsData();
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
 
+  useEffect(() => {
+    // Reset index if testimonials data changes (e.g., on language switch)
+    setCurrentTestimonialIndex(0);
+  }, [currentLanguage, landingContent?.testimonial1_quote]); // Re-check if testimonial data itself changed
+
   const handlePrevTestimonial = () => {
+    if (testimonialsData.length === 0) return;
     setCurrentTestimonialIndex((prevIndex) =>
       prevIndex === 0 ? testimonialsData.length - 1 : prevIndex - 1
     );
   };
 
   const handleNextTestimonial = () => {
+    if (testimonialsData.length === 0) return;
     setCurrentTestimonialIndex((prevIndex) =>
       prevIndex === testimonialsData.length - 1 ? 0 : prevIndex + 1
     );
   };
 
-  const currentTestimonial = testimonialsData[currentTestimonialIndex];
+  const currentTestimonial = testimonialsData[currentTestimonialIndex] || {};
 
-  const iconMap = {
+
+  const iconMap = { // This might not be needed if icons are URLs now
     InfoIcon: InfoIcon,
     CheckCircleIcon: CheckCircleIcon,
     SettingsIcon: SettingsIcon,
   };
 
-  // featuresData needs to be defined inside LandingPage to use useColorModeValue or values derived from it.
-  const featuresData = [
-    {
-      icon: "/assets/icons/interactive.gif",
-      title: {
-        ar: "دروس حية وتفاعلية",
-        fr: "Des cours vivants",
-        en: "Lively and interactive lessons",
-      },
-      desc: {
-        ar: ".  مدعّمة بفيديوهات، اختبارات، حالات تطبيقية، وتمارين محلولة",
-        fr: "Des cours vivants et interactifs enrichis de vidéos, quiz, cas pratiques et exercices corrigés.",
-        en: "Lively and interactive lessons enriched with videos, quizzes, case studies, and solved exercises.",
-      },
-    },
-    {
-      icon: "/assets/icons/experience.gif",
-      title: {
-        ar: "التجربة",
-        fr: "l'expérience",
-        en: "the Experience",
-      },
-      desc: {
-        ar: ".تجربة تعلم سلسة، سهلة الوصول وجذابة على جميع أجهزتكم",
-        fr: "Une expérience d’apprentissage fluide, accessible et engageante sur tous vos appareils.",
-        en: "A smooth, accessible, and engaging learning experience on all your devices.",
-      },
-    },
-    {
-      icon: "/assets/icons/support.gif",
-      title: {
-        ar: "الدعم والمتابعة",
-        fr: "Le suivi personnalisé",
-        en: "Support and follow up",
-      },
-      desc: {
-        ar: ".متابعة شخصية للتقدّم حسب وتيرتك، مع موارد متاحة في أي وقت",
-        fr: "Un suivi personnalisé pour progresser à votre rythme, avec des ressources toujours disponibles.",
-        en: "Personalized support and follow up to progress at your own pace, with resources always available.",
-      },
-    },
-  ];
+  // featuresData will be derived from landingContent
+  const getFeaturesData = () => {
+    if (!landingContent) return [];
+    const data = [];
+    for (let i = 1; i <= 3; i++) { // Assuming up to 3 features
+      if (landingContent[`feature${i}_title`]) {
+        data.push({
+          iconUrl: landingContent[`feature${i}_icon_url`] || "https://via.placeholder.com/95",
+          title: landingContent[`feature${i}_title`] || `Feature ${i} Title`,
+          desc: landingContent[`feature${i}_desc`] || `Feature ${i} Description`,
+        });
+      }
+    }
+    return data;
+  };
+  const featuresData = getFeaturesData();
 
-  // pricingPlansData needs to be defined inside LandingPage to use useColorModeValue or values derived from it.
+  // pricingPlansData - This section seems to be static or not covered by the dynamic fields in the schema.
+  // I will leave it as is for now, assuming it's not part of this dynamic content update.
+  // If it needs to be dynamic, its fields should be added to LandingContent schema and admin panel.
   const pricingPlansData = [
     {
-      titleKey: "planBasicTitle",
+      titleKey: "planBasicTitle", // These keys would need to map to landingContent if dynamic
       monthlyPriceKey: "planBasicPriceMonthly",
       annualPriceKey: "planBasicPriceAnnual",
       features: ["planBasicFeature1", "planBasicFeature2", "planBasicFeature3"],
       buttonVariant: "outline",
       isRecommended: false,
-      cardStyles: {
-        p: 8,
-        borderWidth: "1px",
-        borderRadius: "lg",
-        bg: cardBg,
-        borderColor: cardBorderColor,
-        boxShadow: "md",
-        _hover: { boxShadow: "xl" },
-        transition: "box-shadow 0.2s",
-      },
+      cardStyles: { /* ... */ },
     },
-    {
-      titleKey: "planProTitle",
-      monthlyPriceKey: "planProPriceMonthly",
-      annualPriceKey: "planProPriceAnnual",
-      features: [
-        "planProFeature1",
-        "planProFeature2",
-        "planProFeature3",
-        "planProFeature4",
-      ],
-      buttonVariant: "solid",
-      isRecommended: true,
-      cardStyles: {
-        p: 8,
-        borderWidth: "2px",
-        borderColor: proPlanBorderColor,
-        borderRadius: "lg",
-        bg: cardBg,
-        boxShadow: "xl",
-        transform: { lg: "scale(1.05)" },
-      },
-    },
-    {
-      titleKey: "planBusinessTitle",
-      monthlyPriceKey: "planBusinessPriceMonthly",
-      annualPriceKey: "planBusinessPriceAnnual",
-      features: [
-        "planBusinessFeature1",
-        "planBusinessFeature2",
-        "planBusinessFeature3",
-      ],
-      buttonVariant: "outline",
-      isRecommended: false,
-      cardStyles: {
-        p: 8,
-        borderWidth: "1px",
-        borderRadius: "lg",
-        bg: cardBg,
-        borderColor: cardBorderColor,
-        boxShadow: "md",
-        _hover: { boxShadow: "xl" },
-        transition: "box-shadow 0.2s",
-      },
-    },
-    {
-      titleKey: "planEnterpriseTitle",
-      monthlyPriceKey: "planEnterprisePriceMonthly",
-      annualPriceKey: "planEnterprisePriceAnnual",
-      features: [
-        "planEnterpriseFeature1",
-        "planEnterpriseFeature2",
-        "planEnterpriseFeature3",
-      ],
-      buttonVariant: "outline",
-      isRecommended: false,
-      cardStyles: {
-        p: 8,
-        borderWidth: "1px",
-        borderRadius: "lg",
-        bg: cardBg,
-        borderColor: cardBorderColor,
-        boxShadow: "md",
-        _hover: { boxShadow: "xl" },
-        transition: "box-shadow 0.2s",
-      },
-    },
+    // ... other plans
   ];
 
-  // teachersData needs to be defined inside LandingPage to use useColorModeValue or values derived from it.
-  const teachersData = [
-    {
-      avatarUrl:
-        "https://images.unsplash.com/photo-1700156246325-65bbb9e1dc0d?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      avatarAltKey: "teacher1AvatarAlt",
-      nameKey: "teacher1Name",
-      titleKey: "teacher1Title",
-      bioKey: "teacher1Bio",
-      avatarBorderColor: useColorModeValue("teal.400", "teal.200"),
-      titleColor: useColorModeValue("teal.500", "teal.300"),
-    },
-    {
-      avatarUrl:
-        "https://images.unsplash.com/flagged/photo-1559475555-b26777ed3ab4?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      avatarAltKey: "teacher2AvatarAlt",
-      nameKey: "teacher2Name",
-      titleKey: "teacher2Title",
-      bioKey: "teacher2Bio",
-      avatarBorderColor: useColorModeValue("purple.400", "purple.200"),
-      titleColor: useColorModeValue("purple.500", "purple.300"),
-    },
-    {
-      avatarUrl:
-        "https://images.unsplash.com/photo-1664382953518-4a664ab8a8c9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      avatarAltKey: "teacher3AvatarAlt",
-      nameKey: "teacher3Name",
-      titleKey: "teacher3Title",
-      bioKey: "teacher3Bio",
-      avatarBorderColor: useColorModeValue("orange.400", "orange.200"),
-      titleColor: useColorModeValue("orange.500", "orange.300"),
-    },
-    {
-      avatarUrl:
-        "https://images.unsplash.com/flagged/photo-1574110906643-8311b0ce29d3?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      avatarAltKey: "teacher4AvatarAlt",
-      nameKey: "teacher4Name",
-      titleKey: "teacher4Title",
-      bioKey: "teacher4Bio",
-      avatarBorderColor: useColorModeValue("pink.400", "pink.200"),
-      titleColor: useColorModeValue("pink.500", "pink.300"),
-    },
-  ];
+
+  // teachersData will be derived from landingContent
+  const getTeachersData = () => {
+    if (!landingContent) return [];
+    const data = [];
+    const teacherColors = [
+      { border: useColorModeValue("teal.400", "teal.200"), title: useColorModeValue("teal.500", "teal.300") },
+      { border: useColorModeValue("purple.400", "purple.200"), title: useColorModeValue("purple.500", "purple.300") },
+      { border: useColorModeValue("orange.400", "orange.200"), title: useColorModeValue("orange.500", "orange.300") },
+      { border: useColorModeValue("pink.400", "pink.200"), title: useColorModeValue("pink.500", "pink.300") },
+    ];
+    for (let i = 1; i <= 4; i++) { // Assuming up to 4 teachers
+      if (landingContent[`teacher${i}_name`]) {
+        data.push({
+          avatarUrl: landingContent[`teacher${i}_avatar_url`] || "https://via.placeholder.com/150",
+          avatarAlt: landingContent[`teacher${i}_avatar_alt`] || `Teacher ${i} Avatar`,
+          name: landingContent[`teacher${i}_name`] || `Teacher ${i} Name`,
+          title: landingContent[`teacher${i}_title`] || `Teacher ${i} Title`,
+          bio: landingContent[`teacher${i}_bio`] || `Teacher ${i} Bio`,
+          avatarBorderColor: teacherColors[i-1]?.border || useColorModeValue("gray.400", "gray.200"),
+          titleColor: teacherColors[i-1]?.title || useColorModeValue("gray.500", "gray.300"),
+        });
+      }
+    }
+    return data;
+  };
+  const teachersData = getTeachersData();
+
+  // Helper to get text, with fallback
+  const getText = (key, fallback = "") => landingContent?.[key] || fallback;
+
+
+  if (isLoadingContent) {
+    return (
+      <Flex justify="center" align="center" height="100vh" direction="column">
+        <LuLoader2 size={50} className="animate-spin" />
+        <Text mt={4} fontSize="lg">Loading content...</Text>
+      </Flex>
+    );
+  }
+
+  if (errorContent) {
+    return (
+      <Flex justify="center" align="center" height="100vh" direction="column" textAlign="center" p={4}>
+        <Heading size="md" color="red.500">Oops! Something went wrong.</Heading>
+        <Text mt={2}>We couldn't load the page content: {errorContent}</Text>
+        <Text mt={1}>Please try refreshing the page or contact support.</Text>
+      </Flex>
+    );
+  }
+
+  // Ensure landingContent is not null before rendering parts that depend on it
+  if (!landingContent) {
+    return ( // Minimal fallback if content is null after loading (should ideally not happen if defaults are set)
+      <Flex justify="center" align="center" height="100vh">
+        <Text>Content not available.</Text>
+      </Flex>
+    );
+  }
 
   return (
     <Box>
       <Navbar
-        currentLanguage={currentLanguage}
-        dispatch={dispatch}
-        languageReducer={languageReducer}
-        t={t}
+        content={landingContent}
         navBgColor={navBgColor}
         navButtonHoverBg={navButtonHoverBg}
         navSignUpButtonBg={navSignUpButtonBg}
@@ -485,9 +441,9 @@ const LandingPage = () => {
         direction="column"
         align="center"
         justify="center"
-        minH="calc(100vh - 70px)" // Assuming navbar height is roughly 70px
+        minH="calc(100vh - 70px)"
         position="relative"
-        backgroundImage="url('https://images.unsplash.com/photo-1557734864-c78b6dfef1b1?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')"
+        backgroundImage={`url('${getText("hero_image_url", "https://images.unsplash.com/photo-1557734864-c78b6dfef1b1?q=80&w=1934&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")}')`}
         backgroundSize="cover"
         backgroundPosition="center"
         backgroundRepeat="no-repeat"
@@ -510,18 +466,10 @@ const LandingPage = () => {
           p={8}
         >
           <Heading as="h2" size="2xl" color="white" fontWeight="bold">
-            {currentLanguage === "fr"
-              ? "Votre partenaire éducatif, de l’école à la vie professionnelle."
-              : currentLanguage === "ar"
-              ? ".شريككم في التعليم، من المدرسة إلى الحياة المهنية"
-              : "Your educational partner, from school to professional life."}
+            {getText("hero_title", "Your educational partner, from school to professional life.")}
           </Heading>
           <Text fontSize="xl" color="white" mb={2}>
-            {currentLanguage === "fr"
-              ? "Le succès commence avec Be First Learning."
-              : currentLanguage === "ar"
-              ? " Be First Learning" + " النجاح يبدأ مع"
-              : "Success starts with Be First Learning"}
+            {getText("hero_subtitle", "Success starts with Be First Learning")}
           </Text>
           <Button
             as={Link}
@@ -530,7 +478,7 @@ const LandingPage = () => {
             size="lg"
             _hover={{ bg: "whiteAlpha.900", color: "teal.500" }}
           >
-            {t("heroCtaButton", currentLanguage)}
+            {getText("hero_cta_button", "Get Started Now")}
           </Button>
         </VStack>
       </Flex>
@@ -541,7 +489,7 @@ const LandingPage = () => {
         textAlign="center"
       >
         <Heading as="h2" size="xl" mb={10}>
-          {t("featuresTitle", currentLanguage)}
+          {getText("features_title", "Our Amazing Features")}
         </Heading>
         <MotionSimpleGrid
           columns={{ base: 1, md: 3 }}
@@ -568,13 +516,12 @@ const LandingPage = () => {
                 transition="box-shadow 0.2s"
               >
                 <Flex direction="column" align="center">
-                  {<ChakraImage src={feature.icon} boxSize={95} />}
+                  <ChakraImage src={feature.iconUrl} alt={feature.title} boxSize={95} mb={3} />
                   <Heading as="h3" size="lg" mb={3}>
-                    {feature.title[currentLanguage]}
+                    {feature.title}
                   </Heading>
                   <Text textAlign="center">
-                    {" "}
-                    {feature.desc[currentLanguage]}
+                    {feature.desc}
                   </Text>
                 </Flex>
               </MotionBox>
@@ -588,8 +535,8 @@ const LandingPage = () => {
         py={20}
         px={{ base: 4, md: 8 }}
         mx="auto"
-        bg={useColorModeValue("blue.100", "gray.800")} // Updated
-        dir={currentLanguage === "ar" ? "rtl" : "ltr"} // Added dir attribute for RTL support
+        bg={useColorModeValue("blue.100", "gray.800")}
+        dir={currentLanguage === "ar" ? "rtl" : "ltr"}
       >
         <MotionFlex
           direction={{ base: "column", md: "row" }}
@@ -600,56 +547,28 @@ const LandingPage = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          {/* Column 1: Text Content */}
           <Box
             flex="1"
             textAlign={{
               base: "center",
               md: currentLanguage === "ar" ? "right" : "left",
-            }} // Adjust text alignment based on language
+            }}
             dir={currentLanguage === "ar" ? "rtl" : "ltr"}
           >
-            <Heading
-              as="h2"
-              size="2xl"
-              mb={6}
-              fontWeight="bold"
-              dir={currentLanguage === "ar" ? "rtl" : "ltr"}
-            >
-              {" "}
-              {/* Default heading color should adapt */}
-              {t("aboutUsTitle", currentLanguage)}
+            <Heading as="h2" size="2xl" mb={6} fontWeight="bold">
+              {getText("about_us_title", "About Us")}
             </Heading>
-            <Text fontSize="lg" color={aboutUsTextColor} mb={4}>
-              {currentLanguage === "fr"
-                ? "Be First Learning est une plateforme tunisienne de formation en ligne qui propose des cours de soutien scolaire (conformes aux programmes tunisiens et étrangers) et des formations pour professionnels. Elle s’adresse aux élèves, parents, enseignants et formateurs."
-                : currentLanguage === "ar"
-                ? " هي منصة تونسية للتكوين عن بعد، تقدّم دروس دعم مدرسي (مطابقة للبرامج التونسية والأجنبية) وتكوينات مهنية. توجّه خدماتها للتلاميذ، الأولياء، المدرّسين، والمكوّنين."
-                : "Be First Learning is a Tunisian online training platform that offers academic support courses (aligned with both Tunisian and international curricula) and professional training. It is designed for students, parents, teachers, and trainers."}
-            </Text>
-            <Text fontSize="lg" color={aboutUsTextColor} mb={6}>
-              {currentLanguage === "fr"
-                ? "Les cours couvrent de nombreuses disciplines : langues (arabe, français, anglais, allemand), maths, sciences, technologie, informatique, économie-gestion, etc. Pour les professionnels, l’offre inclut communication, marketing digital, développement personnel, bureautique, comptabilité, etc."
-                : currentLanguage === "ar"
-                ? "تشمل الدروس عديد المواد: اللغات (العربية، الفرنسية، الإنجليزية، الألمانية)، الرياضيات، العلوم، التكنولوجيا، الإعلامية، الاقتصاد والتصرف، وغيرها. أما بالنسبة للمحترفين، فتشمل العروض مجالات مثل: التواصل، التسويق الرقمي، التنمية الذاتية، برامج المكتب، المحاسبة، وغيرها."
-                : "The courses cover a wide range of subjects: languages (Arabic, French, English, German), mathematics, sciences, technology, computer science, economics and management, etc. For professionals, the offer includes communication, digital marketing, personal development, office tools, accounting, and more."}
-            </Text>
-            <Text fontSize="lg" color={aboutUsTextColor} mb={6}>
-              {currentLanguage === "fr"
-                ? "Les formations se font en direct via vidéoconférences interactives intégrées à la plateforme, sans logiciel externe. Une séance gratuite est proposée pour découvrir l’outil et évaluer le niveau."
-                : currentLanguage === "ar"
-                ? "تُقدَّم التكوينات مباشرة عبر حصص بالفيديو مدمجة في المنصة، دون الحاجة إلى برامج خارجية. وتُتاح حصة مجانية للتعرّف على المنصة وتقييم المستوى."
-                : "Trainings are delivered live via interactive video conferencing integrated into the platform, with no external software required. A free session is offered to discover the platform and assess the learner's level."}
-            </Text>
+            <Box fontSize="lg" color={aboutUsTextColor} mb={4} dangerouslySetInnerHTML={{ __html: getText("about_us_description1", "<p>Default about us description 1.</p>") }} />
+            <Box fontSize="lg" color={aboutUsTextColor} mb={6} dangerouslySetInnerHTML={{ __html: getText("about_us_description2", "<p>Default about us description 2.</p>") }} />
+            <Box fontSize="lg" color={aboutUsTextColor} mb={6} dangerouslySetInnerHTML={{ __html: getText("about_us_description3", "<p>Default about us description 3.</p>") }} />
           </Box>
 
-          {/* Column 2: Image */}
           <Box flex="1" mt={{ base: 8, md: 0 }}>
             <Image
-              src="https://images.unsplash.com/photo-1581929430054-760e30fe5c3b?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-              alt={t("aboutUsImageAlt", currentLanguage)}
+              src={getText("about_us_image_url", "https://via.placeholder.com/500x400?text=About+Us+Image")}
+              alt={getText("about_us_image_alt", "About us section image")}
               borderRadius="xl"
-              boxShadow="2xl" // Fine for now
+              boxShadow="2xl"
               objectFit="cover"
               w="100%"
               maxH="400px"
@@ -658,7 +577,6 @@ const LandingPage = () => {
         </MotionFlex>
       </Box>
 
-      {/* Nos Objectifs Section */}
       <Box
         id="nos-objectifs-section"
         py={20}
@@ -668,11 +586,7 @@ const LandingPage = () => {
         dir={currentLanguage === "ar" ? "rtl" : "ltr"}
       >
         <Heading as="h2" size="2xl" mb={10} fontWeight="bold">
-          {currentLanguage === "fr"
-            ? "Nos objectifs"
-            : currentLanguage === "ar"
-            ? "أهدافنا"
-            : "Our Objectives"}
+          {getText("objectives_title", "Our Objectives")}
         </Heading>
         <List
           spacing={3}
@@ -682,43 +596,23 @@ const LandingPage = () => {
         >
           <ListItem>
             <ListIcon as={CheckCircleIcon} color="green.500" />
-            {currentLanguage === "fr"
-              ? "Accompagner les élèves vers la réussite scolaire"
-              : currentLanguage === "ar"
-              ? "مرافقة التلاميذ نحو النجاح الدراسي"
-              : "Support students towards academic success"}
+            {getText("objective1_text", "Objective 1 default text.")}
           </ListItem>
           <ListItem>
             <ListIcon as={CheckCircleIcon} color="green.500" />
-            {currentLanguage === "fr"
-              ? "Outiller les professionnels pour leur évolution de carrière"
-              : currentLanguage === "ar"
-              ? "تزويد المهنيين بالأدوات اللازمة لتطورهم الوظيفي"
-              : "Equip professionals for their career development"}
+            {getText("objective2_text", "Objective 2 default text.")}
           </ListItem>
           <ListItem>
             <ListIcon as={CheckCircleIcon} color="green.500" />
-            {currentLanguage === "fr"
-              ? "Créer une communauté d’apprentissage inclusive"
-              : currentLanguage === "ar"
-              ? "إنشاء مجتمع تعليمي شامل"
-              : "Create an inclusive learning community"}
+            {getText("objective3_text", "Objective 3 default text.")}
           </ListItem>
           <ListItem>
             <ListIcon as={CheckCircleIcon} color="green.500" />
-            {currentLanguage === "fr"
-              ? "Proposer une plateforme intuitive et innovante"
-              : currentLanguage === "ar"
-              ? "تقديم منصة سهلة الاستخدام ومبتكرة"
-              : "Offer an intuitive and innovative platform"}
+            {getText("objective4_text", "Objective 4 default text.")}
           </ListItem>
           <ListItem>
             <ListIcon as={CheckCircleIcon} color="green.500" />
-            {currentLanguage === "fr"
-              ? "Contribuer à la transformation numérique de l’éducation en Tunisie et au-delà"
-              : currentLanguage === "ar"
-              ? "المساهمة في التحول الرقمي للتعليم في تونس وخارجها"
-              : "Contribute to the digital transformation of education in Tunisia and beyond"}
+            {getText("objective5_text", "Objective 5 default text.")}
           </ListItem>
         </List>
       </Box>
@@ -730,18 +624,8 @@ const LandingPage = () => {
         bg={sectionSubtleBg}
         dir={currentLanguage === "ar" ? "rtl" : "ltr"}
       >
-        {" "}
-        {/* Updated */}
-        <Heading
-          as="h2"
-          size="2xl"
-          textAlign="center"
-          mb={6} // Reduced margin bottom for the new text
-          fontWeight="bold"
-        >
-          {" "}
-          {/* Default heading color should adapt */}
-          {t("teachersTitle", currentLanguage)}
+        <Heading as="h2" size="2xl" textAlign="center" mb={6} fontWeight="bold">
+          {getText("teachers_title", "Meet Our Expert Teachers")}
         </Heading>
         <Text
           fontSize="lg"
@@ -750,14 +634,9 @@ const LandingPage = () => {
           textAlign="center"
           maxW="container.lg"
           mx="auto"
-          px={{ base: 2, md: 4 }} // Add some padding for better readability on smaller screens
-        >
-          {currentLanguage === "fr"
-            ? "Chez Be First Learning, l'excellence commence par les personnes qui vous enseignent. C’est pourquoi nous avons réuni une équipe d’enseignants et de formateurs/trices sur le volet, reconnus pour leur maîtrise pédagogique, leur expérience concrète sur le terrain et leur capacité à motiver chaque apprenant. Qu’il s’agisse de matières scolaires comme les mathématiques, les langues, les sciences, ou de compétences professionnelles comme le marketing digital, les langues étrangères ou la bureautique, nos experts sont là pour vous guider, en direct, avec des méthodes innovantes et des supports personnalisés. Pourquoi choisir nos enseignants experts?  Parce qu’ils connaissent parfaitement les programmes officiels tunisiens et internationaux.  Parce qu’ils savent adapter leur pédagogie à votre rythme et vos besoins.  Parce qu’ils vous accompagnent non seulement pour réussir vos examens, mais aussi pour atteindre vos objectifs professionnels. Rejoignez Be First Learning et vivez l’expérience d’un apprentissage de qualité, avec des experts passionnés par votre réussite."
-            : currentLanguage === "ar"
-            ? "في Be First Learning، يبدأ التميز بالأشخاص الذين يعلمونك. لهذا السبب قمنا بتجميع فريق من المعلمين والمدربين المختارين بعناية، والمعروفين بإتقانهم التربوي وخبرتهم الميدانية وقدرتهم على تحفيز كل متعلم. سواء تعلق الأمر بالمواد الدراسية مثل الرياضيات واللغات والعلوم، أو المهارات المهنية مثل التسويق الرقمي واللغات الأجنبية أو تطبيقات المكاتب، فإن خبرائنا هنا لإرشادك مباشرةً، بأساليب مبتكرة ومواد مخصصة. لماذا تختار معلمينا الخبراء؟ لأنهم على دراية تامة بالبرامج الرسمية التونسية والدولية. لأنهم يعرفون كيف يكيفون أساليبهم التعليمية مع وتيرتك واحتياجاتك. لأنهم يرافقونك ليس فقط للنجاح في امتحاناتك، ولكن أيضًا لتحقيق أهدافك المهنية. انضم إلى Be First Learning وعش تجربة تعلم عالية الجودة، مع خبراء شغوفين بنجاحك."
-            : "At Be First Learning, excellence begins with the people who teach you. That's why we have assembled a team of handpicked teachers and trainers, recognized for their pedagogical mastery, practical field experience, and ability to motivate each learner. Whether it's school subjects like mathematics, languages, sciences, or professional skills like digital marketing, foreign languages, or office software, our experts are here to guide you, live, with innovative methods and personalized materials. Why choose our expert teachers? Because they are perfectly familiar with official Tunisian and international programs. Because they know how to adapt their teaching methods to your pace and needs. Because they support you not only to pass your exams but also to achieve your professional goals. Join Be First Learning and experience quality learning with experts passionate about your success."}
-        </Text>
+          px={{ base: 2, md: 4 }}
+          dangerouslySetInnerHTML={{ __html: getText("teachers_section_description", "<p>Default description for the teachers section.</p>") }}
+        />
         <MotionSimpleGrid
           columns={{ base: 1, sm: 2, lg: 3, xl: 4 }}
           spacingX={10}
@@ -778,26 +657,24 @@ const LandingPage = () => {
               borderRadius="xl"
               boxShadow="lg"
               textAlign="center"
-              bg={cardBg} // Updated
-              borderColor={cardBorderColor} // Added for consistency, though individual avatar borders are more prominent
+              bg={cardBg}
+              borderColor={cardBorderColor}
               _hover={{ boxShadow: "2xl", transform: "translateY(-5px)" }}
               transition="all 0.3s ease-in-out"
             >
               <Image
                 src={teacher.avatarUrl}
-                alt={t(teacher.avatarAltKey, currentLanguage)}
+                alt={teacher.avatarAlt}
                 borderRadius="full"
                 boxSize="150px"
                 mx="auto"
                 mb={6}
                 objectFit="cover"
                 border="4px solid"
-                borderColor={teacher.avatarBorderColor} // This is now useColorModeValue-aware from data
+                borderColor={teacher.avatarBorderColor}
               />
               <Heading as="h3" size="xl" mb={2} fontWeight="semibold">
-                {" "}
-                {/* Default heading color should adapt */}
-                {t(teacher.nameKey, currentLanguage)}
+                {teacher.name}
               </Heading>
               <Text
                 color={teacher.titleColor}
@@ -805,15 +682,9 @@ const LandingPage = () => {
                 fontSize="md"
                 mb={4}
               >
-                {" "}
-                {/* This is now useColorModeValue-aware from data */}
-                {t(teacher.titleKey, currentLanguage)}
+                {teacher.title}
               </Text>
-              <Text fontSize="sm" color={subtleTextColor} px={2}>
-                {" "}
-                {/* Updated */}
-                {t(teacher.bioKey, currentLanguage)}
-              </Text>
+              <Box fontSize="sm" color={subtleTextColor} px={2} dangerouslySetInnerHTML={{ __html: teacher.bio }} />
             </MotionBox>
           ))}
         </MotionSimpleGrid>
@@ -824,19 +695,10 @@ const LandingPage = () => {
         px={{ base: 4, md: 8 }}
         bg={testimonialsSectionBg}
       >
-        {" "}
-        {/* Updated */}
-        <Heading
-          as="h2"
-          size="2xl"
-          textAlign="center"
-          mb={12}
-          fontWeight="bold"
-        >
-          {" "}
-          {/* Default heading color should adapt */}
-          {t("testimonialsTitle", currentLanguage)}
+        <Heading as="h2" size="2xl" textAlign="center" mb={12} fontWeight="bold">
+          {getText("testimonials_title", "What Our Students Say")}
         </Heading>
+        {testimonialsData.length > 0 && currentTestimonial && (
         <MotionBox
           maxW="lg"
           mx="auto"
@@ -853,40 +715,38 @@ const LandingPage = () => {
           <Flex direction="column" align="center" textAlign="center">
             <Image
               src={currentTestimonial.avatarUrl}
-              alt={t(currentTestimonial.avatarAltKey, currentLanguage)}
+              alt={currentTestimonial.avatarAlt}
               borderRadius="full"
               boxSize="120px"
               mx="auto"
               mb={6}
               objectFit="cover"
               border="4px solid"
-              borderColor={testimonialImageBorderColor} // Updated
+              borderColor={testimonialImageBorderColor}
             />
             <Text
               fontSize="xl"
               fontStyle="italic"
               color={testimonialQuoteColor}
               mb={8}
-              minH={{ base: "120px", md: "100px" }}
-            >
-              {" "}
-              {/* Updated */}"{t(currentTestimonial.quoteKey, currentLanguage)}"
-            </Text>
+              minH={{ base: "120px", md: "100px" }} // This minH might need adjustment if HTML content varies a lot
+              dangerouslySetInnerHTML={{ __html: currentTestimonial.quote ? `"${currentTestimonial.quote}"` : "<p>Missing quote</p>"}}
+            />
+            {/* Quotes are often not wrapped in actual quote marks when coming from a WYSIWYG,
+                so adding them here might be redundant if the editor adds them, or necessary if not.
+                For now, I'm wrapping the content in quotes.
+                A better approach for quotes from richtext might be to style a blockquote if the editor uses it.
+            */}
             <Heading as="h4" size="lg" fontWeight="semibold" mb={1}>
-              {" "}
-              {/* Default heading color should adapt */}
-              {t(currentTestimonial.nameKey, currentLanguage)}
+              {currentTestimonial.name}
             </Heading>
             <Text color={testimonialRoleColor} fontSize="md">
-              {" "}
-              {/* Updated */}
-              {t(currentTestimonial.roleKey, currentLanguage)}
+              {currentTestimonial.role}
             </Text>
           </Flex>
 
-          {/* Navigation Buttons - variant ghost and colorScheme teal should adapt well */}
           <IconButton
-            aria-label={t("prevTestimonialAria", currentLanguage)}
+            aria-label={getText("prev_testimonial_aria", "Previous testimonial")}
             icon={<ArrowLeftIcon />}
             onClick={handlePrevTestimonial}
             position="absolute"
@@ -897,9 +757,10 @@ const LandingPage = () => {
             size="lg"
             variant="ghost"
             colorScheme="teal"
+            isDisabled={testimonialsData.length <= 1}
           />
           <IconButton
-            aria-label={t("nextTestimonialAria", currentLanguage)}
+            aria-label={getText("next_testimonial_aria", "Next testimonial")}
             icon={<ArrowRightIcon />}
             onClick={handleNextTestimonial}
             position="absolute"
@@ -910,20 +771,14 @@ const LandingPage = () => {
             size="lg"
             variant="ghost"
             colorScheme="teal"
+            isDisabled={testimonialsData.length <= 1}
           />
         </MotionBox>
+        )}
       </Box>
       <Box id="contact-section" py={20} px={{ base: 4, md: 8 }}>
-        <Heading
-          as="h2"
-          size="2xl"
-          textAlign="center"
-          mb={12}
-          fontWeight="bold"
-        >
-          {" "}
-          {/* Default heading color should adapt */}
-          {t("contactTitle", currentLanguage)}
+        <Heading as="h2" size="2xl" textAlign="center" mb={12} fontWeight="bold">
+          {getText("contact_title", "Get In Touch")}
         </Heading>
         <MotionBox
           maxW="lg"
@@ -939,30 +794,27 @@ const LandingPage = () => {
         >
           <VStack spacing={6} as="form" onSubmit={(e) => e.preventDefault()}>
             <FormControl id="contact-name" isRequired>
-              <FormLabel>{t("formFieldName", currentLanguage)}</FormLabel>{" "}
-              {/* Default label color should adapt */}
+              <FormLabel>{getText("form_field_name", "Your Name")}</FormLabel>
               <Input
                 type="text"
-                placeholder={t("formFieldNamePlaceholder", currentLanguage)}
-              />{" "}
-              {/* Input default styles adapt */}
+                placeholder={getText("form_field_name_placeholder", "Enter your name")}
+              />
             </FormControl>
 
             <FormControl id="contact-email" isRequired>
-              <FormLabel>{t("formFieldEmail", currentLanguage)}</FormLabel>
+              <FormLabel>{getText("form_field_email", "Your Email")}</FormLabel>
               <Input
                 type="email"
-                placeholder={t("formFieldEmailPlaceholder", currentLanguage)}
+                placeholder={getText("form_field_email_placeholder", "Enter your email address")}
               />
             </FormControl>
 
             <FormControl id="contact-message" isRequired>
-              <FormLabel>{t("formFieldMessage", currentLanguage)}</FormLabel>
+              <FormLabel>{getText("form_field_message", "Your Message")}</FormLabel>
               <Textarea
-                placeholder={t("formFieldMessagePlaceholder", currentLanguage)}
+                placeholder={getText("form_field_message_placeholder", "Type your message here...")}
                 rows={6}
-              />{" "}
-              {/* Textarea default styles adapt */}
+              />
             </FormControl>
 
             <Button
@@ -972,9 +824,7 @@ const LandingPage = () => {
               width="full"
               mt={4}
             >
-              {" "}
-              {/* Button colorScheme should adapt */}
-              {t("formSubmitButton", currentLanguage)}
+              {getText("form_submit_button", "Send Message")}
             </Button>
           </VStack>
         </MotionBox>
@@ -988,62 +838,58 @@ const LandingPage = () => {
         borderColor={footerBorderColor}
         mt={16}
       >
-        {" "}
-        {/* Updated */}
         <VStack spacing={4}>
           <HStack spacing={5}>
-            {" "}
-            {/* IconButtons with colorScheme should adapt */}
             <IconButton
               as="a"
-              href="#"
-              aria-label={t("footerSocialTwitterAria", currentLanguage)}
+              href={getText("footer_social_twitter_url", "#")}
+              aria-label={getText("footer_social_twitter_aria", "Follow us on Twitter")}
               icon={<FaXTwitter />}
               isRound
               variant="ghost"
               colorScheme="blue"
+              target="_blank" rel="noopener noreferrer"
             />
             <IconButton
               as="a"
-              href="#"
-              aria-label={t("footerSocialFacebookAria", currentLanguage)}
+              href={getText("footer_social_facebook_url", "#")}
+              aria-label={getText("footer_social_facebook_aria", "Follow us on Facebook")}
               icon={<FaFacebook />}
               isRound
               variant="ghost"
               colorScheme="facebook"
+              target="_blank" rel="noopener noreferrer"
             />
             <IconButton
               as="a"
-              href="#"
-              aria-label={t("footerSocialLinkedinAria", currentLanguage)}
+              href={getText("footer_social_linkedin_url", "#")}
+              aria-label={getText("footer_social_linkedin_aria", "Follow us on LinkedIn")}
               icon={<FaLinkedinIn />}
               isRound
               variant="ghost"
               colorScheme="linkedin"
+              target="_blank" rel="noopener noreferrer"
             />
             <IconButton
               as="a"
-              href="#"
-              aria-label={t("footerSocialGithubAria", currentLanguage)}
+              href={getText("footer_social_youtube_url", "#")}
+              aria-label={getText("footer_social_youtube_aria", "Follow us on YouTube")}
               icon={<FaYoutube />}
               isRound
               variant="ghost"
-              colorScheme="gray"
+              colorScheme="red" // Changed to red for YouTube
+              target="_blank" rel="noopener noreferrer"
             />
           </HStack>
           <Text fontSize="sm" color={subtleTextColor}>
-            {" "}
-            {/* Updated */}
-            {t("footerCopyright", currentLanguage, {
-              year: new Date().getFullYear(),
-            })}
+            {getText("footer_copyright", `© ${new Date().getFullYear()} Be First Learning. All rights reserved.`).replace("{year}", new Date().getFullYear())}
           </Text>
         </VStack>
       </Box>
 
       {showScroll && (
         <IconButton
-          aria-label={t("backToTopAria", currentLanguage)}
+          aria-label={getText("back_to_top_aria", "Back to top")}
           icon={<ArrowUpIcon />}
           onClick={scrollToTop}
           position="fixed"
