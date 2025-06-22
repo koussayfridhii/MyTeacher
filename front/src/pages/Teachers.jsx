@@ -60,6 +60,11 @@ const Teachers = () => {
       firstName: "First Name",
       lastName: "Last Name",
       mobile: "Mobile Number",
+      maxWeeklyHours: "Max Weekly Hours", // Added for English
+      editTeacher: "Edit Teacher",       // Added for English
+      save: "Save",                     // Added for English
+      editBtn: "Edit",                  // Added for English
+      cancel: "Cancel",                 // Added for English
     },
     fr: {
       title: "Gérer les enseignants",
