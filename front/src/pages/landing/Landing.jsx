@@ -842,39 +842,43 @@ const LandingPage = () => {
           <HStack spacing={5}>
             <IconButton
               as="a"
-              href="#"
+              href={getText("footer_social_twitter_url", "#")}
               aria-label={getText("footer_social_twitter_aria", "Follow us on Twitter")}
               icon={<FaXTwitter />}
               isRound
               variant="ghost"
               colorScheme="blue"
+              target="_blank" rel="noopener noreferrer"
             />
             <IconButton
               as="a"
-              href="#"
+              href={getText("footer_social_facebook_url", "#")}
               aria-label={getText("footer_social_facebook_aria", "Follow us on Facebook")}
               icon={<FaFacebook />}
               isRound
               variant="ghost"
               colorScheme="facebook"
+              target="_blank" rel="noopener noreferrer"
             />
             <IconButton
               as="a"
-              href="#"
+              href={getText("footer_social_linkedin_url", "#")}
               aria-label={getText("footer_social_linkedin_aria", "Follow us on LinkedIn")}
               icon={<FaLinkedinIn />}
               isRound
               variant="ghost"
               colorScheme="linkedin"
+              target="_blank" rel="noopener noreferrer"
             />
             <IconButton
               as="a"
-              href="#"
-              aria-label={getText("footer_social_github_aria", "Follow us on YouTube")} // Corrected based on icon
+              href={getText("footer_social_youtube_url", "#")}
+              aria-label={getText("footer_social_youtube_aria", "Follow us on YouTube")}
               icon={<FaYoutube />}
               isRound
               variant="ghost"
-              colorScheme="gray"
+              colorScheme="red" // Changed to red for YouTube
+              target="_blank" rel="noopener noreferrer"
             />
           </HStack>
           <Text fontSize="sm" color={subtleTextColor}>

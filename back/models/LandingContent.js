@@ -126,10 +126,14 @@ const landingContentSchema = new mongoose.Schema(
     form_submit_button: localizedStringSchema,
 
     // Footer
+  footer_social_twitter_url: { type: String, trim: true, default: "#" },
     footer_social_twitter_aria: localizedStringSchema,
+  footer_social_facebook_url: { type: String, trim: true, default: "#" },
     footer_social_facebook_aria: localizedStringSchema,
+  footer_social_linkedin_url: { type: String, trim: true, default: "#" },
     footer_social_linkedin_aria: localizedStringSchema,
-    footer_social_github_aria: localizedStringSchema, // Assuming this was meant to be YouTube or a generic social link
+  footer_social_youtube_url: { type: String, trim: true, default: "#" }, // Changed from github to youtube for consistency
+  footer_social_youtube_aria: localizedStringSchema, // Renamed from _github_aria
     footer_copyright: localizedStringSchema,
     back_to_top_aria: localizedStringSchema,
 

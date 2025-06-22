@@ -150,10 +150,14 @@ const contentFields = {
   form_field_message_placeholder: { label: "Contact Form: Message Placeholder", type: "text" },
   form_submit_button: { label: "Contact Form: Submit Button Text", type: "text" },
 
+  footer_social_twitter_url: { label: "Footer: Twitter URL", type: "text" },
   footer_social_twitter_aria: { label: "Footer: Twitter Aria Label", type: "text" },
+  footer_social_facebook_url: { label: "Footer: Facebook URL", type: "text" },
   footer_social_facebook_aria: { label: "Footer: Facebook Aria Label", type: "text" },
+  footer_social_linkedin_url: { label: "Footer: LinkedIn URL", type: "text" },
   footer_social_linkedin_aria: { label: "Footer: LinkedIn Aria Label", type: "text" },
-  footer_social_github_aria: { label: "Footer: YouTube/Social Aria Label", type: "text" },
+  footer_social_youtube_url: { label: "Footer: YouTube URL", type: "text" },
+  footer_social_youtube_aria: { label: "Footer: YouTube Aria Label", type: "text" }, // Renamed from _github_aria
   footer_copyright: { label: "Footer: Copyright Text", type: "text" }, // Note: {year} will be dynamic in frontend
   back_to_top_aria: { label: "Back to Top Button Aria Label", type: "text" },
 };
@@ -491,7 +495,17 @@ const LandingContentManagementPage = () => {
     teachers: { title: "Teachers Section", fields: ["teachers_title", "teachers_section_description", "teacher1_avatar_url", "teacher1_avatar_alt", "teacher1_name", "teacher1_title", "teacher1_bio", "teacher2_avatar_url", "teacher2_avatar_alt", "teacher2_name", "teacher2_title", "teacher2_bio", "teacher3_avatar_url", "teacher3_avatar_alt", "teacher3_name", "teacher3_title", "teacher3_bio", "teacher4_avatar_url", "teacher4_avatar_alt", "teacher4_name", "teacher4_title", "teacher4_bio"] },
     testimonials: { title: "Testimonials Section", fields: ["testimonials_title", "testimonial1_quote", "testimonial1_avatar_url", "testimonial1_avatar_alt", "testimonial1_name", "testimonial1_role", "testimonial2_quote", "testimonial2_avatar_url", "testimonial2_avatar_alt", "testimonial2_name", "testimonial2_role", "testimonial3_quote", "testimonial3_avatar_url", "testimonial3_avatar_alt", "testimonial3_name", "testimonial3_role", "prev_testimonial_aria", "next_testimonial_aria"] },
     contact: { title: "Contact Section", fields: ["contact_title", "form_field_name", "form_field_name_placeholder", "form_field_email", "form_field_email_placeholder", "form_field_message", "form_field_message_placeholder", "form_submit_button"] },
-    footer: { title: "Footer Section", fields: ["footer_social_twitter_aria", "footer_social_facebook_aria", "footer_social_linkedin_aria", "footer_social_github_aria", "footer_copyright", "back_to_top_aria"] },
+    footer: {
+      title: "Footer Section",
+      fields: [
+        "footer_social_twitter_url", "footer_social_twitter_aria",
+        "footer_social_facebook_url", "footer_social_facebook_aria",
+        "footer_social_linkedin_url", "footer_social_linkedin_aria",
+        "footer_social_youtube_url", "footer_social_youtube_aria", // Renamed from _github_aria
+        "footer_copyright",
+        "back_to_top_aria"
+      ]
+    },
   };
 
 
