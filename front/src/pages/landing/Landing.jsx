@@ -401,7 +401,7 @@ const Navbar = ({
       align="center"
       justify="space-between"
       wrap="wrap"
-      paddingY="1.5rem"
+      paddingY={1}
       paddingX={{ base: "1.5rem", md: "3rem" }}
       bg={navBgColor}
       color={navTextColor}
@@ -411,8 +411,8 @@ const Navbar = ({
         <ChakraImage
           src={logoImageUrl}
           alt={logoAltText}
-          w="180px"
-          h="50px"
+          w="200px"
+          h="80px"
           objectFit="cover"
           fallbackSrc="https://via.placeholder.com/150x50?text=Logo"
         />
@@ -719,7 +719,12 @@ const LandingPage = () => {
       imageUrl: getText("objective5_image_url"),
       imageAlt: getText("objective5_image_alt", "Objective 5 Image"),
     },
-  ].filter(item => item.title && item.title !== `Objective ${item.id} default text.` && item.title.trim() !== "");
+  ].filter(
+    (item) =>
+      item.title &&
+      item.title !== `Objective ${item.id} default text.` &&
+      item.title.trim() !== ""
+  );
 
   if (isLoadingContent) {
     return (
@@ -980,7 +985,10 @@ const LandingPage = () => {
           />
         ) : (
           <Text textAlign="center" py={10}>
-            {getText("no_objectives_available", "Objectives will be listed here soon.")}
+            {getText(
+              "no_objectives_available",
+              "Objectives will be listed here soon."
+            )}
           </Text>
         )}
       </Box>
