@@ -117,26 +117,24 @@ const userSchema = new mongoose.Schema(
     max_hours_per_week: {
       type: Number,
       validate: {
-        validator: function (val) {
-          // Allow null or undefined
-          if (val === null || typeof val === 'undefined') return true;
-          // Only validate if role is teacher
-          if (this.role === "teacher") {
-            return val >= 0; // Max hours should not be negative
+        validator: function(val) {
+          // `this` here refers to the document being validated/updated.
+          // Allow null or undefined, as the field is optional.
+          if (val === null || typeof val === 'undefined') {
+            return true;
           }
-          // If not a teacher, this field should not be set
-          return val === null || typeof val === 'undefined';
+          // If a value is provided, it must be a non-negative number.
+          if (typeof val !== 'number' || val < 0) {
+            return false;
+          }
+          // If a value is provided (and it's a valid number by now) AND the role is not 'teacher', it's invalid.
+          if (this.role !== 'teacher') {
+            return false; // Only teachers can have this field set with a numeric value.
+          }
+          return true; // Teacher with a valid non-negative number.
         },
-        message: function(props) { // Changed to a regular function
-          // `this` now correctly refers to the document being validated.
-          if (this.role !== "teacher" && props.value !== null && typeof props.value !== 'undefined') {
-            return 'max_hours_per_week can only be set for users with role "teacher".';
-          }
-          if (props.value !== null && typeof props.value !== 'undefined' && props.value < 0) { // Also check if props.value is not null/undefined before comparing
-            return 'max_hours_per_week cannot be negative.';
-          }
-          return 'Invalid value for max_hours_per_week.';
-        }
+        // Generic message. The validator function enforces the actual rules.
+        message: props => `Invalid value for max_hours_per_week: '${props.value}'. This field is optional, can only be set for teachers, and must be a non-negative number.`
       },
       default: null, // Default to null, meaning no limit
     },
