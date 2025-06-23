@@ -19,8 +19,9 @@ import {
 } from "@chakra-ui/react";
 import apiClient from "../../hooks/apiClient";
 import { format } from 'date-fns';
+import { withAuthorization } from "../../HOC/Protect"; // Import the HOC
 
-const DashboardMessages = () => {
+const DashboardMessagesComponent = () => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -112,5 +113,8 @@ const DashboardMessages = () => {
     </Box>
   );
 };
+
+// Wrap the component with the HOC for authorization
+const DashboardMessages = withAuthorization(DashboardMessagesComponent, ['admin', 'coordinator']);
 
 export default DashboardMessages;
