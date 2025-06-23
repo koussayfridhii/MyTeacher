@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import StreamClientProvider from "./providers/StreamClientProvider.jsx";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
+import ErrorBoundary from "./components/ErrorBoundary.jsx"; // Import ErrorBoundary
 
 const SignUp = lazy(() => import("./pages/auth/SignUp.jsx"));
 const SignIn = lazy(() => import("./pages/auth/SignIn.jsx"));
@@ -43,7 +44,9 @@ const CommentsPage = lazy(() => import("./pages/CommentsPage.jsx"));
 const LandingContentManagementPage = lazy(() =>
   import("./pages/admin/LandingContentManagementPage.jsx")
 );
-const DashboardMessages = lazy(() => import("./pages/admin/DashboardMessages.jsx")); // Import DashboardMessages
+const DashboardMessages = lazy(() =>
+  import("./pages/admin/DashboardMessages.jsx")
+); // Import DashboardMessages
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
@@ -59,6 +62,8 @@ const PotentialClientCreateForm = lazy(() =>
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <Outlet />, // A parent element is needed for errorElement to work on child routes
+    errorElement: <ErrorBoundary />, // Catch errors for all child routes of "/"
     children: [
       { index: true, element: <Landing /> },
       { path: "signup", element: <SignUp /> },
@@ -69,6 +74,7 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <Layout />,
+        errorElement: <ErrorBoundary />, // Catch errors specifically for dashboard routes
         children: [
           {
             index: true,

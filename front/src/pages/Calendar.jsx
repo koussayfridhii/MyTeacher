@@ -47,7 +47,19 @@ const CalendarPage = () => {
   const client = useStreamVideoClient();
   const token = localStorage.getItem("token");
   const user = useSelector((state) => state.user.user);
-  const isAdminOrCoord = user.role === "admin" || user.role === "coordinator";
+
+  // Early return or loading state if user is not yet populated
+  if (!user) {
+    return (
+      <Center h="100vh">
+        <Spinner size="xl" />
+      </Center>
+    );
+  }
+
+  const userRole = user?.role; // user is guaranteed to be non-null here, but role might still be missing if data is malformed
+  const userId = user?._id; // user is guaranteed to be non-null here
+  const isAdminOrCoord = userRole === "admin" || userRole === "coordinator";
   // fetch events data
   const { courses: upcomingCourses } = useFetchCourses("upcoming");
   const { courses: endedCourses } = useFetchCourses("ended");
@@ -65,12 +77,15 @@ const CalendarPage = () => {
   } = useDisclosure();
   const [newEvent, setNewEvent] = useState({ start: "", end: "" });
   const [availRole, setAvailRole] = useState("student");
-  const availOptions = users.filter((u) => u.role === availRole);
+  // Add null check for u before accessing u.role
+  const availOptions = users.filter((u) => u && u.role === availRole);
   const [selectedAvailUser, setSelectedAvailUser] = useState(
     availOptions[0]?._id || ""
   );
   useEffect(() => {
-    setSelectedAvailUser(availOptions[0]?._id || "");
+    // Add null check for u before accessing u.role
+    const currentAvailOptions = users.filter((u) => u && u.role === availRole);
+    setSelectedAvailUser(currentAvailOptions[0]?._id || "");
   }, [availRole, users]);
 
   // Meeting scheduling
@@ -86,7 +101,8 @@ const CalendarPage = () => {
   });
   const [teacherMaxHours, setTeacherMaxHours] = useState(null);
   const [teacherScheduledHoursWeek, setTeacherScheduledHoursWeek] = useState(0);
-  const [scheduleValidationLoading, setScheduleValidationLoading] = useState(false);
+  const [scheduleValidationLoading, setScheduleValidationLoading] =
+    useState(false);
   const [scheduleValidationError, setScheduleValidationError] = useState("");
 
   // delete availability
@@ -116,9 +132,9 @@ const CalendarPage = () => {
       toast({ title: "Failed to fetch plans", status: "error" });
     }
   };
-  const teachers = users.filter((u) => u.role === "teacher");
+  const teachers = users.filter((u) => u && u.role === "teacher");
   const studentOptions = users
-    .filter((u) => u.role === "student")
+    .filter((u) => u && u.role === "student")
     .map((s) => ({
       value: s._id,
       label: `${s.firstName} ${s.lastName}`,
@@ -150,17 +166,25 @@ const CalendarPage = () => {
       })
     );
     availabilities?.data?.forEach((a) => {
-      const own = a.user?._id === user._id;
-      const color = isAdminOrCoord
-        ? a.user.role === "student"
-          ? "#7AE2CF"
-          : "#ACC572"
-        : own
-        ? "#7AE2CF"
-        : "#7AE2CF";
-      const title = isAdminOrCoord
-        ? `${a.user.role}: ${a.user.firstName} ${a.user.lastName}`
-        : a.title || "Availability";
+      const eventUser = a?.user; // Safe access to the user object of the availability
+      const eventUserRole = eventUser?.role;
+      const own = eventUser?._id === userId;
+
+      let color = "#7AE2CF"; // Default color
+      let title = a?.title || "Availability"; // Default title
+
+      if (isAdminOrCoord && eventUser) {
+        color = eventUserRole === "student" ? "#7AE2CF" : "#ACC572";
+        title = `${eventUserRole || "User"}: ${eventUser.firstName || ""} ${
+          eventUser.lastName || ""
+        }`.trim();
+        if (title === "User:") title = "Availability by User"; // More specific default if names are missing
+      } else if (own) {
+        // User's own availability color is already default #7AE2CF
+        // title is already a.title or "Availability"
+      }
+      // For non-admin/coord and not own, it's also default color and title.
+
       evs.push({
         id: a._id,
         title,
@@ -171,7 +195,7 @@ const CalendarPage = () => {
       });
     });
     setEvents(evs);
-  }, [upcomingCourses, endedCourses, availabilities, user._id, isAdminOrCoord]); // Added dependencies
+  }, [upcomingCourses, endedCourses, availabilities, userId, isAdminOrCoord]); // Changed user._id to userId
 
   useEffect(() => {
     const validateTeacherSchedule = async () => {
@@ -185,8 +209,10 @@ const CalendarPage = () => {
       setScheduleValidationLoading(true);
       setScheduleValidationError("");
 
-      const selectedTeacher = users.find(u => u._id === meetingValues.teacherId);
-      if (!selectedTeacher || selectedTeacher.role !== 'teacher') {
+      const selectedTeacher = users.find(
+        (u) => u._id === meetingValues.teacherId
+      );
+      if (!selectedTeacher || selectedTeacher.role !== "teacher") {
         setScheduleValidationError("Selected user is not a valid teacher.");
         setScheduleValidationLoading(false);
         setTeacherMaxHours(null);
@@ -198,8 +224,8 @@ const CalendarPage = () => {
       setTeacherMaxHours(currentMaxHours);
 
       // Calculate hours for the week of meetingValues.dateTime
-      const weekStart = dayjs(meetingValues.dateTime).startOf('week');
-      const weekEnd = dayjs(meetingValues.dateTime).endOf('week');
+      const weekStart = dayjs(meetingValues.dateTime).startOf("week");
+      const weekEnd = dayjs(meetingValues.dateTime).endOf("week");
       let hoursThisWeek = 0;
 
       // Need to get all classes for this teacher to calculate hours accurately.
@@ -215,9 +241,10 @@ const CalendarPage = () => {
         (course) => course.teacher && course.teacher === selectedTeacher._id // Assuming course.teacher is an ID
       );
 
-      allTeacherCourses.forEach(course => {
+      allTeacherCourses.forEach((course) => {
         const courseDate = dayjs(course.date);
-        if (courseDate.isBetween(weekStart, weekEnd, null, '[]')) { // '[]' includes start and end
+        if (courseDate.isBetween(weekStart, weekEnd, null, "[]")) {
+          // '[]' includes start and end
           // Assuming each class is 2 hours long as per event creation logic
           hoursThisWeek += 2;
         }
@@ -231,7 +258,6 @@ const CalendarPage = () => {
       //   }
       //   return acc;
       // }, 0);
-
 
       setTeacherScheduledHoursWeek(hoursThisWeek);
 
@@ -247,8 +273,14 @@ const CalendarPage = () => {
     };
 
     validateTeacherSchedule();
-  }, [meetingValues.teacherId, meetingValues.dateTime, users, events, upcomingCourses, endedCourses]);
-
+  }, [
+    meetingValues.teacherId,
+    meetingValues.dateTime,
+    users,
+    events,
+    upcomingCourses,
+    endedCourses,
+  ]);
 
   // on calendar select
   const handleSelect = (info) => {
@@ -280,8 +312,16 @@ const CalendarPage = () => {
     const payload = {
       start: newEvent.start,
       end: newEvent.end,
-      user: isAdminOrCoord ? selectedAvailUser : user._id,
+      user: isAdminOrCoord ? selectedAvailUser : userId, // Changed user._id to userId
     };
+    if (!payload.user && !isAdminOrCoord) {
+      // Ensure userId is available for non-admins
+      toast({
+        title: "User not identified. Cannot create availability.",
+        status: "error",
+      });
+      return;
+    }
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/availability`,
@@ -309,10 +349,11 @@ const CalendarPage = () => {
     }
   };
   useEffect(() => {
-    if (["admin", "coordinator"].includes(user.role)) {
+    if (userRole && ["admin", "coordinator"].includes(userRole)) {
+      // user.role to userRole
       fetchPlans();
     }
-  }, []);
+  }, [userRole]); // Added userRole to dependency array
   // create meeting
   const createMeeting = async () => {
     if (
@@ -325,12 +366,22 @@ const CalendarPage = () => {
     }
 
     if (scheduleValidationError) {
-      toast({ title: "Validation Error", description: scheduleValidationError, status: "error", duration: 5000, isClosable: true });
+      toast({
+        title: "Validation Error",
+        description: scheduleValidationError,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
       return;
     }
 
     if (scheduleValidationLoading) {
-      toast({ title: "Still validating schedule...", status: "info", duration: 3000 });
+      toast({
+        title: "Still validating schedule...",
+        status: "info",
+        duration: 3000,
+      });
       return;
     }
     if (!client || !token) {
@@ -384,7 +435,8 @@ const CalendarPage = () => {
     const bgColor = info.event.backgroundColor;
     const isClass = ["#CF0F47", "#FFD63A"].includes(bgColor);
     if (isClass) {
-      if (user.role === "admin") {
+      if (userRole === "admin") {
+        // user.role to userRole
         setDelEvent({
           id: info.event.id,
           title: info.event.title,
@@ -393,7 +445,8 @@ const CalendarPage = () => {
           end: info.event.end,
         });
         openDel();
-      } else if (user.role === "coordinator") {
+      } else if (userRole === "coordinator") {
+        // user.role to userRole
         const eventEnd = info.event.end ? new Date(info.event.end) : null;
         const endPlus24h = dayjs(eventEnd).add(24, "hour");
         const now = dayjs();
@@ -424,9 +477,9 @@ const CalendarPage = () => {
     } else {
       // Existing availability event logic
       if (
-        (user.role === "coordinator" ||
-          user.role === "student" ||
-          user.role === "teacher") &&
+        (userRole === "coordinator" || // Changed user.role to userRole
+          userRole === "student" || // Changed user.role to userRole
+          userRole === "teacher") && // Changed user.role to userRole
         info.event.title === "Availability"
       ) {
         setDelEvent({
@@ -436,7 +489,8 @@ const CalendarPage = () => {
           isClass: false,
         });
         openDel();
-      } else if (user.role === "admin") {
+      } else if (userRole === "admin") {
+        // Changed user.role to userRole
         setDelEvent({
           id: info.event.id,
           title: info.event.title,
@@ -444,7 +498,8 @@ const CalendarPage = () => {
           isClass: false,
         });
         openDel();
-      } else if (user.role === "coordinator") {
+      } else if (userRole === "coordinator") {
+        // Changed user.role to userRole
         const endPlusDay = dayjs(info.event.end).add(24, "hour");
         const now = dayjs();
         if (now.isAfter(endPlusDay)) {
@@ -556,33 +611,34 @@ const CalendarPage = () => {
           <ModalHeader>Create Availability</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {["admin", "coordinator"].includes(user.role) && (
-              <>
-                <FormControl mb={3}>
-                  <FormLabel>For</FormLabel>
-                  <Select
-                    value={availRole}
-                    onChange={(e) => setAvailRole(e.target.value)}
-                  >
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                  </Select>
-                </FormControl>
-                <FormControl mb={3}>
-                  <FormLabel>Select {availRole}</FormLabel>
-                  <Select
-                    value={selectedAvailUser}
-                    onChange={(e) => setSelectedAvailUser(e.target.value)}
-                  >
-                    {availOptions.map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.firstName} {u.lastName}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-              </>
-            )}
+            {userRole &&
+              ["admin", "coordinator"].includes(userRole) && ( // Added null check for userRole
+                <>
+                  <FormControl mb={3}>
+                    <FormLabel>For</FormLabel>
+                    <Select
+                      value={availRole}
+                      onChange={(e) => setAvailRole(e.target.value)}
+                    >
+                      <option value="student">Student</option>
+                      <option value="teacher">Teacher</option>
+                    </Select>
+                  </FormControl>
+                  <FormControl mb={3}>
+                    <FormLabel>Select {availRole}</FormLabel>
+                    <Select
+                      value={selectedAvailUser}
+                      onChange={(e) => setSelectedAvailUser(e.target.value)}
+                    >
+                      {availOptions.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.firstName} {u.lastName}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
+              )}
             <FormControl mb={3}>
               <FormLabel>Start</FormLabel>
               <Input
@@ -638,7 +694,8 @@ const CalendarPage = () => {
               Cancel
             </Button>
             {delEvent?.isClass &&
-            (user.role === "admin" || user.role === "coordinator") ? (
+            userRole && // Added null check for userRole
+            (userRole === "admin" || userRole === "coordinator") ? (
               <>
                 <Button colorScheme="yellow" onClick={confirmDisapprove} ml={3}>
                   Dis/Approve
@@ -683,7 +740,9 @@ const CalendarPage = () => {
             {scheduleValidationLoading && (
               <Center my={2}>
                 <Spinner size="sm" />
-                <Text ml={2} fontSize="sm">Validating teacher schedule...</Text>
+                <Text ml={2} fontSize="sm">
+                  Validating teacher schedule...
+                </Text>
               </Center>
             )}
             {scheduleValidationError && (
@@ -691,11 +750,15 @@ const CalendarPage = () => {
                 {scheduleValidationError}
               </Text>
             )}
-             {teacherMaxHours !== null && teacherMaxHours !== undefined && !scheduleValidationError && meetingValues.teacherId && (
-              <Text color="green.500" my={2} fontSize="sm">
-                Teacher's max weekly hours: {teacherMaxHours}h. Currently scheduled this week: {teacherScheduledHoursWeek}h.
-              </Text>
-            )}
+            {teacherMaxHours !== null &&
+              teacherMaxHours !== undefined &&
+              !scheduleValidationError &&
+              meetingValues.teacherId && (
+                <Text color="green.500" my={2} fontSize="sm">
+                  Teacher's max weekly hours: {teacherMaxHours}h. Currently
+                  scheduled this week: {teacherScheduledHoursWeek}h.
+                </Text>
+              )}
             <Box mb={4}>
               <Input
                 placeholder="Topic"
@@ -771,4 +834,9 @@ const CalendarPage = () => {
   );
 };
 
-export default withAuthorization(CalendarPage, ["admin", "teacher", "coordinator", "student"]);
+export default withAuthorization(CalendarPage, [
+  "admin",
+  "teacher",
+  "coordinator",
+  "student",
+]);
