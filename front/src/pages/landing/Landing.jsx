@@ -467,9 +467,12 @@ const LandingPage = () => {
     const errors = {};
     if (!contactForm.name.trim()) errors.name = "Name is required.";
     if (!contactForm.email.trim()) errors.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(contactForm.email)) errors.email = "Email is invalid.";
+    else if (!/\S+@\S+\.\S+/.test(contactForm.email))
+      errors.email = "Email is invalid.";
     if (!contactForm.phone.trim()) errors.phone = "Phone number is required.";
-    else if (!/^\+?[0-9\s-()]{7,15}$/.test(contactForm.phone)) errors.phone = "Phone number is invalid (7-15 digits, can include +, (), -, space).";
+    else if (!/^\+?[0-9\s-()]{7,15}$/.test(contactForm.phone))
+      errors.phone =
+        "Phone number is invalid (7-15 digits, can include +, (), -, space).";
     if (!contactForm.message.trim()) errors.message = "Message is required.";
 
     setFormErrors(errors);
@@ -499,7 +502,8 @@ const LandingPage = () => {
       );
       toast({
         title: "Success!",
-        description: response.data.message || "Your message has been sent successfully!",
+        description:
+          response.data.message || "Your message has been sent successfully!",
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -507,7 +511,8 @@ const LandingPage = () => {
       setContactForm({ name: "", email: "", phone: "", message: "" });
       setFormErrors({});
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "An error occurred. Please try again.";
+      const errorMsg =
+        err.response?.data?.message || "An error occurred. Please try again.";
       toast({
         title: "Submission Failed",
         description: errorMsg,
@@ -871,6 +876,7 @@ const LandingPage = () => {
         backgroundSize="cover"
         backgroundPosition="center"
         backgroundRepeat="no-repeat"
+        backgroundAttachment="fixed"
       >
         <Box
           position="absolute"
@@ -914,6 +920,12 @@ const LandingPage = () => {
         py={20}
         px={{ base: 4, md: 8 }}
         textAlign="center"
+        bg="rgba(255, 255, 255, 0.1)" // Glass effect
+        backdropFilter="blur(10px)" // Glass effect
+        boxShadow="0 4px 30px rgba(0, 0, 0, 0.1)" // Glass effect
+        borderRadius="lg" // Glass effect
+        border="1px solid rgba(255, 255, 255, 0.3)" // Glass effect
+        m={{ base: 4, md: 8 }} // Added margin to prevent touching screen edges
       >
         <Heading as="h2" size="xl" mb={10}>
           {getText("features_title", "Our Amazing Features")}
@@ -1253,7 +1265,17 @@ const LandingPage = () => {
           </MotionBox>
         )}
       </Box>
-      <Box id="contact-section" py={20} px={{ base: 4, md: 8 }}>
+      <Box
+        id="contact-section"
+        py={20}
+        px={{ base: 4, md: 8 }}
+        bg="rgba(255, 255, 255, 0.1)" // Glass effect
+        backdropFilter="blur(10px)" // Glass effect
+        boxShadow="0 4px 30px rgba(0, 0, 0, 0.1)" // Glass effect
+        borderRadius="lg" // Glass effect
+        border="1px solid rgba(255, 255, 255, 0.3)" // Glass effect
+        m={{ base: 4, md: 8 }} // Added margin to prevent touching screen edges
+      >
         <Heading
           as="h2"
           size="2xl"
@@ -1266,66 +1288,105 @@ const LandingPage = () => {
         <MotionBox
           maxW="lg"
           mx="auto"
-          bg={cardBg}
-          p={8}
-          borderRadius="xl"
-          boxShadow="xl"
+          bg="rgba(49, 151, 149, 0.75)" // User specified background
+          borderRadius="16px" // User specified border radius
+          boxShadow="0 4px 30px rgba(0, 0, 0, 0.1)" // User specified box shadow
+          backdropFilter="blur(16.5px)" // User specified backdrop filter
+          border="1px solid rgba(49, 151, 149, 0.52)" // User specified border
+          p={8} // Padding already exists
           variants={fadeInUpVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <VStack spacing={4} as="form" onSubmit={handleSubmitContactForm} noValidate>
-            <FormControl id="contact-name" isRequired isInvalid={!!formErrors.name}>
+          <VStack
+            spacing={4}
+            as="form"
+            onSubmit={handleSubmitContactForm}
+            noValidate
+          >
+            <FormControl
+              id="contact-name"
+              isRequired
+              isInvalid={!!formErrors.name}
+            >
               <FormLabel>{getText("form_field_name", "Your Name")}</FormLabel>
               <Input
                 type="text"
                 name="name"
                 value={contactForm.name}
                 onChange={handleInputChange}
-                placeholder={getText("form_field_name_placeholder", "Enter your name")}
+                placeholder={getText(
+                  "form_field_name_placeholder",
+                  "Enter your name"
+                )}
               />
               <FormErrorMessage>{formErrors.name}</FormErrorMessage>
             </FormControl>
 
-            <FormControl id="contact-email" isRequired isInvalid={!!formErrors.email}>
+            <FormControl
+              id="contact-email"
+              isRequired
+              isInvalid={!!formErrors.email}
+            >
               <FormLabel>{getText("form_field_email", "Your Email")}</FormLabel>
               <Input
                 type="email"
                 name="email"
                 value={contactForm.email}
                 onChange={handleInputChange}
-                placeholder={getText("form_field_email_placeholder", "Enter your email address")}
+                placeholder={getText(
+                  "form_field_email_placeholder",
+                  "Enter your email address"
+                )}
               />
               <FormErrorMessage>{formErrors.email}</FormErrorMessage>
             </FormControl>
 
-            <FormControl id="contact-phone" isRequired isInvalid={!!formErrors.phone}>
+            <FormControl
+              id="contact-phone"
+              isRequired
+              isInvalid={!!formErrors.phone}
+            >
               <FormLabel>{getText("form_field_phone", "Your Phone")}</FormLabel>
               <Input
                 type="tel"
                 name="phone"
                 value={contactForm.phone}
                 onChange={handleInputChange}
-                placeholder={getText("form_field_phone_placeholder", "Enter your phone number")}
+                placeholder={getText(
+                  "form_field_phone_placeholder",
+                  "Enter your phone number"
+                )}
               />
               <FormErrorMessage>{formErrors.phone}</FormErrorMessage>
             </FormControl>
 
-            <FormControl id="contact-message" isRequired isInvalid={!!formErrors.message}>
-              <FormLabel>{getText("form_field_message", "Your Message")}</FormLabel>
+            <FormControl
+              id="contact-message"
+              isRequired
+              isInvalid={!!formErrors.message}
+            >
+              <FormLabel>
+                {getText("form_field_message", "Your Message")}
+              </FormLabel>
               <Textarea
                 name="message"
                 value={contactForm.message}
                 onChange={handleInputChange}
-                placeholder={getText("form_field_message_placeholder", "Type your message here...")}
+                placeholder={getText(
+                  "form_field_message_placeholder",
+                  "Type your message here..."
+                )}
                 rows={6}
               />
               <FormErrorMessage>{formErrors.message}</FormErrorMessage>
             </FormControl>
 
             {formErrors.general && (
-              <Text color="red.500" textAlign="center" width="full">{formErrors.general}</Text>
+              <Text color="red.500" textAlign="center" width="full">
+                {formErrors.general}
+              </Text>
             )}
 
             <Button
@@ -1335,9 +1396,13 @@ const LandingPage = () => {
               width="full"
               mt={4}
               isLoading={isSubmitting}
-              leftIcon={isSubmitting ? <LuLoader2 className="animate-spin" /> : null}
+              leftIcon={
+                isSubmitting ? <LuLoader2 className="animate-spin" /> : null
+              }
             >
-              {isSubmitting ? getText("form_submitting_button", "Sending...") : getText("form_submit_button", "Send Message")}
+              {isSubmitting
+                ? getText("form_submitting_button", "Sending...")
+                : getText("form_submit_button", "Send Message")}
             </Button>
           </VStack>
         </MotionBox>
