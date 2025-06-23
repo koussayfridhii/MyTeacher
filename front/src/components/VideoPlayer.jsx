@@ -6,7 +6,6 @@ import { useLocation } from "react-router-dom";
 const VideoPlayer = () => {
   const location = useLocation();
   const { link } = location.state || {};
-  console.log(link);
   return (
     <Center w="full" h="100vh">
       <ReactPlayer url={link} playing={true} controls />

@@ -182,8 +182,12 @@ const Students = () => {
             bValue = b.isApproved ? "Approved" : "Not Approved";
             break;
           case "coordinator":
-            aValue = a.coordinator ? `${a.coordinator.firstName} ${a.coordinator.lastName}` : "";
-            bValue = b.coordinator ? `${b.coordinator.firstName} ${b.coordinator.lastName}` : "";
+            aValue = a.coordinator
+              ? `${a.coordinator.firstName} ${a.coordinator.lastName}`
+              : "";
+            bValue = b.coordinator
+              ? `${b.coordinator.firstName} ${b.coordinator.lastName}`
+              : "";
             break;
           default:
             aValue = a[sortColumn];
@@ -193,7 +197,7 @@ const Students = () => {
         if (aValue === null || aValue === undefined) aValue = "";
         if (bValue === null || bValue === undefined) bValue = "";
 
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
+        if (typeof aValue === "string" && typeof bValue === "string") {
           return sortDirection === "asc"
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
@@ -236,7 +240,11 @@ const Students = () => {
 
   const renderSortIcon = (column) => {
     if (sortColumn === column) {
-      return sortDirection === "asc" ? <Icon as={FaSortUp} /> : <Icon as={FaSortDown} />;
+      return sortDirection === "asc" ? (
+        <Icon as={FaSortUp} />
+      ) : (
+        <Icon as={FaSortDown} />
+      );
     }
     return <Icon as={FaSort} color="gray.400" />;
   };
@@ -244,7 +252,6 @@ const Students = () => {
   const handleApprove = (id, approve, coordinatorId = null) => {
     const payload = { id, approve };
     if (coordinatorId) payload.coordinatorId = coordinatorId;
-    console.log(payload);
 
     approveMutation.mutate(payload, {
       onSuccess: () => {
@@ -333,14 +340,26 @@ const Students = () => {
         <Thead>
           <Tr>
             <Th>#</Th>
-            <Th onClick={() => handleSort("name")} cursor="pointer">{labels.name} {renderSortIcon("name")}</Th>
-            <Th onClick={() => handleSort("mobileNumber")} cursor="pointer">{labels.mobile} {renderSortIcon("mobileNumber")}</Th>
-            <Th onClick={() => handleSort("balance")} cursor="pointer">{labels.balance} {renderSortIcon("balance")}</Th>
-            <Th onClick={() => handleSort("minimum")} cursor="pointer">{labels.minimum} {renderSortIcon("minimum")}</Th>
-            <Th onClick={() => handleSort("status")} cursor="pointer">{labels.status} {renderSortIcon("status")}</Th>
+            <Th onClick={() => handleSort("name")} cursor="pointer">
+              {labels.name} {renderSortIcon("name")}
+            </Th>
+            <Th onClick={() => handleSort("mobileNumber")} cursor="pointer">
+              {labels.mobile} {renderSortIcon("mobileNumber")}
+            </Th>
+            <Th onClick={() => handleSort("balance")} cursor="pointer">
+              {labels.balance} {renderSortIcon("balance")}
+            </Th>
+            <Th onClick={() => handleSort("minimum")} cursor="pointer">
+              {labels.minimum} {renderSortIcon("minimum")}
+            </Th>
+            <Th onClick={() => handleSort("status")} cursor="pointer">
+              {labels.status} {renderSortIcon("status")}
+            </Th>
             {user.role === "admin" && !isMyStudentsRoute && <Th>Actions</Th>}
             {(user.role === "admin" || !isMyStudentsRoute) && (
-              <Th onClick={() => handleSort("coordinator")} cursor="pointer">Coordinator {renderSortIcon("coordinator")}</Th>
+              <Th onClick={() => handleSort("coordinator")} cursor="pointer">
+                Coordinator {renderSortIcon("coordinator")}
+              </Th>
             )}
           </Tr>
         </Thead>

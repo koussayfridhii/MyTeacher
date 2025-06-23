@@ -21,7 +21,8 @@ const sendVerificationEmail = async (user, res, verify = false) => {
         <h1 style="color:#004080;margin-bottom:20px;">Welcome to My Teacher!</h1>
         <p>Thanks for signing up. Please verify your email address by clicking the button below.</p>
         <p style="text-align:center;margin:30px 0;"><a href="${url}" style="background-color:#004080;color:#fff;padding:12px 24px;border-radius:4px;display:inline-block;">Verify My Email</a></p>
-        <p>If the button doesn’t work, copy & paste: <a href="${url}" style="color:#004080;">${url}</a></p>
+        <p>If the button doesn’t work, copy & paste: </p>
+        <a href="${url}" style="color:#004080;">${url}</a>
         <hr style="border:none;border-top:1px solid #eee;margin:40px 0;" />
         <p style="font-size:12px;color:#999;">© ${new Date().getFullYear()} My Teacher. All rights reserved.</p>
       </div>

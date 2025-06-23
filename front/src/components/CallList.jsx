@@ -180,7 +180,6 @@ const CallList = ({ type }) => {
         <List spacing={4}>
           {paged.map((meeting) => {
             const dateStr = dayjs(meeting.date).format("YYYY-MM-DD HH:mm");
-            console.log(meeting);
             return (
               <ListItem key={meeting._id}>
                 <Flex

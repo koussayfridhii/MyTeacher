@@ -51,10 +51,14 @@ export const createClass = async (req, res, next) => {
       return res.status(400).json({ error: "Assigned user is not a teacher." });
     }
 
-    if (teacherDoc.max_hours_per_week !== null && teacherDoc.max_hours_per_week !== undefined && teacherDoc.max_hours_per_week >= 0) {
+    if (
+      teacherDoc.max_hours_per_week !== null &&
+      teacherDoc.max_hours_per_week !== undefined &&
+      teacherDoc.max_hours_per_week >= 0
+    ) {
       const classDate = dayjs(startsAt);
-      const weekStart = classDate.startOf('week');
-      const weekEnd = classDate.endOf('week');
+      const weekStart = classDate.startOf("week");
+      const weekEnd = classDate.endOf("week");
 
       const existingClassesThisWeek = await Class.find({
         teacher: teacherDoc._id,
@@ -70,7 +74,10 @@ export const createClass = async (req, res, next) => {
         currentWeeklyHours += DEFAULT_CLASS_DURATION_HOURS;
       });
 
-      if (currentWeeklyHours + DEFAULT_CLASS_DURATION_HOURS > teacherDoc.max_hours_per_week) {
+      if (
+        currentWeeklyHours + DEFAULT_CLASS_DURATION_HOURS >
+        teacherDoc.max_hours_per_week
+      ) {
         return res.status(400).json({
           error: `Cannot schedule class. Teacher's maximum weekly hours (${teacherDoc.max_hours_per_week}h) would be exceeded. Currently scheduled: ${currentWeeklyHours}h.`,
         });
@@ -149,7 +156,6 @@ export const deleteClass = async (req, res, next) => {
     if (!["admin", "coordinator"].includes(role)) {
       return res.status(403).json({ message: "Access denied for this role." });
     }
-    console.log(classId);
     // 2) Fetch the class.
     const classObj = await Class.findById(classId);
     if (!classObj) {

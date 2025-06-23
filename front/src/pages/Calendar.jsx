@@ -385,7 +385,11 @@ const CalendarPage = () => {
       return;
     }
     if (!client || !token) {
-      console.log("no client or token");
+      toast({
+        title: "no client or token",
+        status: "error",
+        duration: 3000,
+      });
       return;
     }
     try {

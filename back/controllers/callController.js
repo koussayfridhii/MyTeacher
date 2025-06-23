@@ -42,7 +42,6 @@ export const getCallById = async (req, res, next) => {
 export const scheduleCall = async (req, res) => {
   try {
     const { title, start, duration } = req.body;
-    console.log(req);
     await streamClient.createCall({
       title,
       scheduled_start_time: new Date(start),
@@ -58,7 +57,6 @@ export const scheduleCall = async (req, res) => {
 
 // List calls (filter past/upcoming)
 export const listCalls = async (req, res) => {
-  console.log(req);
   try {
     const { filter } = req.query;
     const calls = await streamServer.listCalls({ filter });
