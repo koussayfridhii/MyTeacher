@@ -17,7 +17,9 @@ import {
   Center,
   Spinner,
   Select,
+  Icon,
 } from "@chakra-ui/react";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { withAuthorization } from "../HOC/Protect";
@@ -39,6 +41,8 @@ const Students = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
 
   // modal controls
   const studentModal = useDisclosure();
@@ -140,22 +144,84 @@ const Students = () => {
     return allStudents;
   }, [allStudents, isMyStudentsRoute, user]);
 
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedStudents = useMemo(() => {
+    let sorted = [...students];
+    if (sortColumn) {
+      sorted.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (sortColumn) {
+          case "name":
+            aValue = `${a.firstName} ${a.lastName}`;
+            bValue = `${b.firstName} ${b.lastName}`;
+            break;
+          case "balance":
+            aValue = a.wallet?.balance ?? 0;
+            bValue = b.wallet?.balance ?? 0;
+            break;
+          case "minimum":
+            aValue = a.wallet?.minimum ?? 0;
+            bValue = b.wallet?.minimum ?? 0;
+            break;
+          case "status":
+            aValue = a.isApproved ? "Approved" : "Not Approved";
+            bValue = b.isApproved ? "Approved" : "Not Approved";
+            break;
+          case "coordinator":
+            aValue = a.coordinator ? `${a.coordinator.firstName} ${a.coordinator.lastName}` : "";
+            bValue = b.coordinator ? `${b.coordinator.firstName} ${b.coordinator.lastName}` : "";
+            break;
+          default:
+            aValue = a[sortColumn];
+            bValue = b[sortColumn];
+        }
+
+        if (aValue === null || aValue === undefined) aValue = "";
+        if (bValue === null || bValue === undefined) bValue = "";
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        } else {
+          return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+        }
+      });
+    }
+    return sorted;
+  }, [students, sortColumn, sortDirection]);
+
   // search + pagination
   const filtered = useMemo(
     () =>
-      students.filter((stu) =>
+      sortedStudents.filter((stu) =>
         `${stu?.firstName} ${stu?.lastName}`
           .toLowerCase()
           .includes(search.toLowerCase())
       ),
-    [students, search]
+    [sortedStudents, search]
   );
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = useMemo(
     () => filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage),
-    [filtered, page]
+    [filtered, page, itemsPerPage]
   );
 
+  const renderSortIcon = (column) => {
+    if (sortColumn === column) {
+      return sortDirection === "asc" ? <Icon as={FaSortUp} /> : <Icon as={FaSortDown} />;
+    }
+    return <Icon as={FaSort} color="gray.400" />;
+  };
   // approve handler with optional coordinator
   const handleApprove = (id, approve, coordinatorId = null) => {
     const payload = { id, approve };
@@ -249,14 +315,14 @@ const Students = () => {
         <Thead>
           <Tr>
             <Th>#</Th>
-            <Th>{labels.name}</Th>
-            <Th>{labels.mobile}</Th>
-            <Th>{labels.balance}</Th>
-            <Th>{labels.minimum}</Th>
-            <Th>{labels.status}</Th>
+            <Th onClick={() => handleSort("name")} cursor="pointer">{labels.name} {renderSortIcon("name")}</Th>
+            <Th onClick={() => handleSort("mobileNumber")} cursor="pointer">{labels.mobile} {renderSortIcon("mobileNumber")}</Th>
+            <Th onClick={() => handleSort("balance")} cursor="pointer">{labels.balance} {renderSortIcon("balance")}</Th>
+            <Th onClick={() => handleSort("minimum")} cursor="pointer">{labels.minimum} {renderSortIcon("minimum")}</Th>
+            <Th onClick={() => handleSort("status")} cursor="pointer">{labels.status} {renderSortIcon("status")}</Th>
             {user.role === "admin" && !isMyStudentsRoute && <Th>Actions</Th>}
             {(user.role === "admin" || !isMyStudentsRoute) && (
-              <Th>Coordinator</Th>
+              <Th onClick={() => handleSort("coordinator")} cursor="pointer">Coordinator {renderSortIcon("coordinator")}</Th>
             )}
           </Tr>
         </Thead>

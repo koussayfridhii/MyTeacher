@@ -16,7 +16,9 @@ import {
   useDisclosure,
   Center,
   Spinner,
+  Icon,
 } from "@chakra-ui/react";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { withAuthorization } from "../HOC/Protect";
 import CreateTeacherModal from "../components/CreateUserModal";
@@ -158,6 +160,8 @@ const Teachers = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
 
   const { data: users = [], isLoading } = useGetUsers();
   const approveMutation = useApproveUser();
@@ -167,11 +171,57 @@ const Teachers = () => {
     [users]
   );
 
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedTeachers = useMemo(() => {
+    let sorted = [...teachers];
+    if (sortColumn) {
+      sorted.sort((a, b) => {
+        let aValue = a[sortColumn];
+        let bValue = b[sortColumn];
+
+        if (sortColumn === "name") {
+          aValue = `${a.firstName} ${a.lastName}`;
+          bValue = `${b.firstName} ${b.lastName}`;
+        } else if (sortColumn === "balance") {
+          aValue = a.wallet?.balance ?? 0;
+          bValue = b.wallet?.balance ?? 0;
+        } else if (sortColumn === "programs") {
+          aValue = Array.isArray(a.programs) ? a.programs.join(", ") : a.programs || "";
+          bValue = Array.isArray(b.programs) ? b.programs.join(", ") : b.programs || "";
+        } else if (sortColumn === "status") {
+          aValue = a.isApproved ? "Approved" : "Not Approved";
+          bValue = b.isApproved ? "Approved" : "Not Approved";
+        }
+
+
+        if (aValue === null || aValue === undefined) aValue = "";
+        if (bValue === null || bValue === undefined) bValue = "";
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        } else {
+          return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+        }
+      });
+    }
+    return sorted;
+  }, [teachers, sortColumn, sortDirection]);
+
   // Enhanced filter to include name, mobile, subject or programs
   const filtered = useMemo(() => {
     const query = search.toLowerCase().trim();
-    if (!query) return teachers;
-    return teachers.filter((tchr) => {
+    if (!query) return sortedTeachers;
+    return sortedTeachers.filter((tchr) => {
       const name = `${tchr.firstName} ${tchr.lastName}`.toLowerCase();
       const mobile = (tchr.mobileNumber || "").toLowerCase();
       const subject = (tchr.subject || "").toLowerCase();
@@ -185,13 +235,20 @@ const Teachers = () => {
         programs.includes(query)
       );
     });
-  }, [teachers, search]);
+  }, [sortedTeachers, search]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = useMemo(
     () => filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage),
-    [filtered, page]
+    [filtered, page, itemsPerPage]
   );
+
+  const renderSortIcon = (column) => {
+    if (sortColumn === column) {
+      return sortDirection === "asc" ? <Icon as={FaSortUp} /> : <Icon as={FaSortDown} />;
+    }
+    return <Icon as={FaSort} color="gray.400" />;
+  };
 
   const handleApprove = (id, approve) => {
     approveMutation.mutate(
@@ -286,17 +343,17 @@ const Teachers = () => {
         <Thead>
           <Tr>
             <Th>#</Th>
-            <Th>
-              {language === "en" ? "Name" : language === "fr" ? "Nom" : "الاسم"}
+            <Th onClick={() => handleSort("name")} cursor="pointer">
+              {language === "en" ? "Name" : language === "fr" ? "Nom" : "الاسم"} {renderSortIcon("name")}
             </Th>
-            <Th>Mobile</Th>
+            <Th onClick={() => handleSort("mobileNumber")} cursor="pointer">Mobile {renderSortIcon("mobileNumber")}</Th>
 
-            {isMyTeachers && <Th>RIB</Th>}
-            {isMyTeachers && <Th>{labels.balance}</Th>}
-            <Th>{labels.subject}</Th>
-            <Th>{labels.program}</Th>
-            {isMyTeachers && <Th>{labels.maxWeeklyHours}</Th>}
-            <Th>{labels.status}</Th>
+            {isMyTeachers && <Th onClick={() => handleSort("rib")} cursor="pointer">RIB {renderSortIcon("rib")}</Th>}
+            {isMyTeachers && <Th onClick={() => handleSort("balance")} cursor="pointer">{labels.balance} {renderSortIcon("balance")}</Th>}
+            <Th onClick={() => handleSort("subject")} cursor="pointer">{labels.subject} {renderSortIcon("subject")}</Th>
+            <Th onClick={() => handleSort("programs")} cursor="pointer">{labels.program} {renderSortIcon("programs")}</Th>
+            {isMyTeachers && <Th onClick={() => handleSort("max_hours_per_week")} cursor="pointer">{labels.maxWeeklyHours} {renderSortIcon("max_hours_per_week")}</Th>}
+            <Th onClick={() => handleSort("status")} cursor="pointer">{labels.status} {renderSortIcon("status")}</Th>
             {isMyTeachers && (
               <Th>{language === "ar" ? "التفاعل" : "Actions"}</Th>
             )}

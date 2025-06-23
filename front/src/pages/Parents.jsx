@@ -23,7 +23,9 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  Icon,
 } from "@chakra-ui/react";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import { useGetParents, useDeleteParent } from "../hooks/useParents"; // Updated
@@ -43,6 +45,8 @@ const Parents = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10); // Or make this a state if user can change it
   const [selectedParent, setSelectedParent] = useState(null);
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
 
   const {
     isOpen: isCreateModalOpen,
@@ -96,13 +100,85 @@ const Parents = () => {
     );
   }, [allParentsData, searchTerm]);
 
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedParents = useMemo(() => {
+    let sorted = [...filteredParents];
+    if (sortColumn) {
+      sorted.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (sortColumn) {
+          case "fullName":
+            aValue = a.fullName || "";
+            bValue = b.fullName || "";
+            break;
+          case "email":
+            aValue = a.email || "";
+            bValue = b.email || "";
+            break;
+          case "mobileNumber":
+            aValue = a.mobileNumber || "";
+            bValue = b.mobileNumber || "";
+            break;
+          case "studentsCount":
+            aValue = a.students?.length || 0;
+            bValue = b.students?.length || 0;
+            break;
+          case "coordinator":
+            aValue = a.coordinator ? `${a.coordinator.firstName} ${a.coordinator.lastName}` : "";
+            bValue = b.coordinator ? `${b.coordinator.firstName} ${b.coordinator.lastName}` : "";
+            break;
+          case "isAssigned":
+            aValue = a.isAssigned ? "Assigned" : "Not Assigned";
+            bValue = b.isAssigned ? "Assigned" : "Not Assigned";
+            break;
+          case "totalStudentBalances":
+            aValue = a.totalStudentBalances || 0;
+            bValue = b.totalStudentBalances || 0;
+            break;
+          default:
+            aValue = a[sortColumn];
+            bValue = b[sortColumn];
+        }
+
+        if (aValue === null || aValue === undefined) aValue = "";
+        if (bValue === null || bValue === undefined) bValue = "";
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        } else {
+          return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+        }
+      });
+    }
+    return sorted;
+  }, [filteredParents, sortColumn, sortDirection]);
+
+
   // Client-side pagination
   const paginatedParents = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredParents.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredParents, currentPage, itemsPerPage]);
+    return sortedParents.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedParents, currentPage, itemsPerPage]);
 
-  const totalPages = Math.ceil(filteredParents.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedParents.length / itemsPerPage);
+
+  const renderSortIcon = (column) => {
+    if (sortColumn === column) {
+      return sortDirection === "asc" ? <Icon as={FaSortUp} /> : <Icon as={FaSortDown} />;
+    }
+    return <Icon as={FaSort} color="gray.400" />;
+  };
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -264,54 +340,54 @@ const Parents = () => {
           <Thead>
             <Tr>
               <Th>#</Th>
-              <Th>
+               <Th onClick={() => handleSort("fullName")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Nom Complet"
                   : currentLanguage === "ar"
                   ? "الاسم الكامل"
-                  : "Full Name"}
+                   : "Full Name"} {renderSortIcon("fullName")}
               </Th>
-              <Th>
+               <Th onClick={() => handleSort("email")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Email"
                   : currentLanguage === "ar"
                   ? "البريد الإلكتروني"
-                  : "Email"}
+                   : "Email"} {renderSortIcon("email")}
               </Th>
-              <Th>
+               <Th onClick={() => handleSort("mobileNumber")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Numéro de Mobile"
                   : currentLanguage === "ar"
                   ? "رقم الجوال"
-                  : "Mobile Number"}
+                   : "Mobile Number"} {renderSortIcon("mobileNumber")}
               </Th>
-              <Th>
+               <Th onClick={() => handleSort("studentsCount")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Nb. d'Étudiants"
                   : currentLanguage === "ar"
                   ? "عدد الطلاب"
-                  : "No. of Students"}
+                   : "No. of Students"} {renderSortIcon("studentsCount")}
               </Th>
-              <Th>
+               <Th onClick={() => handleSort("coordinator")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Coordinateur"
                   : currentLanguage === "ar"
                   ? "المنسق"
-                  : "Coordinator"}
+                   : "Coordinator"} {renderSortIcon("coordinator")}
               </Th>
-              <Th>
+               <Th onClick={() => handleSort("isAssigned")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Assigné"
                   : currentLanguage === "ar"
                   ? "مُعين"
-                  : "Assigned"}
+                   : "Assigned"} {renderSortIcon("isAssigned")}
               </Th>
-              <Th>
+               <Th onClick={() => handleSort("totalStudentBalances")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Soldes Totaux des Étudiants"
                   : currentLanguage === "ar"
                   ? "إجمالي أرصدة الطلاب"
-                  : "Total Student Balances"}
+                   : "Total Student Balances"} {renderSortIcon("totalStudentBalances")}
               </Th>
               <Th>
                 {currentLanguage === "fr"
