@@ -15,7 +15,7 @@ const sendVerificationEmail = async (user, res, verify = false) => {
   const emailHtml = `
     <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333;">
       <div style="text-align:center;padding:20px 0;background-color:#f5f5f5;">
-        <img src="${logoUrl}" alt="be first Learning Logo" style="max-height:60px;" />
+        <img src="${logoUrl}" alt="be first Learning Logo" style="max-height:80px;" />
       </div>
       <div style="padding:30px;">
         <h1 style="color:#004080;margin-bottom:20px;">Welcome to My Teacher!</h1>
@@ -704,12 +704,10 @@ export const updateUserByAdmin = async (req, res, next) => {
             isNaN(filteredUpdates.max_hours_per_week) ||
             filteredUpdates.max_hours_per_week < 0
           ) {
-            return res
-              .status(400)
-              .json({
-                error:
-                  "Invalid value for max_hours_per_week. Must be a non-negative number or null.",
-              });
+            return res.status(400).json({
+              error:
+                "Invalid value for max_hours_per_week. Must be a non-negative number or null.",
+            });
           }
         }
       } else {

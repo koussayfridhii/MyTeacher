@@ -16,7 +16,7 @@ const sendVerificationEmail = async (user, res, verify = false) => {
   const emailHtml = `
     <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333;">
       <div style="text-align:center;padding:20px 0;background-color:#f5f5f5;">
-        <img src="${logoUrl}" alt="befirstLearning Logo" style="max-height:60px;" />
+        <img src="${logoUrl}" alt="befirstLearning Logo" style="max-height:80px;" />
       </div>
       <div style="padding:30px;">
         <h1 style="color:#004080;margin-bottom:20px;">Welcome to Be first Learning!</h1>
