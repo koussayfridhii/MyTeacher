@@ -39,6 +39,7 @@ const Students = () => {
   const { data: users = [], isLoading } = useGetUsers();
   const approveMutation = useApproveUser();
   const [search, setSearch] = useState("");
+  const [coordinatorSearch, setCoordinatorSearch] = useState(""); // New state for coordinator search
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
   const [sortColumn, setSortColumn] = useState(null);
@@ -74,12 +75,14 @@ const Students = () => {
       password: "Password",
       firstName: "First Name",
       lastName: "Last Name",
+      searchCoordinator: "Search by Coordinator...",
     },
     fr: {
       title: isMyStudentsRoute ? "Mes étudiants" : "Gérer les étudiants",
       search: "Rechercher...",
       name: "Nom",
       mobile: "Numéro de mobile",
+      searchCoordinator: "Rechercher par Coordinateur...",
       balance: "Solde",
       minimum: "Minimum",
       approve: "Approuver",
@@ -100,6 +103,7 @@ const Students = () => {
       password: "Mot de passe",
       firstName: "Prénom",
       lastName: "Nom",
+      searchCoordinator: "Rechercher par Coordinateur...",
     },
     ar: {
       title: isMyStudentsRoute ? "طلابي" : "إدارة الطلاب",
@@ -107,6 +111,7 @@ const Students = () => {
       name: "الاسم",
       mobile: "رقم الجوال",
       balance: "الرصيد",
+      searchCoordinator: "البحث بالمنسق...",
       minimum: "الحد الأدنى",
       approve: "موافقة",
       disapprove: "رفض",
@@ -201,15 +206,32 @@ const Students = () => {
   }, [students, sortColumn, sortDirection]);
 
   // search + pagination
-  const filtered = useMemo(
-    () =>
-      sortedStudents.filter((stu) =>
+  const filtered = useMemo(() => {
+    let tempStudents = [...sortedStudents];
+
+    // Filter by student name
+    if (search) {
+      tempStudents = tempStudents.filter((stu) =>
         `${stu?.firstName} ${stu?.lastName}`
           .toLowerCase()
           .includes(search.toLowerCase())
-      ),
-    [sortedStudents, search]
-  );
+      );
+    }
+
+    // Filter by coordinator name
+    if (coordinatorSearch) {
+      tempStudents = tempStudents.filter((stu) =>
+        stu.coordinator
+          ? `${stu.coordinator.firstName} ${stu.coordinator.lastName}`
+              .toLowerCase()
+              .includes(coordinatorSearch.toLowerCase())
+          : false
+      );
+    }
+
+    return tempStudents;
+  }, [sortedStudents, search, coordinatorSearch]);
+
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = useMemo(
     () => filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage),
@@ -285,23 +307,32 @@ const Students = () => {
 
   return (
     <Box p={6} bg="white" color="black" borderRadius="md">
-      <HStack justify="space-between">
-        <Heading mb={4}>{labels.title}</Heading>
+      <HStack justify="space-between" mb={4}>
+        <Heading size="lg">{labels.title}</Heading>
         {(isMyStudentsRoute || user.role === "admin") && (
           <Button onClick={studentModal.onOpen} colorScheme="blue">
             {labels.createBtn}
           </Button>
         )}
       </HStack>
-      <Input
-        placeholder={labels.search}
-        mb={4}
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setPage(1);
-        }}
-      />
+      <HStack mb={4} spacing={4}>
+        <Input
+          placeholder={labels.search}
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+        <Input
+          placeholder={labels.searchCoordinator || "Search by Coordinator..."} // Fallback translation
+          value={coordinatorSearch}
+          onChange={(e) => {
+            setCoordinatorSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+      </HStack>
       <CreateStudentModal
         isOpen={studentModal.isOpen}
         onClose={studentModal.onClose}
