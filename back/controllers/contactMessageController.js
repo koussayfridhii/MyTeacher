@@ -36,7 +36,7 @@ export const createContactMessage = async (req, res, next) => {
   }
 };
 
-// 2. List Contact Messages (Admin/Coordinator)
+// 2. List Contact Messages (Admin/Coordinator) - Fetches all messages
 export const listContactMessages = async (req, res, next) => {
   try {
     const messages = await ContactMessage.find({}).sort({ createdAt: -1 });
