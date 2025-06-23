@@ -11,6 +11,7 @@ import {
   SimpleGrid,
   Image,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Input,
   Textarea,
@@ -37,6 +38,7 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
+  useToast,
 } from "@chakra-ui/react";
 import {
   InfoIcon,
@@ -441,6 +443,82 @@ const LandingPage = () => {
 
   const [isAnnualBilling, setIsAnnualBilling] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+
+  // Contact Form State
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const toast = useToast();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors((prevErrors) => ({ ...prevErrors, [name]: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    if (!contactForm.name.trim()) errors.name = "Name is required.";
+    if (!contactForm.email.trim()) errors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(contactForm.email)) errors.email = "Email is invalid.";
+    if (!contactForm.phone.trim()) errors.phone = "Phone number is required.";
+    else if (!/^\+?[0-9\s-()]{7,15}$/.test(contactForm.phone)) errors.phone = "Phone number is invalid (7-15 digits, can include +, (), -, space).";
+    if (!contactForm.message.trim()) errors.message = "Message is required.";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmitContactForm = async (e) => {
+    e.preventDefault();
+    setFormErrors({});
+
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please check the form for errors.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/contact-messages`,
+        contactForm
+      );
+      toast({
+        title: "Success!",
+        description: response.data.message || "Your message has been sent successfully!",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      setContactForm({ name: "", email: "", phone: "", message: "" });
+      setFormErrors({});
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "An error occurred. Please try again.";
+      toast({
+        title: "Submission Failed",
+        description: errorMsg,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Determine Hero CTA button path based on auth state
   const heroCtaPath = token && user ? "/dashboard" : "/signup";
@@ -1197,41 +1275,58 @@ const LandingPage = () => {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          <VStack spacing={6} as="form" onSubmit={(e) => e.preventDefault()}>
-            <FormControl id="contact-name" isRequired>
+          <VStack spacing={4} as="form" onSubmit={handleSubmitContactForm} noValidate>
+            <FormControl id="contact-name" isRequired isInvalid={!!formErrors.name}>
               <FormLabel>{getText("form_field_name", "Your Name")}</FormLabel>
               <Input
                 type="text"
-                placeholder={getText(
-                  "form_field_name_placeholder",
-                  "Enter your name"
-                )}
+                name="name"
+                value={contactForm.name}
+                onChange={handleInputChange}
+                placeholder={getText("form_field_name_placeholder", "Enter your name")}
               />
+              <FormErrorMessage>{formErrors.name}</FormErrorMessage>
             </FormControl>
 
-            <FormControl id="contact-email" isRequired>
+            <FormControl id="contact-email" isRequired isInvalid={!!formErrors.email}>
               <FormLabel>{getText("form_field_email", "Your Email")}</FormLabel>
               <Input
                 type="email"
-                placeholder={getText(
-                  "form_field_email_placeholder",
-                  "Enter your email address"
-                )}
+                name="email"
+                value={contactForm.email}
+                onChange={handleInputChange}
+                placeholder={getText("form_field_email_placeholder", "Enter your email address")}
               />
+              <FormErrorMessage>{formErrors.email}</FormErrorMessage>
             </FormControl>
 
-            <FormControl id="contact-message" isRequired>
-              <FormLabel>
-                {getText("form_field_message", "Your Message")}
-              </FormLabel>
+            <FormControl id="contact-phone" isRequired isInvalid={!!formErrors.phone}>
+              <FormLabel>{getText("form_field_phone", "Your Phone")}</FormLabel>
+              <Input
+                type="tel"
+                name="phone"
+                value={contactForm.phone}
+                onChange={handleInputChange}
+                placeholder={getText("form_field_phone_placeholder", "Enter your phone number")}
+              />
+              <FormErrorMessage>{formErrors.phone}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl id="contact-message" isRequired isInvalid={!!formErrors.message}>
+              <FormLabel>{getText("form_field_message", "Your Message")}</FormLabel>
               <Textarea
-                placeholder={getText(
-                  "form_field_message_placeholder",
-                  "Type your message here..."
-                )}
+                name="message"
+                value={contactForm.message}
+                onChange={handleInputChange}
+                placeholder={getText("form_field_message_placeholder", "Type your message here...")}
                 rows={6}
               />
+              <FormErrorMessage>{formErrors.message}</FormErrorMessage>
             </FormControl>
+
+            {formErrors.general && (
+              <Text color="red.500" textAlign="center" width="full">{formErrors.general}</Text>
+            )}
 
             <Button
               type="submit"
@@ -1239,8 +1334,10 @@ const LandingPage = () => {
               size="lg"
               width="full"
               mt={4}
+              isLoading={isSubmitting}
+              leftIcon={isSubmitting ? <LuLoader2 className="animate-spin" /> : null}
             >
-              {getText("form_submit_button", "Send Message")}
+              {isSubmitting ? getText("form_submitting_button", "Sending...") : getText("form_submit_button", "Send Message")}
             </Button>
           </VStack>
         </MotionBox>

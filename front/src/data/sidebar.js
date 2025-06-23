@@ -198,6 +198,16 @@ export const sidebarLinks = [
     },
     authorizedRoles: ["admin"],
   },
+  {
+    imgURL: "/assets/icons/comments.svg", // Placeholder: consider messages.svg or inbox.svg
+    route: "/dashboard/messages",
+    label: {
+      ar: "رسائل الاتصال",
+      en: "Contact Messages",
+      fr: "Messages de Contact",
+    },
+    authorizedRoles: ["admin", "coordinator"],
+  },
 ];
 
 export const avatarImages = [

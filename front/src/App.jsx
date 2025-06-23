@@ -42,8 +42,8 @@ const PaymentProof = lazy(() => import("./pages/PaymentProof.jsx"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage.jsx"));
 const LandingContentManagementPage = lazy(() =>
   import("./pages/admin/LandingContentManagementPage.jsx")
-); // Import new admin page
-const AdminRoute = lazy(() => import("./components/AdminRoute.jsx")); // Import AdminRoute
+);
+const DashboardMessages = lazy(() => import("./pages/admin/DashboardMessages.jsx")); // Import DashboardMessages
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
@@ -110,8 +110,12 @@ const router = createBrowserRouter([
           },
           {
             // Admin Routes
-            path: "landing-content",
+            path: "landing-content", // Protection handled by withAuthorization in the component itself
             element: <LandingContentManagementPage />,
+          },
+          {
+            path: "messages", // Protection handled by withAuthorization in the component itself
+            element: <DashboardMessages />,
           },
           {
             path: "meeting",
