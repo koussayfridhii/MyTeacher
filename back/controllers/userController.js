@@ -10,11 +10,12 @@ const sendVerificationEmail = async (user, res, verify = false) => {
     expiresIn: "1h",
   });
   const url = `${process.env.FRONT_URL}/auth/verify/${token}`;
-  const logoUrl = "https://your-cdn.com/logo.png";
+  const logoUrl =
+    "https://res.cloudinary.com/drtmtlnwi/image/upload/v1750616202/odzc3xyraampagqit6q7.png";
   const emailHtml = `
     <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333;">
       <div style="text-align:center;padding:20px 0;background-color:#f5f5f5;">
-        <img src="${logoUrl}" alt="My Teacher Logo" style="max-height:60px;" />
+        <img src="${logoUrl}" alt="be first Learning Logo" style="max-height:60px;" />
       </div>
       <div style="padding:30px;">
         <h1 style="color:#004080;margin-bottom:20px;">Welcome to My Teacher!</h1>
@@ -28,7 +29,7 @@ const sendVerificationEmail = async (user, res, verify = false) => {
   `;
   await sendMail(
     user.email,
-    "Welcome to My Teacher — Please Verify Your Email",
+    "Welcome to Be first learning — Please Verify Your Email",
     emailHtml
   );
   verify
@@ -675,7 +676,7 @@ export const updateUserByAdmin = async (req, res, next) => {
 
     // Filter updates to only allowed fields
     const filteredUpdates = Object.keys(updates)
-      .filter(key => allowedUpdates.includes(key))
+      .filter((key) => allowedUpdates.includes(key))
       .reduce((obj, key) => {
         obj[key] = updates[key];
         return obj;
@@ -684,63 +685,102 @@ export const updateUserByAdmin = async (req, res, next) => {
     // Special handling for max_hours_per_week:
     // It should only be set if the user is a teacher.
     // If role is being changed FROM teacher, or if it's not a teacher, set to null.
-    if (filteredUpdates.hasOwnProperty('max_hours_per_week')) {
-      if (userToUpdate.role === 'teacher' || (filteredUpdates.role && filteredUpdates.role === 'teacher')) {
-        if (filteredUpdates.max_hours_per_week === null || filteredUpdates.max_hours_per_week === '' || filteredUpdates.max_hours_per_week === undefined) {
+    if (filteredUpdates.hasOwnProperty("max_hours_per_week")) {
+      if (
+        userToUpdate.role === "teacher" ||
+        (filteredUpdates.role && filteredUpdates.role === "teacher")
+      ) {
+        if (
+          filteredUpdates.max_hours_per_week === null ||
+          filteredUpdates.max_hours_per_week === "" ||
+          filteredUpdates.max_hours_per_week === undefined
+        ) {
           filteredUpdates.max_hours_per_week = null;
         } else {
-          filteredUpdates.max_hours_per_week = Number(filteredUpdates.max_hours_per_week);
-          if (isNaN(filteredUpdates.max_hours_per_week) || filteredUpdates.max_hours_per_week < 0) {
-            return res.status(400).json({ error: "Invalid value for max_hours_per_week. Must be a non-negative number or null." });
+          filteredUpdates.max_hours_per_week = Number(
+            filteredUpdates.max_hours_per_week
+          );
+          if (
+            isNaN(filteredUpdates.max_hours_per_week) ||
+            filteredUpdates.max_hours_per_week < 0
+          ) {
+            return res
+              .status(400)
+              .json({
+                error:
+                  "Invalid value for max_hours_per_week. Must be a non-negative number or null.",
+              });
           }
         }
       } else {
         // If user is not a teacher, ensure max_hours_per_week is not set or is nulled
         filteredUpdates.max_hours_per_week = null;
       }
-    } else if (userToUpdate.role !== 'teacher' && userToUpdate.max_hours_per_week !== null) {
+    } else if (
+      userToUpdate.role !== "teacher" &&
+      userToUpdate.max_hours_per_week !== null
+    ) {
       // If max_hours_per_week is not in updates, but user is not a teacher, ensure it's nulled
       // This handles cases where role might be changed by the same update package
-      if (!filteredUpdates.role || (filteredUpdates.role && filteredUpdates.role !== 'teacher')) {
-         await User.findByIdAndUpdate(userIdToUpdate, { $set: { max_hours_per_week: null } }, { new: true, runValidators: true });
+      if (
+        !filteredUpdates.role ||
+        (filteredUpdates.role && filteredUpdates.role !== "teacher")
+      ) {
+        await User.findByIdAndUpdate(
+          userIdToUpdate,
+          { $set: { max_hours_per_week: null } },
+          { new: true, runValidators: true }
+        );
       }
     }
 
     // If role is changed from teacher, nullify teacher-specific fields
-    if (filteredUpdates.role && filteredUpdates.role !== 'teacher' && userToUpdate.role === 'teacher') {
-        filteredUpdates.subject = null;
-        filteredUpdates.programs = [];
-        filteredUpdates.max_hours_per_week = null;
+    if (
+      filteredUpdates.role &&
+      filteredUpdates.role !== "teacher" &&
+      userToUpdate.role === "teacher"
+    ) {
+      filteredUpdates.subject = null;
+      filteredUpdates.programs = [];
+      filteredUpdates.max_hours_per_week = null;
     }
-
 
     // Handle password update separately if provided
     if (updates.password) {
       if (updates.password.length < 6) {
-        return res.status(400).json({ error: "Password must be at least 6 characters long." });
+        return res
+          .status(400)
+          .json({ error: "Password must be at least 6 characters long." });
       }
       const hashed = await bcrypt.hash(updates.password, 10);
       filteredUpdates.password = hashed;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userIdToUpdate, { $set: filteredUpdates }, { new: true, runValidators: true }).select("-password");
+    const updatedUser = await User.findByIdAndUpdate(
+      userIdToUpdate,
+      { $set: filteredUpdates },
+      { new: true, runValidators: true }
+    ).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found after update." });
     }
 
     // If the role was changed to something other than teacher, ensure max_hours_per_week is null
-    if (updatedUser.role !== 'teacher' && updatedUser.max_hours_per_week !== null) {
-        updatedUser.max_hours_per_week = null;
-        await updatedUser.save();
+    if (
+      updatedUser.role !== "teacher" &&
+      updatedUser.max_hours_per_week !== null
+    ) {
+      updatedUser.max_hours_per_week = null;
+      await updatedUser.save();
     }
 
-
-    res.status(200).json({ message: "User updated successfully.", user: updatedUser });
-
+    res
+      .status(200)
+      .json({ message: "User updated successfully.", user: updatedUser });
   } catch (err) {
     // Mongoose validation errors can be detailed
-    if (err.name === 'ValidationError') {
+    if (err.name === "ValidationError") {
       return res.status(400).json({ error: err.message });
     }
     next(err);

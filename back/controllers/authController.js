@@ -11,14 +11,15 @@ const sendVerificationEmail = async (user, res, verify = false) => {
     expiresIn: "1h",
   });
   const url = `${process.env.FRONT_URL}/auth/verify/${token}`;
-  const logoUrl = "https://your-cdn.com/logo.png";
+  const logoUrl =
+    "https://res.cloudinary.com/drtmtlnwi/image/upload/v1750616202/odzc3xyraampagqit6q7.png";
   const emailHtml = `
     <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333;">
       <div style="text-align:center;padding:20px 0;background-color:#f5f5f5;">
-        <img src="${logoUrl}" alt="My Teacher Logo" style="max-height:60px;" />
+        <img src="${logoUrl}" alt="befirstLearning Logo" style="max-height:60px;" />
       </div>
       <div style="padding:30px;">
-        <h1 style="color:#004080;margin-bottom:20px;">Welcome to My Teacher!</h1>
+        <h1 style="color:#004080;margin-bottom:20px;">Welcome to Be first Learning!</h1>
         <p>Thanks for signing up. Please verify your email address by clicking the button below.</p>
         <p style="text-align:center;margin:30px 0;"><a href="${url}" style="background-color:#004080;color:#fff;padding:12px 24px;border-radius:4px;display:inline-block;">Verify My Email</a></p>
         <p>If the button doesn’t work, copy & paste: <a href="${url}" style="color:#004080;">${url}</a></p>
@@ -29,7 +30,7 @@ const sendVerificationEmail = async (user, res, verify = false) => {
   `;
   await sendMail(
     user.email,
-    "Welcome to My Teacher — Please Verify Your Email",
+    "Welcome to Be first Larning — Please Verify Your Email",
     emailHtml
   );
   verify
