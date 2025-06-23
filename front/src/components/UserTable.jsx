@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Box,
   Table,
@@ -11,7 +11,9 @@ import {
   Input,
   HStack,
   Text,
+  Icon,
 } from "@chakra-ui/react";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
 const UserTable = ({
   data,
@@ -24,11 +26,85 @@ const UserTable = ({
   itemsPerPage,
   onAction,
 }) => {
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedData = useMemo(() => {
+    if (!sortColumn) return data;
+
+    return [...data].sort((a, b) => {
+      let aValue = a[sortColumn];
+      let bValue = b[sortColumn];
+
+      if (sortColumn.includes("wallet.")) {
+        const keys = sortColumn.split(".");
+        aValue = a[keys[0]]?.[keys[1]];
+        bValue = b[keys[0]]?.[keys[1]];
+      } else if (sortColumn === "name") {
+        aValue = `${a.firstName} ${a.lastName}`;
+        bValue = `${b.firstName} ${b.lastName}`;
+      } else if (sortColumn === "totalHours") {
+        aValue = a.attendedClasses.length * 2;
+        bValue = b.attendedClasses.length * 2;
+      } else if (sortColumn === "paid") {
+        aValue = -(a.wallet?.totals?.addClass || 0);
+        bValue = -(b.wallet?.totals?.addClass || 0);
+      } else if (sortColumn === "refund") {
+        aValue = -(a.wallet?.totals?.refund || 0);
+        bValue = -(b.wallet?.totals?.refund || 0);
+      }
+
+
+      if (aValue === null || aValue === undefined) aValue = "";
+      if (bValue === null || bValue === undefined) bValue = "";
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortDirection === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+      }
+    });
+  }, [data, sortColumn, sortDirection]);
+
   // Filter and paginate
-  const filtered = useMemo(() => data, [data]);
+  const filtered = useMemo(() => sortedData, [sortedData]);
   const start = (page - 1) * itemsPerPage;
   const paginated = filtered.slice(start, start + itemsPerPage);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+  const renderSortIcon = (column) => {
+    if (sortColumn === column) {
+      return sortDirection === "asc" ? <Icon as={FaSortUp} /> : <Icon as={FaSortDown} />;
+    }
+    return <Icon as={FaSort} color="gray.400" />;
+  };
+
+  const columns = [
+    { key: "name", label: "Name" },
+    { key: "wallet.balance", label: labels.balance },
+    ...(!isTeacher
+      ? [
+          { key: "wallet.totals.topup", label: labels.total },
+          { key: "wallet.totals.freePoints", label: labels.free },
+          { key: "wallet.totals.bonus", label: labels.bonus },
+          { key: "wallet.minimum", label: labels.minimum },
+          { key: "paid", label: labels.paid },
+          { key: "totalHours", label: labels.totalHours },
+          { key: "refund", label: labels.refund },
+        ]
+      : []),
+  ];
 
   return (
     <Box borderWidth={1} borderRadius="md" p={4} mb={6}>
@@ -48,15 +124,11 @@ const UserTable = ({
         <Thead>
           <Tr>
             <Th>#</Th>
-            <Th>Name</Th>
-            <Th>{labels.balance}</Th>
-            {!isTeacher && <Th>{labels.total}</Th>}
-            {!isTeacher && <Th>{labels.free}</Th>}
-            {!isTeacher && <Th>{labels.bonus}</Th>}
-            {!isTeacher && <Th>{labels.minimum}</Th>}
-            {!isTeacher && <Th>{labels.paid}</Th>}
-            {!isTeacher && <Th>{labels.totalHours}</Th>}
-            {!isTeacher && <Th>{labels.refund}</Th>}
+            {columns.map((col) => (
+              <Th key={col.key} onClick={() => handleSort(col.key)} cursor="pointer">
+                {col.label} {renderSortIcon(col.key)}
+              </Th>
+            ))}
             <Th>Actions</Th>
           </Tr>
         </Thead>
@@ -70,9 +142,9 @@ const UserTable = ({
               {!isTeacher && <Td>{u.wallet?.totals?.freePoints ?? "-"}</Td>}
               {!isTeacher && <Td>{u.wallet?.totals?.bonus ?? "-"}</Td>}
               {!isTeacher && <Td>{u.wallet?.minimum ?? "-"}</Td>}
-              {!isTeacher && <Td>{-u.wallet?.totals?.addClass}</Td>}
+              {!isTeacher && <Td>{-(u.wallet?.totals?.addClass || 0)}</Td>}
               {!isTeacher && <Td>{u.attendedClasses.length * 2}</Td>}
-              {!isTeacher && <Td>{-u.wallet?.totals?.refund}</Td>}
+              {!isTeacher && <Td>{-(u.wallet?.totals?.refund || 0)}</Td>}
               <Td>
                 <HStack spacing={2}>
                   <Button

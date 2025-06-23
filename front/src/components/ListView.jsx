@@ -19,8 +19,11 @@ import {
   Flex,
   Text,
   Link as ChakraLink,
+  Icon,
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { useMemo, useState } from "react";
 
 const fetchPotentialClients = async () => {
   const { data } = await apiClient.get("/potential-clients");
@@ -32,9 +35,11 @@ const PotentialClientsListView = () => {
   const { user } = useSelector((state) => state.user); // Accessing user from Redux store
   const userRole = user?.role;
   const currentLanguage = useSelector((state) => state.language.language); // Get current language
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
 
   const {
-    data: clients,
+    data: clientsData, // Renamed to avoid conflict
     isLoading,
     isError,
     error,
@@ -42,6 +47,78 @@ const PotentialClientsListView = () => {
     queryKey: ["potentialClients"],
     queryFn: fetchPotentialClients,
   });
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedClients = useMemo(() => {
+    if (!clientsData) return [];
+    let sorted = [...clientsData];
+    if (sortColumn) {
+      sorted.sort((a, b) => {
+        let aValue, bValue;
+        switch (sortColumn) {
+          case "name":
+            aValue = a.name || "";
+            bValue = b.name || "";
+            break;
+          case "phone":
+            aValue = a.phone || "";
+            bValue = b.phone || "";
+            break;
+          case "email":
+            aValue = a.email || "";
+            bValue = b.email || "";
+            break;
+          case "status":
+            aValue = a.status || "";
+            bValue = b.status || "";
+            break;
+          case "manager":
+            aValue = a.manager ? `${a.manager.firstName} ${a.manager.lastName}` : "";
+            bValue = b.manager ? `${b.manager.firstName} ${b.manager.lastName}` : "";
+            break;
+          case "assistant":
+            aValue = a.assistant ? `${a.assistant.firstName} ${a.assistant.lastName}` : "";
+            bValue = b.assistant ? `${b.assistant.firstName} ${b.assistant.lastName}` : "";
+            break;
+          case "comments":
+            aValue = a.commentaires?.length || 0;
+            bValue = b.commentaires?.length || 0;
+            break;
+          default:
+            aValue = a[sortColumn];
+            bValue = b[sortColumn];
+        }
+
+        if (aValue === null || aValue === undefined) aValue = "";
+        if (bValue === null || bValue === undefined) bValue = "";
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        } else {
+          return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+        }
+      });
+    }
+    return sorted;
+  }, [clientsData, sortColumn, sortDirection]);
+
+  const renderSortIcon = (column) => {
+    if (sortColumn === column) {
+      return sortDirection === "asc" ? <Icon as={FaSortUp} /> : <Icon as={FaSortDown} />;
+    }
+    return <Icon as={FaSort} color="gray.400" />;
+  };
+
 
   if (isLoading) {
     return (
@@ -95,58 +172,58 @@ const PotentialClientsListView = () => {
         )}
       </Flex>
 
-      {clients && clients.length > 0 ? (
+      {sortedClients && sortedClients.length > 0 ? (
         <Table variant="simple" size="md">
           <Thead>
             <Tr>
-              <Th>
+              <Th onClick={() => handleSort("name")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Nom"
                   : currentLanguage === "ar"
                   ? "الاسم"
-                  : "Name"}
+                  : "Name"} {renderSortIcon("name")}
               </Th>
-              <Th>
+              <Th onClick={() => handleSort("phone")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Téléphone"
                   : currentLanguage === "ar"
                   ? "الهاتف"
-                  : "Phone"}
+                  : "Phone"} {renderSortIcon("phone")}
               </Th>
-              <Th>
+              <Th onClick={() => handleSort("email")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Email"
                   : currentLanguage === "ar"
                   ? "البريد الإلكتروني"
-                  : "Email"}
+                  : "Email"} {renderSortIcon("email")}
               </Th>
-              <Th>
+              <Th onClick={() => handleSort("status")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Statut"
                   : currentLanguage === "ar"
                   ? "الحالة"
-                  : "Status"}
+                  : "Status"} {renderSortIcon("status")}
               </Th>
-              <Th>
+              <Th onClick={() => handleSort("manager")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Responsable"
                   : currentLanguage === "ar"
                   ? "المدير"
-                  : "Manager"}
+                  : "Manager"} {renderSortIcon("manager")}
               </Th>
-              <Th>
+              <Th onClick={() => handleSort("assistant")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Assistant"
                   : currentLanguage === "ar"
                   ? "المساعد"
-                  : "Assistant"}
+                  : "Assistant"} {renderSortIcon("assistant")}
               </Th>
-              <Th>
+              <Th onClick={() => handleSort("comments")} cursor="pointer">
                 {currentLanguage === "fr"
                   ? "Commentaires"
                   : currentLanguage === "ar"
                   ? "التعليقات"
-                  : "Comments"}
+                  : "Comments"} {renderSortIcon("comments")}
               </Th>
               <Th>
                 {currentLanguage === "fr"
@@ -158,7 +235,7 @@ const PotentialClientsListView = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {clients.map((client) => (
+            {sortedClients.map((client) => (
               <Tr key={client._id}>
                 <Td>{client.name}</Td>
                 <Td>{client.phone}</Td>
