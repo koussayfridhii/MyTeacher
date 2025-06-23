@@ -39,7 +39,7 @@ const Students = () => {
   const { data: users = [], isLoading } = useGetUsers();
   const approveMutation = useApproveUser();
   const [search, setSearch] = useState("");
-  const [coordinatorSearch, setCoordinatorSearch] = useState(""); // New state for coordinator search
+  // const [coordinatorSearch, setCoordinatorSearch] = useState(""); // Will be removed
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
   const [sortColumn, setSortColumn] = useState(null);
@@ -52,7 +52,7 @@ const Students = () => {
   const t = {
     en: {
       title: isMyStudentsRoute ? "My Students" : "Manage Students",
-      search: "Search...",
+      search: "Search by Name, Phone, Coordinator...", // Updated generic search
       name: "Name",
       mobile: "Mobile",
       balance: "Balance",
@@ -75,14 +75,14 @@ const Students = () => {
       password: "Password",
       firstName: "First Name",
       lastName: "Last Name",
-      searchCoordinator: "Search by Coordinator...",
+      // searchCoordinator: "Search by Coordinator...", // Removed
     },
     fr: {
       title: isMyStudentsRoute ? "Mes étudiants" : "Gérer les étudiants",
-      search: "Rechercher...",
+      search: "Recherche par Nom, Tél, Coordinateur...", // Updated generic search
       name: "Nom",
       mobile: "Numéro de mobile",
-      searchCoordinator: "Rechercher par Coordinateur...",
+      // searchCoordinator: "Rechercher par Coordinateur...", // Removed
       balance: "Solde",
       minimum: "Minimum",
       approve: "Approuver",
@@ -103,15 +103,15 @@ const Students = () => {
       password: "Mot de passe",
       firstName: "Prénom",
       lastName: "Nom",
-      searchCoordinator: "Rechercher par Coordinateur...",
+      // searchCoordinator: "Rechercher par Coordinateur...", // Removed
     },
     ar: {
       title: isMyStudentsRoute ? "طلابي" : "إدارة الطلاب",
-      search: "ابحث...",
+      search: "البحث بالاسم، الهاتف، المنسق...", // Updated generic search
       name: "الاسم",
       mobile: "رقم الجوال",
       balance: "الرصيد",
-      searchCoordinator: "البحث بالمنسق...",
+      // searchCoordinator: "البحث بالمنسق...", // Removed
       minimum: "الحد الأدنى",
       approve: "موافقة",
       disapprove: "رفض",
@@ -207,30 +207,26 @@ const Students = () => {
 
   // search + pagination
   const filtered = useMemo(() => {
-    let tempStudents = [...sortedStudents];
-
-    // Filter by student name
-    if (search) {
-      tempStudents = tempStudents.filter((stu) =>
-        `${stu?.firstName} ${stu?.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      );
+    if (!search) {
+      return sortedStudents;
     }
 
-    // Filter by coordinator name
-    if (coordinatorSearch) {
-      tempStudents = tempStudents.filter((stu) =>
-        stu.coordinator
-          ? `${stu.coordinator.firstName} ${stu.coordinator.lastName}`
-              .toLowerCase()
-              .includes(coordinatorSearch.toLowerCase())
-          : false
-      );
-    }
+    const searchTerm = search.toLowerCase();
 
-    return tempStudents;
-  }, [sortedStudents, search, coordinatorSearch]);
+    return sortedStudents.filter((stu) => {
+      const studentName = `${stu?.firstName} ${stu?.lastName}`.toLowerCase();
+      const studentPhone = (stu?.mobileNumber || "").toLowerCase();
+      const coordinatorName = stu.coordinator
+        ? `${stu.coordinator.firstName} ${stu.coordinator.lastName}`.toLowerCase()
+        : "";
+
+      return (
+        studentName.includes(searchTerm) ||
+        studentPhone.includes(searchTerm) ||
+        (coordinatorName && coordinatorName.includes(searchTerm))
+      );
+    });
+  }, [sortedStudents, search]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = useMemo(
@@ -315,24 +311,15 @@ const Students = () => {
           </Button>
         )}
       </HStack>
-      <HStack mb={4} spacing={4}>
-        <Input
-          placeholder={labels.search}
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <Input
-          placeholder={labels.searchCoordinator || "Search by Coordinator..."} // Fallback translation
-          value={coordinatorSearch}
-          onChange={(e) => {
-            setCoordinatorSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-      </HStack>
+      <Input
+        placeholder={labels.search} // Now correctly using the updated labels.search
+        mb={4}
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+      />
       <CreateStudentModal
         isOpen={studentModal.isOpen}
         onClose={studentModal.onClose}
