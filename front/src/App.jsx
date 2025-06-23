@@ -43,8 +43,8 @@ const CommentsPage = lazy(() => import("./pages/CommentsPage.jsx"));
 const LandingContentManagementPage = lazy(() =>
   import("./pages/admin/LandingContentManagementPage.jsx")
 );
-const DashboardMessages = lazy(() => import("./pages/admin/DashboardMessages.jsx")); // Import DashboardMessages page
-const AdminRoute = lazy(() => import("./components/AdminRoute.jsx"));
+const DashboardMessages = lazy(() => import("./pages/admin/DashboardMessages.jsx")); // Import DashboardMessages
+const Protect = lazy(() => import("./HOC/Protect.jsx")); // Import Protect HOC
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
@@ -112,11 +112,11 @@ const router = createBrowserRouter([
           {
             // Admin Routes
             path: "landing-content",
-            element: <AdminRoute><LandingContentManagementPage /></AdminRoute>,
+            element: <Protect allowedRoles={['admin']}><LandingContentManagementPage /></Protect>,
           },
           {
             path: "messages",
-            element: <AdminRoute><DashboardMessages /></AdminRoute>,
+            element: <Protect allowedRoles={['admin', 'coordinator']}><DashboardMessages /></Protect>,
           },
           {
             path: "meeting",

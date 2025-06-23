@@ -12,15 +12,12 @@ const contactMessageSchema = new Schema({
     required: [true, "Email is required."],
     trim: true,
     lowercase: true,
-    // Basic email format validation
     match: [/^\S+@\S+\.\S+$/, "Please use a valid email address."],
   },
   phone: {
     type: String,
     required: [true, "Phone number is required."],
     trim: true,
-    // Basic phone number validation (allows digits, spaces, hyphens, parentheses, plus)
-    // match: [/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, "Please use a valid phone number."]
   },
   message: {
     type: String,

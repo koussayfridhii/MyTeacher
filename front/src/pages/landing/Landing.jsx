@@ -11,7 +11,7 @@ import {
   SimpleGrid,
   Image,
   FormControl,
-  FormErrorMessage, // Added for inline validation messages
+  FormErrorMessage,
   FormLabel,
   Input,
   Textarea,
@@ -38,7 +38,7 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
-  useToast, // Added for form submission feedback
+  useToast,
 } from "@chakra-ui/react";
 import {
   InfoIcon,
@@ -452,14 +452,12 @@ const LandingPage = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formErrors, setFormErrors] = useState({}); // Changed to object for per-field errors
+  const [formErrors, setFormErrors] = useState({});
   const toast = useToast();
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setContactForm((prev) => ({ ...prev, [name]: value }));
-    // Clear specific field error when user starts typing in it
     if (formErrors[name]) {
       setFormErrors((prevErrors) => ({ ...prevErrors, [name]: null }));
     }
@@ -475,12 +473,12 @@ const LandingPage = () => {
     if (!contactForm.message.trim()) errors.message = "Message is required.";
 
     setFormErrors(errors);
-    return Object.keys(errors).length === 0; // Returns true if no errors
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmitContactForm = async (e) => {
     e.preventDefault();
-    setFormErrors({}); // Clear previous errors
+    setFormErrors({});
 
     if (!validateForm()) {
       toast({
@@ -495,13 +493,10 @@ const LandingPage = () => {
 
     setIsSubmitting(true);
     try {
-      // Using axios directly because apiClient might have auth headers
-      // that are not needed or could cause issues for a public endpoint.
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/contact-messages`, // Updated endpoint
+        `${import.meta.env.VITE_API_URL}/contact-messages`,
         contactForm
       );
-
       toast({
         title: "Success!",
         description: response.data.message || "Your message has been sent successfully!",
@@ -509,8 +504,8 @@ const LandingPage = () => {
         duration: 5000,
         isClosable: true,
       });
-      setContactForm({ name: "", email: "", phone: "", message: "" }); // Reset form
-      setFormErrors({}); // Clear any lingering errors
+      setContactForm({ name: "", email: "", phone: "", message: "" });
+      setFormErrors({});
     } catch (err) {
       const errorMsg = err.response?.data?.message || "An error occurred. Please try again.";
       toast({
@@ -520,13 +515,10 @@ const LandingPage = () => {
         duration: 5000,
         isClosable: true,
       });
-      // Optionally, you could set a general form error here if it's not field-specific
-      // setFormErrors({ general: errorMsg });
     } finally {
       setIsSubmitting(false);
     }
   };
-
 
   // Determine Hero CTA button path based on auth state
   const heroCtaPath = token && user ? "/dashboard" : "/signup";
@@ -1332,7 +1324,6 @@ const LandingPage = () => {
               <FormErrorMessage>{formErrors.message}</FormErrorMessage>
             </FormControl>
 
-            {/* General form error display (if any not tied to a specific field) */}
             {formErrors.general && (
               <Text color="red.500" textAlign="center" width="full">{formErrors.general}</Text>
             )}

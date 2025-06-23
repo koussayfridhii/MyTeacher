@@ -4,7 +4,7 @@ import {
   listContactMessages,
 } from "../controllers/contactMessageController.js";
 import auth from "../middleware/auth.js";
-import role from "../middleware/role.js"; // Assuming you want to protect the list route
+import role from "../middleware/role.js";
 
 const router = express.Router();
 
@@ -17,8 +17,5 @@ router.post("/", createContactMessage);
 // @route   GET /api/contact-messages
 // @access  Private (Admin/Coordinator)
 router.get("/", auth, role("admin", "coordinator"), listContactMessages);
-// If you want any authenticated user to see them, you could use:
-// router.get("/", auth, listContactMessages);
-// Or if you have more specific roles, adjust as needed.
 
 export default router;

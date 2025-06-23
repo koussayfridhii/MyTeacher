@@ -31,16 +31,15 @@ export const createContactMessage = async (req, res, next) => {
       const messages = Object.values(error.errors).map(e => e.message);
       return res.status(400).json({ success: false, message: "Validation failed: " + messages.join(". ") });
     }
-    // Log other errors for debugging
     console.error("Error in createContactMessage:", error);
-    next(error); // Pass to generic error handler
+    next(error);
   }
 };
 
 // 2. List Contact Messages (Admin/Coordinator)
 export const listContactMessages = async (req, res, next) => {
   try {
-    const messages = await ContactMessage.find({}).sort({ createdAt: -1 }); // Sort by newest first
+    const messages = await ContactMessage.find({}).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,

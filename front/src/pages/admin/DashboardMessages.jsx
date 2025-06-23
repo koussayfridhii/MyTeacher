@@ -17,8 +17,8 @@ import {
   useColorModeValue,
   Tag,
 } from "@chakra-ui/react";
-import apiClient from "../../hooks/apiClient"; // Assuming apiClient is set up for authenticated requests
-import { format } from 'date-fns'; // For formatting dates
+import apiClient from "../../hooks/apiClient";
+import { format } from 'date-fns';
 
 const DashboardMessages = () => {
   const [messages, setMessages] = useState([]);
