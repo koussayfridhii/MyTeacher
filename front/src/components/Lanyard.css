@@ -1,0 +1,13 @@
+.lanyard-wrapper {
+  position: relative;
+  width: 100%;
+  height: 600px; /* Or any specific height you want */
+  touch-action: none;
+  background-color: transparent !important; /* Ensure canvas background is transparent */
+}
+
+.lanyard-wrapper canvas {
+  touch-action: none;
+  width: 100% !important;
+  height: 100% !important;
+}
