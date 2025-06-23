@@ -1054,9 +1054,10 @@ const LandingPage = () => {
       <Box
         id="nos-objectifs-section"
         py={20}
-        px={{ base: 4, md: 8 }}
+        px={{ base: 0, md: 8 }}
         bg={useColorModeValue("green.50", "green.900")}
         textAlign="center"
+        w="full"
         dir={currentLanguage === "ar" ? "rtl" : "ltr"}
       >
         <Heading as="h2" size="2xl" mb={10} fontWeight="bold">
@@ -1065,7 +1066,7 @@ const LandingPage = () => {
         {objectivesCarouselItems.length > 0 ? (
           <Carousel
             items={objectivesCarouselItems}
-            baseWidth={400} // Adjusted for better display with padding
+            baseWidth={350} // Adjusted for better display with padding
             autoplay={true}
             autoplayDelay={3500}
             loop={true}
