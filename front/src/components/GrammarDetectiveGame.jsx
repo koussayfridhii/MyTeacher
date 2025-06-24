@@ -240,9 +240,20 @@ const GrammarDetectiveGame = () => {
                 <Text
                   as="span"
                   key={`${currentStory.id}-seg-${index}`}
-                  bg={selectedSegments[index] ? 'yellow.300' : (revealedErrors[segment.errorId] ? 'green.100' : (allErrorsFound ? 'transparent' : (segment.isError ? 'red.50' : 'gray.100')))}
-                  color={revealedErrors[segment.errorId] ? 'green.700' : (segment.isError && !allErrorsFound && !revealedErrors[segment.errorId] ? 'red.700' : 'inherit')}
-                  fontWeight={segment.isError || revealedErrors[segment.errorId] ? 'bold' : 'normal'}
+                  bg={
+                    selectedSegments[index] ? 'yellow.300' :
+                    revealedErrors[segment.errorId] ? 'green.100' :
+                    allErrorsFound ? 'transparent' :
+                    'gray.100' // Default for all unrevealed words
+                  }
+                  color={
+                    revealedErrors[segment.errorId] ? 'green.700' :
+                    'inherit' // Default for all unrevealed words
+                  }
+                  fontWeight={
+                    revealedErrors[segment.errorId] ? 'bold' :
+                    'normal' // Default for all unrevealed words
+                  }
                   cursor={allErrorsFound || (segment.isError && revealedErrors[segment.errorId]) ? 'default' : 'pointer'}
                   onClick={() => handleSegmentClick(segment, index)}
                   _hover={allErrorsFound || (segment.isError && revealedErrors[segment.errorId]) ? {} : { bg: 'yellow.200', color: 'black' }}
