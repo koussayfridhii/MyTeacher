@@ -56,7 +56,7 @@ const Students = () => {
       name: "Name",
       mobile: "Mobile",
       balance: "Balance",
-      minimum: "Minimum",
+      minimum: "Active Debit",
       approve: "Approve",
       disapprove: "Disapprove",
       status: "Status",
@@ -84,7 +84,7 @@ const Students = () => {
       mobile: "Numéro de mobile",
       // searchCoordinator: "Rechercher par Coordinateur...", // Removed
       balance: "Solde",
-      minimum: "Minimum",
+      minimum: "Débit Actif",
       approve: "Approuver",
       disapprove: "Désapprouver",
       status: "Statut",
@@ -112,7 +112,7 @@ const Students = () => {
       mobile: "رقم الجوال",
       balance: "الرصيد",
       // searchCoordinator: "البحث بالمنسق...", // Removed
-      minimum: "الحد الأدنى",
+      minimum: "الرصيد السلبي",
       approve: "موافقة",
       disapprove: "رفض",
       status: "الحالة",
