@@ -683,7 +683,9 @@ const translations = {
     "grammarDetective.noStoriesInCategory": "No stories in this category or select a category.",
     "grammarDetective.categoryComplete": "Category Complete!",
     "grammarDetective.selectCategoryPrompt": "Please select a category to start.",
-    "grammarDetective.notAnError": "That's not the error we were looking for.",
+    "grammarDetective.notAnError": "That's not the error we were looking for.", // Retained if used elsewhere, but new key is more specific
+    "grammarDetective.clickedNonError": "That wasn't an error. Moving to the next question.",
+    "grammarDetective.wellDone": "Well done!",
   },
   fr: {
     parents: "Parents",
@@ -1401,7 +1403,9 @@ const translations = {
     "grammarDetective.noStoriesInCategory": "Aucune histoire dans cette catégorie ou sélectionnez une catégorie.",
     "grammarDetective.categoryComplete": "Catégorie Terminée !",
     "grammarDetective.selectCategoryPrompt": "Veuillez sélectionner une catégorie pour commencer.",
-    "grammarDetective.notAnError": "Ce n'est pas l'erreur que nous cherchions.",
+    "grammarDetective.notAnError": "Ce n'est pas l'erreur que nous cherchions.", // Retained
+    "grammarDetective.clickedNonError": "Ce n'était pas une erreur. Passage à la question suivante.",
+    "grammarDetective.wellDone": "Bien joué !",
   },
   ar: {
     parents: "أولياء الأمور",
@@ -2074,7 +2078,9 @@ const translations = {
     "grammarDetective.noStoriesInCategory": "لا توجد قصص في هذه الفئة أو اختر فئة.",
     "grammarDetective.categoryComplete": "اكتملت الفئة!",
     "grammarDetective.selectCategoryPrompt": "يرجى اختيار فئة للبدء.",
-    "grammarDetective.notAnError": "ليس هذا هو الخطأ الذي كنا نبحث عنه.",
+    "grammarDetective.notAnError": "ليس هذا هو الخطأ الذي كنا نبحث عنه.", // Retained
+    "grammarDetective.clickedNonError": "لم يكن ذلك خطأ. الانتقال إلى السؤال التالي.",
+    "grammarDetective.wellDone": "أحسنت!",
   },
 };
 

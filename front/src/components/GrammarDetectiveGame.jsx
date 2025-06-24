@@ -113,40 +113,51 @@ const GrammarDetectiveGame = () => {
   };
 
   const handleSegmentClick = (segment, segmentIndex) => {
-    if (revealedErrors[segment.errorId] || !segment.isError) {
-      return; // Already revealed or not an error segment
+    // Prevent interaction if the story is completed or if the specific error in a segment is already revealed
+    if (allErrorsFound || (segment.isError && revealedErrors[segment.errorId])) {
+      return;
     }
 
-    const errorDefinition = currentStory.errors.find(e => e.id === segment.errorId);
+    setSelectedSegments({ [segmentIndex]: true });
+    setTimeout(() => {
+      setSelectedSegments({});
+    }, 700); // Briefly highlight clicked segment
 
-    if (errorDefinition) {
+    if (segment.isError) {
+      const errorDefinition = currentStory.errors.find(e => e.id === segment.errorId);
+      // This check should always pass if data is consistent and segment.isError is true
       setRevealedErrors(prev => ({ ...prev, [segment.errorId]: true }));
       setScore(prevScore => prevScore + 10);
       setFeedbackMessages(prev => [...prev, {
         type: 'correct',
         messageKey: 'quiz.correct',
-        explanation: errorDefinition.explanation,
-        correctText: errorDefinition.correctPhrase,
+        explanation: errorDefinition?.explanation,
+        correctText: errorDefinition?.correctPhrase,
         errorId: segment.errorId,
       }]);
       toast({
         title: t('quiz.correct', currentLanguage),
+        description: errorDefinition?.explanation || t('grammarDetective.wellDone', currentLanguage, {fallback: "Well done!"}),
         status: 'success',
-        duration: 2000,
+        duration: 3000,
         isClosable: true,
       });
     } else {
-      // Clicked on something not defined as an error or errorId mismatch
+      // Clicked on a non-error word
       setScore(prevScore => Math.max(0, prevScore - 5)); // Penalize for wrong click
       toast({
         title: t('quiz.wrong', currentLanguage),
-        description: t('grammarDetective.notAnError', currentLanguage, {fallback: "That's not the error we were looking for."}),
+        description: t('grammarDetective.clickedNonError', currentLanguage, {fallback: "That wasn't an error. Moving to the next question."}),
         status: 'error',
-        duration: 2000,
+        duration: 2500,
         isClosable: true,
       });
+      // Automatically move to the next story
+      // Add a slight delay to allow the user to read the toast
+      setTimeout(() => {
+        nextStory();
+      }, 2500);
     }
-    setSelectedSegments({}); // Clear selection visual immediately
   };
 
   const nextStory = () => {
@@ -170,7 +181,17 @@ const GrammarDetectiveGame = () => {
     resetStoryState();
   };
 
-  const allErrorsFound = currentStory && currentStory.errors.length > 0 && currentStory.errors.every(err => revealedErrors[err.id]);
+  const allErrorsFound = React.useMemo(() => {
+    if (!currentStory || !currentStory.errors || currentStory.errors.length === 0) return false;
+    const totalErrorsInStory = currentStory.errors.length;
+    // Count revealed errors that BELONG to the current story.
+    let count = 0;
+    currentStory.errors.forEach(err => {
+        if (revealedErrors[err.id])
+            count++;
+    });
+    return count === totalErrorsInStory;
+  }, [currentStory, revealedErrors]);
 
   if (categories.length === 0) {
     return <Text p={5}>{t('quiz.loading', currentLanguage)}</Text>;
@@ -219,15 +240,15 @@ const GrammarDetectiveGame = () => {
                 <Text
                   as="span"
                   key={`${currentStory.id}-seg-${index}`}
-                  bg={selectedSegments[index] ? 'yellow.200' : (revealedErrors[segment.errorId] ? 'green.100' : (segment.isError ? 'red.50' : 'transparent'))}
-                  color={revealedErrors[segment.errorId] ? 'green.700' : (segment.isError && !revealedErrors[segment.errorId] ? 'red.700' : 'inherit')}
-                  fontWeight={segment.isError ? 'bold' : 'normal'}
-                  cursor={segment.isError && !revealedErrors[segment.errorId] ? 'pointer' : 'default'}
+                  bg={selectedSegments[index] ? 'yellow.300' : (revealedErrors[segment.errorId] ? 'green.100' : (allErrorsFound ? 'transparent' : (segment.isError ? 'red.50' : 'gray.100')))}
+                  color={revealedErrors[segment.errorId] ? 'green.700' : (segment.isError && !allErrorsFound && !revealedErrors[segment.errorId] ? 'red.700' : 'inherit')}
+                  fontWeight={segment.isError || revealedErrors[segment.errorId] ? 'bold' : 'normal'}
+                  cursor={allErrorsFound || (segment.isError && revealedErrors[segment.errorId]) ? 'default' : 'pointer'}
                   onClick={() => handleSegmentClick(segment, index)}
-                  _hover={segment.isError && !revealedErrors[segment.errorId] ? { bg: 'orange.100' } : {}}
-                  p={segment.isError ? 1: 0}
+                  _hover={allErrorsFound || (segment.isError && revealedErrors[segment.errorId]) ? {} : { bg: 'yellow.200', color: 'black' }}
+                  p={1} // Padding for all segments to make them feel like distinct clickable entities
                   borderRadius="md"
-                  mr="1" // For space between words
+                  mr="2px" // Minimal space between words
                 >
                   {revealedErrors[segment.errorId] ? currentStory.errors.find(e=>e.id === segment.errorId)?.correctPhrase : segment.text}
                   {revealedErrors[segment.errorId] && <Icon as={CheckCircleIcon} ml={1} color="green.500" verticalAlign="middle"/>}
