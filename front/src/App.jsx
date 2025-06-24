@@ -41,6 +41,7 @@ const WalletHistory = lazy(() => import("./pages/WalletHistory.jsx"));
 const Parents = lazy(() => import("./pages/Parents.jsx"));
 const PaymentProof = lazy(() => import("./pages/PaymentProof.jsx"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage.jsx"));
+const GrammarDetectivePage = lazy(() => import("./pages/GrammarDetectivePage.jsx")); // Added Grammar Detective Page
 const LandingContentManagementPage = lazy(() =>
   import("./pages/admin/LandingContentManagementPage.jsx")
 );
@@ -104,6 +105,7 @@ const router = createBrowserRouter([
           { path: "wallet-history", element: <WalletHistory /> },
           { path: "payment-proof", element: <PaymentProof /> },
           { path: "comments", element: <CommentsPage /> },
+          { path: "grammar-detective", element: <GrammarDetectivePage /> }, // Added Grammar Detective route
 
           { path: "potential-clients", element: <PotentialClientsListView /> },
           {

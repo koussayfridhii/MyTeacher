@@ -11,8 +11,17 @@ import {
   AlertIcon,
   Heading,
   Divider,
-  Button, // Added Button import
+  Button,
+  SimpleGrid, // Added for game card layout
+  Card, // Added for game card
+  CardHeader, // Added for game card
+  CardBody, // Added for game card
+  CardFooter, // Added for game card
+  Icon, // For game icons
 } from "@chakra-ui/react";
+import { Link as RouterLink } from "react-router-dom"; // For navigation
+import { FaBrain, FaCalculator, FaSearch } from "react-icons/fa"; // Example icons
+
 import MeetingTypeList from "../components/MeetingTypeList";
 import { withAuthorization } from "../HOC/Protect";
 import useFetchCourses from "../hooks/useFetchCourses";
@@ -33,7 +42,36 @@ const Home = () => {
     useSelector((state) => state.language.language) || "en";
   const user = useSelector((state) => state.user.user);
 
-  const [showTriviaQuiz, setShowTriviaQuiz] = useState(false);
+  // No longer need showTriviaQuiz state if we navigate to separate pages for each game.
+  // const [showTriviaQuiz, setShowTriviaQuiz] = useState(false);
+
+  // Game links data
+  const gameLinks = [
+    {
+      id: "mathQuiz",
+      titleKey: "home.mathQuizTitle",
+      descriptionKey: "home.mathQuizDescription",
+      path: "/dashboard/math-game", // Assuming a dedicated page, or adapt if it's modal/inline
+      icon: FaCalculator,
+      colorScheme: "teal",
+    },
+    {
+      id: "triviaQuiz",
+      titleKey: "home.triviaQuizTitle",
+      descriptionKey: "home.triviaQuizDescription",
+      path: "/dashboard/trivia-quiz", // Assuming a dedicated page
+      icon: FaBrain,
+      colorScheme: "purple",
+    },
+    {
+      id: "grammarDetective",
+      titleKey: "home.grammarDetectiveTitle",
+      descriptionKey: "home.grammarDetectiveDescription",
+      path: "/dashboard/grammar-detective",
+      icon: FaSearch,
+      colorScheme: "orange",
+    },
+  ];
 
   // Update clock display
   useEffect(() => {
@@ -89,7 +127,7 @@ const Home = () => {
       p={4}
     >
       <Box
-        h="303px"
+        h={{ base: "auto", md: "303px" }} // Adjusted height for responsiveness
         w="full"
         bgImage={heroBg}
         bgSize="cover"
@@ -108,68 +146,48 @@ const Home = () => {
           <Box
             bg={useColorModeValue("rgba(255,255,255,0.2)", "rgba(0,0,0,0.2)")}
             maxW="400px"
-            mx="auto"
+            mx={{base: "auto", md: "0"}} // Align left on md+
             my={4}
             p={2}
             borderRadius="md"
-            textAlign="center"
+            textAlign={{base: "center", md: "left"}} // Align text left on md+
             backdropFilter="auto"
             backdropBlur="10px"
           >
             {isLoading ? (
-              <Flex align="center" justify="center">
+              <Flex align="center" justify={{base: "center", md: "flex-start"}}>
                 <Spinner size="sm" />
                 <Text ml={2} fontSize="md">
-                  {currentLanguage === "fr"
-                    ? "Chargement de la prochaine réunion..."
-                    : currentLanguage === "ar"
-                    ? "جارٍ تحميل الاجتماع التالي..."
-                    : "Loading next meeting..."}
+                  {translations[currentLanguage]?.loading || "Loading next meeting..."}
                 </Text>
               </Flex>
             ) : error ? (
-              <Alert status="error">
-                <AlertIcon />{" "}
-                {currentLanguage === "fr"
-                  ? "Impossible de charger les réunions"
-                  : currentLanguage === "ar"
-                  ? "تعذّر تحميل الاجتماعات"
-                  : "Unable to load meetings"}
+              <Alert status="error" justifyContent={{base: "center", md: "flex-start"}}>
+                <AlertIcon />
+                {translations[currentLanguage]?.errorLoadingMeetings || "Unable to load meetings"}
               </Alert>
             ) : nextMeeting ? (
               <Text fontSize="md" fontWeight="normal">
-                {currentLanguage === "fr"
-                  ? "Prochaine réunion à"
-                  : currentLanguage === "ar"
-                  ? "الاجتماع القادم في"
-                  : "Upcoming Meeting at"}{" "}
+                {(translations[currentLanguage]?.upcomingMeetingAt || "Upcoming Meeting at")}{" "}
                 {nextMeeting.time}{" "}
-                {currentLanguage === "fr"
-                  ? "le"
-                  : currentLanguage === "ar"
-                  ? "في"
-                  : "on"}{" "}
+                {(translations[currentLanguage]?.on || "on")}{" "}
                 {nextMeeting.date}
               </Text>
             ) : (
               <Text fontSize="md" fontWeight="normal">
-                {currentLanguage === "fr"
-                  ? "Aucune réunion à venir"
-                  : currentLanguage === "ar"
-                  ? "لا توجد اجتماعات قادمة"
-                  : "No Upcoming Meetings"}
+                {translations[currentLanguage]?.noUpcomingMeetings || "No Upcoming Meetings"}
               </Text>
             )}
           </Box>
 
-          <Box>
+          <Box textAlign={{base: "center", md: "left"}}> {/* Align text left on md+ */}
             <Text fontSize={{ base: "4xl", lg: "7xl" }} fontWeight="extrabold">
               {time}
             </Text>
             <Text
               fontSize={{ base: "lg", lg: "2xl" }}
               fontWeight="medium"
-              color="sky.400"
+              color="sky.400" // Consider making this theme-aware if needed
             >
               {date}
             </Text>
@@ -177,57 +195,78 @@ const Home = () => {
         </Flex>
       </Box>
 
-      {user && ["teacher", "student"].includes(user.role) && (
-        <Box w="full" p={4} borderWidth="1px" borderRadius="lg" overflow="hidden" bg={useColorModeValue("gray.50", "gray.700")}>
-          <Heading size="md" mb={4} color={useColorModeValue("gray.700", "white")}>
-            {translations[currentLanguage]?.['home.gamesSectionTitle'] || translations['en']['home.gamesSectionTitle'] || "Games & Activities"}
-          </Heading>
-          <Flex direction={{ base: "column", md: "row" }} gap={4}>
-            <Button onClick={() => setShowTriviaQuiz(false)} variant={!showTriviaQuiz ? "solid" : "outline"} colorScheme="teal" flex="1">
-              {translations[currentLanguage]?.['home.mathQuizTitle'] || translations['en']['home.mathQuizTitle'] || "Math Quiz"}
-            </Button>
-            <Button onClick={() => setShowTriviaQuiz(true)} variant={showTriviaQuiz ? "solid" : "outline"} colorScheme="purple" flex="1">
-              {translations[currentLanguage]?.['home.triviaQuizTitle'] || translations['en']['home.triviaQuizTitle'] || "Trivia Quiz"}
-            </Button>
-          </Flex>
+      {/* MeetingTypeList can be uncommented if needed */}
+      {/* <MeetingTypeList /> */}
 
-          <Box mt={6}>
-            {showTriviaQuiz ? (
-              <QuizGame onBack={() => setShowTriviaQuiz(false)} />
-            ) : (
-              <Game />
-            )}
-          </Box>
+      {/* Games Section for Teachers and Students */}
+      {user && ["teacher", "student"].includes(user.role) && (
+        <Box w="full" p={4} borderWidth="1px" borderRadius="lg" bg={useColorModeValue("gray.50", "gray.800")} mt={8}>
+          <Heading size="lg" mb={6} color={useColorModeValue("gray.700", "white")} textAlign="center">
+            {translations[currentLanguage]?.['home.gamesSectionTitle'] || "Games & Activities"}
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            {gameLinks.map((game) => (
+              <Card
+                key={game.id}
+                as={RouterLink}
+                to={game.path}
+                _hover={{ transform: "translateY(-5px)", shadow: "lg" }}
+                transition="all 0.2s"
+                bg={useColorModeValue("white", "gray.700")}
+              >
+                <CardHeader pb={2}>
+                  <Flex align="center">
+                    <Icon as={game.icon} w={8} h={8} color={`${game.colorScheme}.500`} mr={3}/>
+                    <Heading size="md" color={useColorModeValue("gray.700", "white")}>
+                      {translations[currentLanguage]?.[game.titleKey] || game.titleKey.split('.').pop()}
+                    </Heading>
+                  </Flex>
+                </CardHeader>
+                <CardBody pt={2}>
+                  <Text color={useColorModeValue("gray.600", "gray.300")}>
+                    {translations[currentLanguage]?.[game.descriptionKey] || game.descriptionKey.split('.').pop()}
+                  </Text>
+                </CardBody>
+                <CardFooter>
+                   <Button variant="solid" colorScheme={game.colorScheme} width="full">
+                     {translations[currentLanguage]?.['global.button.play'] || "Play Game"}
+                   </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </SimpleGrid>
         </Box>
       )}
 
+      {/* Admin and Coordinator specific sections */}
       {user && ["admin", "coordinator"].includes(user.role) && (
         <>
           <Heading color="primary" textDecor="underline">
             {currentLanguage === "fr"
-              ? "Coordinateurs"
+              ? "Graphique des Coordinateurs"
               : currentLanguage === "ar"
-              ? "المنسقون"
-              : "Coordinators"}
+              ? "الرسم البياني للمنسقين"
+              : "Coordinators Rank"}
           </Heading>
           <CoordinatorsRankChart admin={user.role === "admin"} />
+          <Divider my={8} />
         </>
       )}
-      <Divider colorScheme="blue" my={2} size={5} w="full" />
-      {["admin"].includes(user.role) && (
+
+      {user && user.role === "admin" && (
         <>
           <Heading color="primary" textDecor="underline">
             {currentLanguage === "fr"
-              ? "Revenus"
+              ? "Graphique des Revenus"
               : currentLanguage === "ar"
-              ? "الدخل"
-              : "Incomes"}
+              ? "الرسم البياني للدخل"
+              : "Incomes Chart"}
           </Heading>
           <IncomesChart />
-          <Divider colorScheme="blue" my={2} size={5} w="full" />
-          <Heading color="primary" textDecor="underline" mt={6}>
-            {currentLanguage === "fr"
-              ? "Statistiques des étudiants"
+          <Divider my={8} />
+          <Heading color="primary" textDecor="underline">
+             {currentLanguage === "fr"
+              ? "Statistiques des Étudiants"
               : currentLanguage === "ar"
               ? "إحصائيات الطلاب"
               : "Student Statistics"}
@@ -235,12 +274,12 @@ const Home = () => {
           <StudentStatsTable />
         </>
       )}
-
-      {/* <MeetingTypeList /> */}
     </Flex>
   );
 };
 
+// Ensure all roles that need to see the Home page are included here.
+// withAuthorization will handle redirection if the role is not permitted.
 export default withAuthorization(Home, [
   "admin",
   "coordinator",
