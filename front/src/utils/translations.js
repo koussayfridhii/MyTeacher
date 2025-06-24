@@ -651,7 +651,7 @@ const translations = {
     "quiz.correctAnswerWas": "Correct answer:",
     "quiz.nextQuestion": "Next Question",
     "quiz.finishQuiz": "Finish Quiz",
-    "quiz.restartQuiz": "Play Again", // Changed from "Restart Quiz"
+    "quiz.restartQuiz": "Play Again",
     "quiz.quitAndRestart": "Quit & Choose New Category",
     "quiz.score": "Score:",
     "quiz.resultsTitle": "Quiz Results",

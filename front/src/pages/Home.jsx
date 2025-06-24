@@ -11,6 +11,7 @@ import {
   AlertIcon,
   Heading,
   Divider,
+  Button, // Added Button import
 } from "@chakra-ui/react";
 import MeetingTypeList from "../components/MeetingTypeList";
 import { withAuthorization } from "../HOC/Protect";
@@ -30,7 +31,7 @@ const Home = () => {
   const { courses, isLoading, error } = useFetchCourses("upcoming");
   const currentLanguage =
     useSelector((state) => state.language.language) || "en";
-  const user = useSelector((state) => state.user.user); // Removed default 'en' as user should exist
+  const user = useSelector((state) => state.user.user);
 
   const [showTriviaQuiz, setShowTriviaQuiz] = useState(false);
 

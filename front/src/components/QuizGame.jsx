@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector }sfrom 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -31,17 +31,16 @@ const QuizGame = ({ onBack }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [score, setScore] = useState(0);
-  const [quizActive, setQuizActive] = useState(false); // True when quiz is ongoing (after category selection, before results)
-  const [quizEnded, setQuizEnded] = useState(false); // True when quiz is finished and results are shown
+  const [quizActive, setQuizActive] = useState(false);
+  const [quizEnded, setQuizEnded] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [error, setError] = useState(null);
-  const [showAnswer, setShowAnswer] = useState(false); // True when the answer is revealed (either by submit or time up)
+  const [showAnswer, setShowAnswer] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState(INITIAL_TIMER_SECONDS);
   const timerRef = useRef(null);
 
-  // Fetch Categories
   useEffect(() => {
     const fetchCategoriesAsync = async () => {
       setLoadingCategories(true);
@@ -54,7 +53,7 @@ const QuizGame = ({ onBack }) => {
         const data = await response.json();
         setCategories(data.trivia_categories || []);
       } catch (err) {
-        setError(err.message); // Show specific error for categories
+        setError(err.message);
         toast({
           title: translations[currentLanguage]?.['quiz.toast.errorTitle'] || translations['en']['quiz.toast.errorTitle'],
           description: err.message,
@@ -77,36 +76,25 @@ const QuizGame = ({ onBack }) => {
   }, []);
 
   const handleTimeUp = useCallback(() => {
-    // This function is called when timer reaches 0
     clearTimer();
-    setShowAnswer(true); // Reveal the answer
-    // No score for time up if no answer was selected, or treat as wrong if an answer was selected but not submitted.
-    // The current logic in handleSubmitAnswer handles scoring based on selectedAnswer.
-    // If no answer selected, it will be processed as wrong by default if selectedAnswer is empty.
-
-    // Show a toast that time is up
+    setShowAnswer(true);
     toast({
       title: translations[currentLanguage]?.['quiz.timesUp'] || translations['en']['quiz.timesUp'],
       status: 'warning',
       duration: 2000,
       isClosable: true,
     });
-
-    // We don't auto-submit here. User sees the revealed answer.
-    // The "Next Question" button will handle moving forward.
-    // If an answer was selected, it will be evaluated when "Next Question" is implicitly called or if we add an explicit submit on time up.
-    // For simplicity, time up just reveals. User must click "Next".
   }, [clearTimer, toast, currentLanguage]);
 
 
   const startTimer = useCallback(() => {
     clearTimer();
     setTimeLeft(INITIAL_TIMER_SECONDS);
-    if (quizActive && !quizEnded) { // Only start if quiz is active and not ended
+    if (quizActive && !quizEnded) {
       timerRef.current = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
-            handleTimeUp(); // Call handleTimeUp when time reaches zero
+            handleTimeUp();
             return 0;
           }
           return prevTime - 1;
@@ -119,9 +107,9 @@ const QuizGame = ({ onBack }) => {
     if (quizActive && !quizEnded && currentQuestionIndex < questions.length) {
       startTimer();
     } else {
-      clearTimer(); // Clear timer if quiz is not active or ended
+      clearTimer();
     }
-    return clearTimer; // Cleanup timer on component unmount or when dependencies change
+    return clearTimer;
   }, [currentQuestionIndex, questions.length, quizActive, quizEnded, startTimer, clearTimer]);
 
 
@@ -133,7 +121,7 @@ const QuizGame = ({ onBack }) => {
     setScore(0);
     setSelectedAnswer('');
     setShowAnswer(false);
-    setQuestions([]); // Clear previous questions
+    setQuestions([]);
 
     let url = `https://opentdb.com/api.php?amount=10&type=multiple&encode=url3986`;
     if (selectedCategory) {
@@ -171,7 +159,7 @@ const QuizGame = ({ onBack }) => {
         throw new Error(translations[currentLanguage]?.['quiz.error.api.noResults'] || translations['en']['quiz.error.api.noResults']);
       }
       setQuestions(decodedQuestions);
-      setQuizActive(true); // Start the quiz gameplay
+      setQuizActive(true);
     } catch (err) {
       setError(err.message);
       setQuizActive(false);
@@ -181,7 +169,7 @@ const QuizGame = ({ onBack }) => {
   }, [selectedCategory, currentLanguage, toast]);
 
   const handleSubmitAnswer = () => {
-    if (showAnswer) return; // Don't re-submit if answer is already shown
+    if (showAnswer) return;
     clearTimer();
     setShowAnswer(true);
     if (selectedAnswer === questions[currentQuestionIndex].correct_answer) {
@@ -190,12 +178,10 @@ const QuizGame = ({ onBack }) => {
   };
 
   const handleNextQuestion = () => {
-    // Score has already been calculated by handleSubmitAnswer or by time up (implicitly no score if no answer)
     setShowAnswer(false);
     setSelectedAnswer('');
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      // Timer will be restarted by the useEffect watching currentQuestionIndex and quizActive state
     } else {
       setQuizEnded(true);
       setQuizActive(false);
@@ -203,7 +189,7 @@ const QuizGame = ({ onBack }) => {
   };
 
   const handleStartQuizAttempt = () => {
-    setError(null); // Clear previous errors before fetching
+    setError(null);
     fetchQuestions();
   }
 
@@ -216,13 +202,11 @@ const QuizGame = ({ onBack }) => {
     setScore(0);
     setSelectedAnswer('');
     setShowAnswer(false);
-    // selectedCategory remains as is, or could be reset if desired
     setError(null);
   };
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  // UI for Category Selection
   if (!quizActive && !quizEnded) {
     if (loadingCategories) {
         return (
@@ -239,7 +223,7 @@ const QuizGame = ({ onBack }) => {
             {translations[currentLanguage]?.['quiz.title'] || translations['en']['quiz.title']}
           </Heading>
 
-          {error && !loadingQuestions && ( // Show error from category fetch or previous question fetch attempt
+          {error && !loadingQuestions && (
             <Alert status="error" mb={4}>
               <AlertIcon />
               {error}
@@ -254,7 +238,6 @@ const QuizGame = ({ onBack }) => {
           >
             <option value="">{translations[currentLanguage]?.['quiz.category.any'] || translations['en']['quiz.category.any']}</option>
             {categories.map(cat => (
-              // Ensure category names are decoded for display
               <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </Select>
@@ -267,7 +250,7 @@ const QuizGame = ({ onBack }) => {
     );
   }
 
-  if (loadingQuestions) { // Loading questions specifically
+  if (loadingQuestions) {
     return (
       <VStack spacing={4} align="center" justify="center" h="200px">
         <Spinner size="xl" />
@@ -295,7 +278,6 @@ const QuizGame = ({ onBack }) => {
     );
   }
 
-  // Main Quiz UI (quizActive is true, quizEnded is false)
   if (quizActive && currentQuestion) {
     return (
       <Box p={5} boxShadow="xl" borderRadius="lg" bg="white" color="gray.700" w="full" maxW="lg" mx="auto">
@@ -330,7 +312,7 @@ const QuizGame = ({ onBack }) => {
                 <Radio
                   key={index}
                   value={answer}
-                  isDisabled={showAnswer || timeLeft === 0} // Disable if answer shown or time is up
+                  isDisabled={showAnswer || timeLeft === 0}
                   colorScheme={showAnswer && answer === currentQuestion.correct_answer ? 'green' : (showAnswer && selectedAnswer === answer && answer !== currentQuestion.correct_answer ? 'red' : 'gray')}
                 >
                   <Text dangerouslySetInnerHTML={{ __html: answer }} />
@@ -339,7 +321,7 @@ const QuizGame = ({ onBack }) => {
             </Stack>
           </RadioGroup>
 
-          {showAnswer && ( // This alert shows after submit or time up
+          {showAnswer && (
             <Alert status={(selectedAnswer === currentQuestion.correct_answer && timeLeft > 0 && selectedAnswer !== '') ? 'success' : 'error'} mt={3} fontSize="sm">
               <AlertIcon />
               {timeLeft === 0 && !selectedAnswer ? (translations[currentLanguage]?.['quiz.timesUpNoAnswer'] || translations['en']['quiz.timesUpNoAnswer']) :
@@ -358,7 +340,7 @@ const QuizGame = ({ onBack }) => {
               >
                 {translations[currentLanguage]?.['quiz.submitAnswer'] || translations['en']['quiz.submitAnswer']}
               </Button>
-            ) : ( // Show "Next Question" if answer is revealed or time is up
+            ) : (
               <Button colorScheme="teal" onClick={handleNextQuestion}>
                 {currentQuestionIndex === questions.length - 1
                   ? (translations[currentLanguage]?.['quiz.finishQuiz'] || translations['en']['quiz.finishQuiz'])
@@ -374,7 +356,6 @@ const QuizGame = ({ onBack }) => {
     );
   }
 
-  // Fallback for unexpected states or if onBack is primary action before anything loads
    return (
      <Box p={5} w="full" maxW="lg" mx="auto" textAlign="center">
         {error && <Alert status="error" mb={4}><AlertIcon />{error}</Alert>}
