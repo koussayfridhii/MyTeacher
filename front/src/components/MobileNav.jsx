@@ -21,6 +21,7 @@ const MobileNav = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const location = useLocation();
   const currentLanguage = useSelector((state) => state.language.language); // Renamed for consistency
+  const user = useSelector((state) => state.user.user);
   const dir = currentLanguage === "ar" ? "rtl" : "ltr";
 
   return (
@@ -71,56 +72,60 @@ const MobileNav = () => {
                 boxSize="8"
               />
               <Text ml={2} fontSize="2xl" fontWeight="extrabold">
-                {currentLanguage === "fr"
-                  ? "Mon Professeur"
-                  : currentLanguage === "ar"
-                  ? "أستاذي"
-                  : "My Teacher"}
+                Be first Learning
               </Text>
             </Box>
             <VStack align="stretch" spacing={4}>
-              {sidebarLinks.map((item) => {
-                const isActive = location.pathname === item.route;
-                return (
-                  <NavLink
-                    to={item.route}
-                    key={item.route}
-                    style={{ textDecoration: "none" }}
-                    onClick={onClose}
-                    dir={dir}
-                  >
-                    <Flex
-                      align="center"
-                      p={3}
-                      borderRadius="md"
-                      bg={isActive ? "primary" : "transparent"}
-                      color={isActive ? "white" : "text"}
+              {sidebarLinks
+                .filter((element) =>
+                  element?.authorizedRoles.includes(user?.role)
+                )
+                .map((item) => {
+                  const isActive =
+                    location.pathname === item.route ||
+                    location.pathname
+                      .replace("/dashboard", "")
+                      .startsWith(`${item.route}`);
+                  return (
+                    <NavLink
+                      to={item.route}
+                      key={item.route}
+                      style={{ textDecoration: "none" }}
+                      onClick={onClose}
                       dir={dir}
-                      gap={2}
                     >
-                      <ChakraImage
-                        src={item.imgURL}
-                        alt={
-                          currentLanguage === "fr"
+                      <Flex
+                        align="center"
+                        p={3}
+                        borderRadius="md"
+                        bg={isActive ? "primary" : "transparent"}
+                        color={isActive ? "white" : "text"}
+                        dir={dir}
+                        gap={2}
+                      >
+                        <ChakraImage
+                          src={item.imgURL}
+                          alt={
+                            currentLanguage === "fr"
+                              ? item.label.fr
+                              : currentLanguage === "ar"
+                              ? item.label.ar
+                              : item.label.en
+                          }
+                          boxSize="5"
+                          mr={4}
+                        />
+                        <Text fontWeight="semibold">
+                          {currentLanguage === "fr"
                             ? item.label.fr
                             : currentLanguage === "ar"
                             ? item.label.ar
-                            : item.label.en
-                        }
-                        boxSize="5"
-                        mr={4}
-                      />
-                      <Text fontWeight="semibold">
-                        {currentLanguage === "fr"
-                          ? item.label.fr
-                          : currentLanguage === "ar"
-                          ? item.label.ar
-                          : item.label.en}
-                      </Text>
-                    </Flex>
-                  </NavLink>
-                );
-              })}
+                            : item.label.en}
+                        </Text>
+                      </Flex>
+                    </NavLink>
+                  );
+                })}
             </VStack>
           </DrawerBody>
         </DrawerContent>
