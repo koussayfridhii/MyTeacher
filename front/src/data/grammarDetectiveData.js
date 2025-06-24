@@ -72,7 +72,43 @@ export const grammarGameData = {
             },
           ],
         },
-        // Add more stories for punctuation here
+        {
+          id: 'story2_punctuation',
+          content: {
+            en: [
+              { text: 'this is a sentence' },
+              { text: ' it needs a capital letter and a period', isError: true, errorId: 'err1_punc_s2' }
+            ],
+            fr: [
+              { text: 'ceci est une phrase' },
+              { text: ' elle nécessite une majuscule et un point', isError: true, errorId: 'err1_punc_s2_fr' }
+            ],
+            ar: [
+              { text: 'هذه جملة' },
+              { text: ' إنها تحتاج إلى حرف كبير ونقطة', isError: true, errorId: 'err1_punc_s2_ar' }
+            ],
+          },
+          errors: [
+            {
+              id: 'err1_punc_s2',
+              incorrectPhrase: { en: 'it needs a capital letter and a period' },
+              correctPhrase: { en: 'It needs a capital letter and a period.' },
+              explanation: { en: 'Sentences start with a capital and end with a period.' },
+            },
+            {
+              id: 'err1_punc_s2_fr',
+              incorrectPhrase: { fr: 'elle nécessite une majuscule et un point' },
+              correctPhrase: { fr: 'Elle nécessite une majuscule et un point.' },
+              explanation: { fr: 'Les phrases commencent par une majuscule et se terminent par un point.' },
+            },
+            {
+              id: 'err1_punc_s2_ar',
+              incorrectPhrase: { ar: 'إنها تحتاج إلى حرف كبير ونقطة' },
+              correctPhrase: { ar: 'إنها تحتاج إلى حرف كبير ونقطة.' }, // Arabic capitalization rules differ, focus on period.
+              explanation: { ar: 'الجمل يجب أن تنتهي بعلامة ترقيم مناسبة مثل النقطة.' },
+            },
+          ],
+        }
       ],
     },
     {
@@ -122,8 +158,47 @@ export const grammarGameData = {
               explanation: { ar: 'كلمة "بالأمس" تدل على الزمن الماضي، لذا يجب استخدام "ذهبت".' },
             },
           ]
+        },
+        {
+          id: 'story2_verb',
+          content: {
+            en: [
+              { text: 'Tomorrow, she ' },
+              { text: 'visited', isError: true, errorId: 'err1_verb_s2' },
+              { text: ' her grandparents.' }
+            ],
+            fr: [
+              { text: 'Demain, elle ' },
+              { text: 'a visité', isError: true, errorId: 'err1_verb_s2_fr' },
+              { text: ' ses grands-parents.' }
+            ],
+            ar: [
+              { text: 'غداً، هي ' },
+              { text: 'زارت', isError: true, errorId: 'err1_verb_s2_ar' },
+              { text: ' أجدادها.' }
+            ],
+          },
+          errors: [
+            {
+              id: 'err1_verb_s2',
+              incorrectPhrase: { en: 'visited' },
+              correctPhrase: { en: 'will visit' },
+              explanation: { en: '"Tomorrow" indicates future tense.' },
+            },
+            {
+              id: 'err1_verb_s2_fr',
+              incorrectPhrase: { fr: 'a visité' },
+              correctPhrase: { fr: 'visitera' },
+              explanation: { fr: '"Demain" indique le futur simple.' },
+            },
+            {
+              id: 'err1_verb_s2_ar',
+              incorrectPhrase: { ar: 'زارت' },
+              correctPhrase: { ar: 'ستزور' },
+              explanation: { ar: 'كلمة "غداً" تدل على الزمن المستقبل.' },
+            },
+          ]
         }
-        // Add more stories for verb tenses here
       ],
     },
     {
@@ -154,6 +229,126 @@ export const grammarGameData = {
               explanation: { en: 'The past participle "eaten" should be used in passive voice constructions with "was".' },
             },
             // Add FR and AR errors
+          ]
+        },
+        {
+          id: 'story2_passive',
+          content: {
+            en: [
+              { text: 'The window ' },
+              { text: 'was break by the wind', isError: true, errorId: 'err1_pass_s2' },
+              { text: '.' }
+            ],
+            fr: [
+              { text: 'La fenêtre ' },
+              { text: 'a été casse par le vent', isError: true, errorId: 'err1_pass_s2_fr' },
+              { text: '.' }
+            ],
+            ar: [
+              { text: 'النافذة ' },
+              { text: 'كسرت بواسطة الرياح', isError: true, errorId: 'err1_pass_s2_ar' },
+              { text: '.' }
+            ],
+          },
+          errors: [
+            {
+              id: 'err1_pass_s2',
+              incorrectPhrase: { en: 'was break by the wind' },
+              correctPhrase: { en: 'was broken by the wind' },
+              explanation: { en: 'Use the past participle "broken" in passive voice.' },
+            },
+            {
+              id: 'err1_pass_s2_fr',
+              incorrectPhrase: { fr: 'a été casse par le vent' },
+              correctPhrase: { fr: 'a été cassée par le vent' },
+              explanation: { fr: 'Utilisez le participe passé "cassée" (accord avec fenêtre).' },
+            },
+            {
+              id: 'err1_pass_s2_ar',
+              incorrectPhrase: { ar: 'كسرت بواسطة الرياح' }, // Assuming error is lack of passive voice marker or form
+              correctPhrase: { ar: 'كُسِرَتْ بواسطة الرياح' },
+              explanation: { ar: 'الفعل "كُسِرَتْ" يجب أن يكون في صيغة المبني للمجهول الصحيحة.' },
+            },
+          ]
+        },
+        {
+          id: 'story2_sva',
+          content: {
+            en: [
+              { text: 'The team ' },
+              { text: 'are playing well', isError: true, errorId: 'err1_sva_s2' },
+              { text: '.' }
+            ],
+            fr: [
+              { text: "L'équipe " },
+              { text: 'jouent bien', isError: true, errorId: 'err1_sva_s2_fr' },
+              { text: '.' }
+            ],
+            ar: [
+              { text: 'الفريق ' },
+              { text: 'يلعبون بشكل جيد', isError: true, errorId: 'err1_sva_s2_ar' },
+              { text: '.' }
+            ],
+          },
+          errors: [
+            {
+              id: 'err1_sva_s2',
+              incorrectPhrase: { en: 'are playing well' },
+              correctPhrase: { en: 'is playing well' },
+              explanation: { en: '"Team" is a singular collective noun here.' },
+            },
+            {
+              id: 'err1_sva_s2_fr',
+              incorrectPhrase: { fr: 'jouent bien' },
+              correctPhrase: { fr: 'joue bien' },
+              explanation: { fr: '"L\'équipe" est un nom collectif singulier.' },
+            },
+            {
+              id: 'err1_sva_s2_ar',
+              incorrectPhrase: { ar: 'يلعبون بشكل جيد' },
+              correctPhrase: { ar: 'يلعب بشكل جيد' },
+              explanation: { ar: 'الفعل يجب أن يتوافق مع الفاعل المفرد "الفريق".' },
+            },
+          ]
+        },
+        {
+          id: 'story2_art',
+          content: {
+            en: [
+              { text: 'He saw ' },
+              { text: 'a elephant', isError: true, errorId: 'err1_art_s2' },
+              { text: ' at the zoo.' }
+            ],
+            fr: [ // Corrected French content for a clear error
+              { text: 'Elle a vu ' },
+              { text: 'le grande éléphant', isError: true, errorId: 'err1_art_s2_fr' },
+              { text: ' au zoo.' }
+            ],
+            ar: [
+              { text: 'هو رأى ' },
+              { text: 'الفيل', isError: true, errorId: 'err1_art_s2_ar' }, // Assuming error is definite article where indefinite might be better for a first mention
+              { text: ' في حديقة الحيوان.' }
+            ],
+          },
+          errors: [
+            {
+              id: 'err1_art_s2',
+              incorrectPhrase: { en: 'a elephant' },
+              correctPhrase: { en: 'an elephant' },
+              explanation: { en: 'Use "an" before a vowel sound.' },
+            },
+            {
+              id: 'err1_art_s2_fr',
+              incorrectPhrase: { fr: 'le grande éléphant' }, // Corrected to match new content.fr
+              correctPhrase: { fr: 'le grand éléphant' },
+              explanation: { fr: 'Accord de l\'adjectif: "grand" avec éléphant (masculin).' },
+            },
+            {
+              id: 'err1_art_s2_ar',
+              incorrectPhrase: { ar: 'الفيل' },
+              correctPhrase: { ar: 'فيلاً' },
+              explanation: { ar: 'عند ذكر شيء لأول مرة بشكل غير محدد، يُستخدم التنوين (فيلاً) بدلاً من أل التعريف.' },
+            },
           ]
         }
       ],
