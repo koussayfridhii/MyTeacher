@@ -14,6 +14,14 @@ import {
   InputGroup,
   InputRightElement,
   Center,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSelector, useDispatch } from "react-redux";
@@ -34,67 +42,118 @@ export default function SignInForm() {
 
   // Local state to toggle password visibility
   const [showPassword, setShowPassword] = useState(false);
+  // For Chakra Modal
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [loginAttemptData, setLoginAttemptData] = useState(null);
+
+  const performSignIn = async (email, password, forceLogin = false) => {
+    const payload = { email, password };
+    if (forceLogin) {
+      payload.forceLogin = true;
+    }
+    const res = await axios.post(
+      import.meta.env.VITE_API_URL + "/auth/signin",
+      payload
+    );
+
+    if (res.status !== 200) {
+      // This case might not be hit if server throws errors for non-200 responses
+      throw new Error(res.data?.message || "Sign-in failed");
+    }
+    return res.data;
+  };
+
+  const handleSuccessfulSignIn = async (token) => {
+    localStorage.setItem("token", token);
+
+    const profileRes = await axios.get(
+      import.meta.env.VITE_API_URL + "/auth/profile",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const walletRes = await axios.get(
+      import.meta.env.VITE_API_URL + "/wallet",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const userData = { user: profileRes.data.user, ...walletRes.data };
+
+    dispatch(loginAction(userData));
+
+    toast({
+      title: `Welcome back! ${userData?.user?.firstName} ${userData?.user?.lastName}`,
+      description: "Signed in successfully.",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
+
+    navigate("/");
+  };
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post(
-        import.meta.env.VITE_API_URL + "/auth/signin",
-        {
-          email: data.Email,
-          password: data.Password,
-        }
-      );
-      if (res.status !== 200) {
+      const responseData = await performSignIn(data.Email, data.Password);
+      await handleSuccessfulSignIn(responseData.token);
+    } catch (err) {
+      if (
+        err.response &&
+        err.response.status === 409 &&
+        err.response.data?.error === "ALREADY_LOGGED_IN"
+      ) {
+        setLoginAttemptData(data); // Store data for when modal is confirmed
+        onOpen(); // Open Chakra Modal
+      } else {
         toast({
           title: "Sign-in failed",
-          description: res.data?.message || "verify your email",
+          description: err.response?.data?.error || "Invalid credentials",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
-        return;
       }
-      // store token
-      localStorage.setItem("token", res.data.token);
-
-      // fetch user profile
-      const profileRes = await axios.get(
-        import.meta.env.VITE_API_URL + "/auth/profile",
-        { headers: { Authorization: `Bearer ${res.data.token}` } }
-      );
-      const walletRes = await axios.get(
-        import.meta.env.VITE_API_URL + "/wallet",
-        { headers: { Authorization: `Bearer ${res.data.token}` } }
-      );
-      const userData = { user: profileRes.data.user, ...walletRes.data };
-
-      // dispatch login to Redux
-      dispatch(loginAction(userData));
-
-      toast({
-        title: `Welcome back! ${userData?.user?.firstName} ${userData?.user?.lastName}`,
-        description: "Signed in successfully.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-
-      navigate("/");
-    } catch (err) {
-      toast({
-        title: "Sign-in failed",
-        description: err.response?.data?.error || "Invalid credentials",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
     }
   };
 
   const language = useSelector((state) => state.language.language);
   const t = translations[language] || translations.en;
 
+  const handleForceLoginConfirm = async () => {
+    if (!loginAttemptData) return;
+    onClose();
+    try {
+      const responseData = await performSignIn(
+        loginAttemptData.Email,
+        loginAttemptData.Password,
+        true
+      );
+      await handleSuccessfulSignIn(responseData.token);
+    } catch (forceErr) {
+      toast({
+        title: "Sign-in failed",
+        description:
+          forceErr.response?.data?.error ||
+          "Could not force sign-in. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    setLoginAttemptData(null); // Clear attempt data
+  };
+
+  const handleModalClose = () => {
+    onClose();
+    toast({
+      title: "Sign-in cancelled",
+      description: "You chose not to sign in on this device.",
+      status: "info",
+      duration: 5000,
+      isClosable: true,
+    });
+    setLoginAttemptData(null); // Clear attempt data
+  };
+
   return (
+    <> {/* Added Fragment to wrap existing Flex and Modal */}
     <Flex
       flexDir={{ base: "column-reverse", lg: "row" }}
       w="100%"
@@ -204,5 +263,27 @@ export default function SignInForm() {
         </form>
       </Card>
     </Flex>
+
+    {/* Force Login Confirmation Modal */}
+    <Modal isOpen={isOpen} onClose={handleModalClose} isCentered>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Already Logged In</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          You're already logged in elsewhere. Do you want to force logout other
+          sessions and sign in here?
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" mr={3} onClick={handleModalClose}>
+            Cancel
+          </Button>
+          <Button colorScheme="blue" onClick={handleForceLoginConfirm}>
+            Force Sign In
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+    </>
   );
 }

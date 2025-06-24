@@ -123,7 +123,7 @@ export const verifyEmail = async (req, res, next) => {
 // @desc    Authenticate & enforce single-device session
 export const signin = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, forceLogin = false } = req.body; // Added forceLogin
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
@@ -140,9 +140,14 @@ export const signin = async (req, res, next) => {
       return res.status(403).json({ error: "Teacher not approved yet" });
 
     if (user.currentJti) {
-      return res
-        .status(403)
-        .json({ error: "Already signed in on another device" });
+      if (forceLogin) {
+        // User wants to force login, proceed to overwrite JTI
+      } else {
+        // User is already logged in, and forceLogin is not true
+        return res
+          .status(409) // 409 Conflict
+          .json({ error: "ALREADY_LOGGED_IN" });
+      }
     }
 
     const jti = uuidv4();
@@ -150,7 +155,7 @@ export const signin = async (req, res, next) => {
       expiresIn: "30d",
     });
 
-    user.currentJti = jti;
+    user.currentJti = jti; // Set new JTI (overwrites old if forceLogin was true)
     await user.save();
 
     return res.json({ token });
