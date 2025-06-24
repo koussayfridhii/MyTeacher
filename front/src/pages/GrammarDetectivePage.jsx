@@ -1,12 +1,20 @@
 import React from 'react';
-import { Box, Container } from '@chakra-ui/react';
-import GrammarDetectiveGame from '../components/GrammarDetectiveGame'; // Adjust path as necessary
+import { Box, Container, Button, VStack } from '@chakra-ui/react';
+import { Link as RouterLink } from 'react-router-dom';
+import GrammarDetectiveGame from '../components/GrammarDetectiveGame';
 
 const GrammarDetectivePage = () => {
   return (
     <Box width="100%" py={10}>
       <Container maxW="container.lg">
-        <GrammarDetectiveGame />
+        <VStack spacing={6} align="stretch">
+          <Box>
+            <Button as={RouterLink} to="/dashboard" colorScheme="teal" variant="outline">
+              Back to Home
+            </Button>
+          </Box>
+          <GrammarDetectiveGame />
+        </VStack>
       </Container>
     </Box>
   );
