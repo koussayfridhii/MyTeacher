@@ -313,22 +313,32 @@ const GrammarDetectiveGame = () => {
                   as="span"
                   key={`${currentStory.id}-seg-${index}`}
                   bg={
-                    selectedSegments[index] ? 'yellow.300' :
-                    revealedErrors[segment.errorId] ? 'green.100' :
-                    allErrorsFound ? 'transparent' :
-                    'gray.100' // Default for all unrevealed words
+                    storySubmitted ?
+                      (revealedErrors[segment.errorId] ? 'green.100' : // POST-SUBMISSION: Correctly found error
+                        (segment.isError ? 'orange.100' : // POST-SUBMISSION: Missed actual error
+                          (userSelections[index] ? 'red.100' : 'transparent'))) : // POST-SUBMISSION: Incorrectly selected non-error vs correctly ignored
+                    (userSelections[index] ? 'blue.100' : // PRE-SUBMISSION: User's current selection
+                      (selectedSegments[index] ? 'yellow.100' : // PRE-SUBMISSION: Brief click highlight
+                        'gray.100')) // PRE-SUBMISSION: Default clickable
                   }
                   color={
-                    revealedErrors[segment.errorId] ? 'green.700' :
-                    'inherit' // Default for all unrevealed words
+                    storySubmitted ?
+                      (revealedErrors[segment.errorId] ? 'green.700' :
+                        (segment.isError ? 'orange.700' :
+                          (userSelections[index] ? 'red.700' : 'inherit'))) :
+                    (userSelections[index] ? 'blue.700' : 'inherit') // PRE-SUBMISSION: Blue text for selected items
                   }
                   fontWeight={
-                    revealedErrors[segment.errorId] ? 'bold' :
-                    'normal' // Default for all unrevealed words
+                    // PRE-SUBMISSION: Bold if selected by user.
+                    // POST-SUBMISSION: Bold if it was an actual error (missed or found) or if user incorrectly selected a non-error.
+                    (userSelections[index] && !storySubmitted) ||
+                    (storySubmitted && (segment.isError || userSelections[index])) || // If it's an error, or user selected it
+                    revealedErrors[segment.errorId] // If it was a correctly revealed error
+                    ? 'bold' : 'normal'
                   }
-                  cursor={allErrorsFound || (segment.isError && revealedErrors[segment.errorId]) ? 'default' : 'pointer'}
+                  cursor={storySubmitted ? 'default' : 'pointer'}
                   onClick={() => handleSegmentClick(segment, index)}
-                  _hover={allErrorsFound || (segment.isError && revealedErrors[segment.errorId]) ? {} : { bg: 'yellow.200', color: 'black' }}
+                  _hover={storySubmitted ? {} : { bg: 'yellow.200', color: 'black' }} // Hover only if not submitted
                   p={1} // Padding for all segments to make them feel like distinct clickable entities
                   borderRadius="md"
                   mr="2px" // Minimal space between words
