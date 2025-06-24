@@ -20,7 +20,7 @@ import { useSelector } from "react-redux";
 import CoordinatorsRankChart from "../components/CoordinatorsRankChart";
 import IncomesChart from "../components/IncomesChart";
 import StudentStatsTable from "../components/StudentStatsTable"; // Added import
-import Game from "../components/MAthGame";
+import QuizGame from "../components/QuizGame"; // Changed from MAthGame to QuizGame
 
 const Home = () => {
   const [time, setTime] = useState("");
@@ -171,7 +171,7 @@ const Home = () => {
           </Box>
         </Flex>
       </Box>
-      {["teacher", "student"].includes(user.role) && <Game />}
+      {["teacher", "student"].includes(user.role) && <QuizGame />} {/* Changed from Game to QuizGame */}
       {["admin", "coordinator"].includes(user.role) && (
         <>
           <Heading color="primary" textDecor="underline">
