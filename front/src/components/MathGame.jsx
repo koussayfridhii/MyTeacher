@@ -51,7 +51,7 @@ function generateQuestions(count = 100) {
   return questions;
 }
 const questions = generateQuestions(10);
-const MAthGame = () => {
+const MathGame = () => {
   const currentLanguage = useSelector((state) => state.language.language);
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -255,4 +255,4 @@ const MAthGame = () => {
   );
 };
 
-export default MAthGame;
+export default MathGame;

@@ -42,6 +42,8 @@ const Parents = lazy(() => import("./pages/Parents.jsx"));
 const PaymentProof = lazy(() => import("./pages/PaymentProof.jsx"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage.jsx"));
 const GrammarDetectivePage = lazy(() => import("./pages/GrammarDetectivePage.jsx")); // Added Grammar Detective Page
+const MathGamePage = lazy(() => import("./pages/MathGamePage.jsx")); // Added Math Game Page
+const TriviaGamePage = lazy(() => import("./pages/TriviaGamePage.jsx")); // Added Trivia Game Page
 const LandingContentManagementPage = lazy(() =>
   import("./pages/admin/LandingContentManagementPage.jsx")
 );
@@ -106,6 +108,8 @@ const router = createBrowserRouter([
           { path: "payment-proof", element: <PaymentProof /> },
           { path: "comments", element: <CommentsPage /> },
           { path: "grammar-detective", element: <GrammarDetectivePage /> }, // Added Grammar Detective route
+          { path: "math-game", element: <MathGamePage /> }, // Added Math Game route
+          { path: "trivia-quiz", element: <TriviaGamePage /> }, // Changed Trivia Game route to match Home.jsx
 
           { path: "potential-clients", element: <PotentialClientsListView /> },
           {
