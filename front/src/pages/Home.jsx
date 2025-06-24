@@ -30,8 +30,7 @@ import { useSelector } from "react-redux";
 import CoordinatorsRankChart from "../components/CoordinatorsRankChart";
 import IncomesChart from "../components/IncomesChart";
 import StudentStatsTable from "../components/StudentStatsTable"; // Added import
-import Game from "../components/MAthGame"; // This is the Math Game
-import QuizGame from "../components/QuizGame"; // This is the new Trivia Quiz Game
+// Game imports removed as they are now linked as pages
 import { translations } from "../utils/translations"; // For button text
 
 const Home = () => {
