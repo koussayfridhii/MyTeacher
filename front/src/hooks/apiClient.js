@@ -35,8 +35,8 @@ apiClient.interceptors.response.use(
       localStorage.removeItem("token");
       // Redirect to sign-in page
       // Check if already on sign-in page to prevent redirect loop
-      if (window.location.pathname !== "/auth/signin") {
-        window.location.href = "/auth/signin";
+      if (window.location.pathname !== "/signin") { // Corrected path
+        window.location.href = "/signin"; // Corrected path
       }
     }
     return Promise.reject(error); // Pass through other errors
