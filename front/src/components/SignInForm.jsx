@@ -14,6 +14,14 @@ import {
   InputGroup,
   InputRightElement,
   Center,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useSelector, useDispatch } from "react-redux";
@@ -34,6 +42,9 @@ export default function SignInForm() {
 
   // Local state to toggle password visibility
   const [showPassword, setShowPassword] = useState(false);
+  // For Chakra Modal
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [loginAttemptData, setLoginAttemptData] = useState(null);
 
   const performSignIn = async (email, password, forceLogin = false) => {
     const payload = { email, password };
@@ -88,39 +99,8 @@ export default function SignInForm() {
         err.response.status === 409 &&
         err.response.data?.error === "ALREADY_LOGGED_IN"
       ) {
-        // Use window.confirm for simplicity, replace with Chakra UI Modal for better UX
-        const confirmForceLogin = window.confirm(
-          "You're already logged in elsewhere. Do you want to force logout other sessions and sign in here?"
-        );
-        if (confirmForceLogin) {
-          try {
-            const responseData = await performSignIn(
-              data.Email,
-              data.Password,
-              true
-            );
-            await handleSuccessfulSignIn(responseData.token);
-          } catch (forceErr) {
-            toast({
-              title: "Sign-in failed",
-              description:
-                forceErr.response?.data?.error ||
-                "Could not force sign-in. Please try again.",
-              status: "error",
-              duration: 5000,
-              isClosable: true,
-            });
-          }
-        } else {
-          // User chose not to force login
-          toast({
-            title: "Sign-in cancelled",
-            description: "You chose not to sign in on this device.",
-            status: "info",
-            duration: 5000,
-            isClosable: true,
-          });
-        }
+        setLoginAttemptData(data); // Store data for when modal is confirmed
+        onOpen(); // Open Chakra Modal
       } else {
         toast({
           title: "Sign-in failed",
@@ -136,7 +116,44 @@ export default function SignInForm() {
   const language = useSelector((state) => state.language.language);
   const t = translations[language] || translations.en;
 
+  const handleForceLoginConfirm = async () => {
+    if (!loginAttemptData) return;
+    onClose();
+    try {
+      const responseData = await performSignIn(
+        loginAttemptData.Email,
+        loginAttemptData.Password,
+        true
+      );
+      await handleSuccessfulSignIn(responseData.token);
+    } catch (forceErr) {
+      toast({
+        title: "Sign-in failed",
+        description:
+          forceErr.response?.data?.error ||
+          "Could not force sign-in. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    setLoginAttemptData(null); // Clear attempt data
+  };
+
+  const handleModalClose = () => {
+    onClose();
+    toast({
+      title: "Sign-in cancelled",
+      description: "You chose not to sign in on this device.",
+      status: "info",
+      duration: 5000,
+      isClosable: true,
+    });
+    setLoginAttemptData(null); // Clear attempt data
+  };
+
   return (
+    <> {/* Added Fragment to wrap existing Flex and Modal */}
     <Flex
       flexDir={{ base: "column-reverse", lg: "row" }}
       w="100%"
@@ -246,5 +263,27 @@ export default function SignInForm() {
         </form>
       </Card>
     </Flex>
+
+    {/* Force Login Confirmation Modal */}
+    <Modal isOpen={isOpen} onClose={handleModalClose} isCentered>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Already Logged In</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          You're already logged in elsewhere. Do you want to force logout other
+          sessions and sign in here?
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" mr={3} onClick={handleModalClose}>
+            Cancel
+          </Button>
+          <Button colorScheme="blue" onClick={handleForceLoginConfirm}>
+            Force Sign In
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+    </>
   );
 }
