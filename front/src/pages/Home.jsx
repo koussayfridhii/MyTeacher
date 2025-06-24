@@ -11,6 +11,7 @@ import {
   AlertIcon,
   Heading,
   Divider,
+  Button, // Added Button import
 } from "@chakra-ui/react";
 import MeetingTypeList from "../components/MeetingTypeList";
 import { withAuthorization } from "../HOC/Protect";
@@ -20,15 +21,19 @@ import { useSelector } from "react-redux";
 import CoordinatorsRankChart from "../components/CoordinatorsRankChart";
 import IncomesChart from "../components/IncomesChart";
 import StudentStatsTable from "../components/StudentStatsTable"; // Added import
-import Game from "../components/MAthGame";
+import Game from "../components/MAthGame"; // This is the Math Game
+import QuizGame from "../components/QuizGame"; // This is the new Trivia Quiz Game
+import { translations } from "../utils/translations"; // For button text
 
 const Home = () => {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
   const { courses, isLoading, error } = useFetchCourses("upcoming");
   const currentLanguage =
-    useSelector((state) => state.language.language) || "en"; // Renamed for consistency
-  const user = useSelector((state) => state.user.user) || "en";
+    useSelector((state) => state.language.language) || "en";
+  const user = useSelector((state) => state.user.user);
+
+  const [showTriviaQuiz, setShowTriviaQuiz] = useState(false);
 
   // Update clock display
   useEffect(() => {
@@ -171,8 +176,32 @@ const Home = () => {
           </Box>
         </Flex>
       </Box>
-      {["teacher", "student"].includes(user.role) && <Game />}
-      {["admin", "coordinator"].includes(user.role) && (
+
+      {user && ["teacher", "student"].includes(user.role) && (
+        <Box w="full" p={4} borderWidth="1px" borderRadius="lg" overflow="hidden" bg={useColorModeValue("gray.50", "gray.700")}>
+          <Heading size="md" mb={4} color={useColorModeValue("gray.700", "white")}>
+            {translations[currentLanguage]?.['home.gamesSectionTitle'] || translations['en']['home.gamesSectionTitle'] || "Games & Activities"}
+          </Heading>
+          <Flex direction={{ base: "column", md: "row" }} gap={4}>
+            <Button onClick={() => setShowTriviaQuiz(false)} variant={!showTriviaQuiz ? "solid" : "outline"} colorScheme="teal" flex="1">
+              {translations[currentLanguage]?.['home.mathQuizTitle'] || translations['en']['home.mathQuizTitle'] || "Math Quiz"}
+            </Button>
+            <Button onClick={() => setShowTriviaQuiz(true)} variant={showTriviaQuiz ? "solid" : "outline"} colorScheme="purple" flex="1">
+              {translations[currentLanguage]?.['home.triviaQuizTitle'] || translations['en']['home.triviaQuizTitle'] || "Trivia Quiz"}
+            </Button>
+          </Flex>
+
+          <Box mt={6}>
+            {showTriviaQuiz ? (
+              <QuizGame onBack={() => setShowTriviaQuiz(false)} />
+            ) : (
+              <Game />
+            )}
+          </Box>
+        </Box>
+      )}
+
+      {user && ["admin", "coordinator"].includes(user.role) && (
         <>
           <Heading color="primary" textDecor="underline">
             {currentLanguage === "fr"
