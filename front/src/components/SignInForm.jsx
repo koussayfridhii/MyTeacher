@@ -35,59 +35,101 @@ export default function SignInForm() {
   // Local state to toggle password visibility
   const [showPassword, setShowPassword] = useState(false);
 
+  const performSignIn = async (email, password, forceLogin = false) => {
+    const payload = { email, password };
+    if (forceLogin) {
+      payload.forceLogin = true;
+    }
+    const res = await axios.post(
+      import.meta.env.VITE_API_URL + "/auth/signin",
+      payload
+    );
+
+    if (res.status !== 200) {
+      // This case might not be hit if server throws errors for non-200 responses
+      throw new Error(res.data?.message || "Sign-in failed");
+    }
+    return res.data;
+  };
+
+  const handleSuccessfulSignIn = async (token) => {
+    localStorage.setItem("token", token);
+
+    const profileRes = await axios.get(
+      import.meta.env.VITE_API_URL + "/auth/profile",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const walletRes = await axios.get(
+      import.meta.env.VITE_API_URL + "/wallet",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const userData = { user: profileRes.data.user, ...walletRes.data };
+
+    dispatch(loginAction(userData));
+
+    toast({
+      title: `Welcome back! ${userData?.user?.firstName} ${userData?.user?.lastName}`,
+      description: "Signed in successfully.",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
+
+    navigate("/");
+  };
+
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post(
-        import.meta.env.VITE_API_URL + "/auth/signin",
-        {
-          email: data.Email,
-          password: data.Password,
+      const responseData = await performSignIn(data.Email, data.Password);
+      await handleSuccessfulSignIn(responseData.token);
+    } catch (err) {
+      if (
+        err.response &&
+        err.response.status === 409 &&
+        err.response.data?.error === "ALREADY_LOGGED_IN"
+      ) {
+        // Use window.confirm for simplicity, replace with Chakra UI Modal for better UX
+        const confirmForceLogin = window.confirm(
+          "You're already logged in elsewhere. Do you want to force logout other sessions and sign in here?"
+        );
+        if (confirmForceLogin) {
+          try {
+            const responseData = await performSignIn(
+              data.Email,
+              data.Password,
+              true
+            );
+            await handleSuccessfulSignIn(responseData.token);
+          } catch (forceErr) {
+            toast({
+              title: "Sign-in failed",
+              description:
+                forceErr.response?.data?.error ||
+                "Could not force sign-in. Please try again.",
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+            });
+          }
+        } else {
+          // User chose not to force login
+          toast({
+            title: "Sign-in cancelled",
+            description: "You chose not to sign in on this device.",
+            status: "info",
+            duration: 5000,
+            isClosable: true,
+          });
         }
-      );
-      if (res.status !== 200) {
+      } else {
         toast({
           title: "Sign-in failed",
-          description: res.data?.message || "verify your email",
+          description: err.response?.data?.error || "Invalid credentials",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
-        return;
       }
-      // store token
-      localStorage.setItem("token", res.data.token);
-
-      // fetch user profile
-      const profileRes = await axios.get(
-        import.meta.env.VITE_API_URL + "/auth/profile",
-        { headers: { Authorization: `Bearer ${res.data.token}` } }
-      );
-      const walletRes = await axios.get(
-        import.meta.env.VITE_API_URL + "/wallet",
-        { headers: { Authorization: `Bearer ${res.data.token}` } }
-      );
-      const userData = { user: profileRes.data.user, ...walletRes.data };
-
-      // dispatch login to Redux
-      dispatch(loginAction(userData));
-
-      toast({
-        title: `Welcome back! ${userData?.user?.firstName} ${userData?.user?.lastName}`,
-        description: "Signed in successfully.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-
-      navigate("/");
-    } catch (err) {
-      toast({
-        title: "Sign-in failed",
-        description: err.response?.data?.error || "Invalid credentials",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
     }
   };
 
