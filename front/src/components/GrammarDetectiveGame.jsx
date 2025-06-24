@@ -360,7 +360,20 @@ const GrammarDetectiveGame = () => {
               </Box>
             ))}
 
-            {allErrorsFound && (
+            {/* Submit Button */}
+            {!storySubmitted && currentStory && (
+              <Button
+                colorScheme="green"
+                onClick={handleSubmitResponse}
+                mt={4}
+                alignSelf="center"
+              >
+                {t('grammarDetective.submitResponse', currentLanguage, {fallback: "Submit Response"})}
+              </Button>
+            )}
+
+            {/* Next Story/Finish Category Button - Condition Corrected */}
+            {storySubmitted && !gameCompleted && currentStory && (
               <Button colorScheme="blue" onClick={nextStory} mt={3} alignSelf="center">
                 {currentStoryIndex < stories.length - 1 ? t('quiz.nextQuestion', currentLanguage) : t('quiz.finishQuiz', currentLanguage, {fallback: "Finish Category"})}
               </Button>
@@ -369,7 +382,7 @@ const GrammarDetectiveGame = () => {
         ) : (
           !gameCompleted && <Text textAlign="center" p={5}>{currentCategoryId ? t('quiz.loading', currentLanguage) : t('grammarDetective.selectCategoryPrompt', currentLanguage, {fallback: "Please select a category to start."})}</Text>
         )}
-         <Button onClick={tryAgainCategory} colorScheme="orange" mt={4} isLoading={!currentStory && !gameCompleted} variant="outline">
+         <Button onClick={tryAgainCategory} colorScheme="orange" mt={4} isLoading={!currentStory && !gameCompleted && stories.length > 0} variant="outline">
             {t('quiz.tryAgain', currentLanguage, {fallback: "Restart Category"})}
         </Button>
       </VStack>
