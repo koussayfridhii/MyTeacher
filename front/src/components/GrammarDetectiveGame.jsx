@@ -28,9 +28,11 @@ const GrammarDetectiveGame = () => {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [currentStory, setCurrentStory] = useState(null);
 
-  const [selectedSegments, setSelectedSegments] = useState({}); // Tracks user's active selection { segmentIndex: true }
-  const [revealedErrors, setRevealedErrors] = useState({}); // { errorId: true }
-  const [feedbackMessages, setFeedbackMessages] = useState([]); // Array of feedback objects {type, message, correctText}
+  const [selectedSegments, setSelectedSegments] = useState({}); // For brief hover/click highlight if still desired, but userSelections is main
+  const [revealedErrors, setRevealedErrors] = useState({}); // { errorId: true } - Populated after submission for correct ones
+  const [userSelections, setUserSelections] = useState({}); // { segmentIndex: true } for words user *thinks* are errors
+  const [storySubmitted, setStorySubmitted] = useState(false); // Has the current story's response been submitted?
+  const [feedbackMessages, setFeedbackMessages] = useState([]); // Array of feedback objects {type, message, correctText} - Populated after submission
   const [score, setScore] = useState(0);
   const [gameCompleted, setGameCompleted] = useState(false);
 
@@ -97,10 +99,12 @@ const GrammarDetectiveGame = () => {
   }, [stories, currentStoryIndex, currentLanguage]);
 
   const resetStoryState = () => {
-    setSelectedSegments({});
-    setRevealedErrors({});
-    setFeedbackMessages([]);
-    setGameCompleted(false);
+    setSelectedSegments({}); // For brief click visual if any
+    setRevealedErrors({});   // Errors confirmed by submission
+    setUserSelections({});   // User's current picks for the story
+    setStorySubmitted(false); // Reset submission state
+    setFeedbackMessages([]); // Clear old feedback
+    // setGameCompleted(false); // This is more for end of category, not individual story reset
   };
 
   const handleLanguageChange = (e) => {
@@ -109,60 +113,109 @@ const GrammarDetectiveGame = () => {
 
   const handleCategoryChange = (event) => {
     setCurrentCategoryId(event.target.value);
-    setScore(0); // Reset score when category changes
+    setScore(0);
+    setGameCompleted(false); // Reset game completion when category changes
+    // resetStoryState() will be called by useEffect due to currentCategoryId change if stories are loaded
   };
 
   const handleSegmentClick = (segment, segmentIndex) => {
-    // Prevent interaction if the story is completed or if the specific error in a segment is already revealed
-    if (allErrorsFound || (segment.isError && revealedErrors[segment.errorId])) {
-      return;
-    }
+    if (storySubmitted) return; // Don't allow changes after submission
 
+    // Briefly highlight the clicked segment for immediate feedback
     setSelectedSegments({ [segmentIndex]: true });
     setTimeout(() => {
       setSelectedSegments({});
-    }, 700); // Briefly highlight clicked segment
+    }, 300);
 
-    if (segment.isError) {
-      const errorDefinition = currentStory.errors.find(e => e.id === segment.errorId);
-      // This check should always pass if data is consistent and segment.isError is true
-      setRevealedErrors(prev => ({ ...prev, [segment.errorId]: true }));
-      setScore(prevScore => prevScore + 10);
-      setFeedbackMessages(prev => [...prev, {
-        type: 'correct',
-        messageKey: 'quiz.correct',
-        explanation: errorDefinition?.explanation,
-        correctText: errorDefinition?.correctPhrase,
-        errorId: segment.errorId,
-      }]);
-      toast({
-        title: t('quiz.correct', currentLanguage),
-        description: errorDefinition?.explanation || t('grammarDetective.wellDone', currentLanguage, {fallback: "Well done!"}),
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-    } else {
-      // Clicked on a non-error word
-      setScore(prevScore => Math.max(0, prevScore - 5)); // Penalize for wrong click
-      toast({
-        title: t('quiz.wrong', currentLanguage),
-        description: t('grammarDetective.clickedNonError', currentLanguage, {fallback: "That wasn't an error. Moving to the next question."}),
-        status: 'error',
-        duration: 2500,
-        isClosable: true,
-      });
-      // Automatically move to the next story
-      // Add a slight delay to allow the user to read the toast
-      setTimeout(() => {
-        nextStory();
-      }, 2500);
-    }
+
+    setUserSelections(prev => {
+      const newSelections = {...prev};
+      if (newSelections[segmentIndex]) {
+        delete newSelections[segmentIndex]; // Toggle off if already selected
+      } else {
+        newSelections[segmentIndex] = true; // Toggle on
+      }
+      return newSelections;
+    });
+    // No scoring or toasts here; that happens on submit.
+  };
+
+  const handleSubmitResponse = () => {
+    if (!currentStory) return;
+    setStorySubmitted(true); // Mark story as submitted to change UI state
+
+    // Placeholder for actual grading logic (will be detailed in next plan step)
+    // For now, let's just show a toast. The real grading will update revealedErrors and score.
+
+    let storyScoreChange = 0;
+    const newRevealedErrors = {}; // Stores error.id for correctly identified errors in this submission
+    const newFeedbackMessages = [];
+
+    // 1. Check all actual errors defined in the story
+    currentStory.errors.forEach(error => {
+      const errorSegmentIndex = currentStory.content.findIndex(s => s.errorId === error.id);
+
+      if (errorSegmentIndex !== -1) {
+        const errorSegmentOriginalText = currentStory.content[errorSegmentIndex].text;
+        if (userSelections[errorSegmentIndex]) { // User correctly identified this error
+          storyScoreChange += 10;
+          newRevealedErrors[error.id] = true;
+          newFeedbackMessages.push({
+            type: 'correct',
+            titleKey: 'grammarDetective.feedbackCorrectTitle',
+            originalText: errorSegmentOriginalText,
+            correctText: error.correctPhrase,
+            explanation: error.explanation,
+            id: `fb-correct-${error.id}`
+          });
+        } else { // User missed this actual error
+          storyScoreChange -= 5;
+          newFeedbackMessages.push({
+            type: 'missed',
+            titleKey: 'grammarDetective.feedbackMissedTitle',
+            originalText: errorSegmentOriginalText,
+            correctText: error.correctPhrase,
+            explanation: error.explanation,
+            id: `fb-missed-${error.id}`
+          });
+        }
+      }
+    });
+
+    // 2. Check all user selections for false positives
+    Object.keys(userSelections).forEach(selectedIndexStr => {
+      const selectedIndex = parseInt(selectedIndexStr, 10);
+      const segment = currentStory.content[selectedIndex];
+      if (segment && !segment.isError) { // User selected a segment that is NOT an error
+        storyScoreChange -= 3;
+        newFeedbackMessages.push({
+          type: 'incorrect_selection',
+          titleKey: 'grammarDetective.feedbackIncorrectSelectionTitle',
+          originalText: segment.text,
+          explanation: t('grammarDetective.feedbackIncorrectSelectionExpl', currentLanguage, { fallback: "This was not an error."}),
+          id: `fb-incorrect-${selectedIndex}`
+        });
+      }
+    });
+
+    setScore(prev => Math.max(0, prev + storyScoreChange));
+    setRevealedErrors(newRevealedErrors);
+    setFeedbackMessages(newFeedbackMessages);
+    // storySubmitted is already true
+
+    toast({
+      title: t('grammarDetective.responseSubmittedTitle', currentLanguage, { fallback: "Results Evaluated" }),
+      description: t('grammarDetective.responseSubmittedDesc', currentLanguage, { fallback: "Review the feedback below and click 'Next Story' to continue." }),
+      status: 'info',
+      duration: 3000,
+      isClosable: true,
+    });
+    // In the next step, this function will:
   };
 
   const nextStory = () => {
     if (currentStoryIndex < stories.length - 1) {
-      setCurrentStoryIndex(prevIndex => prevIndex + 1);
+      setCurrentStoryIndex(prevIndex => prevIndex + 1); // This will trigger useEffect to load new story & call resetStoryState
     } else {
       setGameCompleted(true);
       toast({
@@ -182,16 +235,35 @@ const GrammarDetectiveGame = () => {
   };
 
   const allErrorsFound = React.useMemo(() => {
-    if (!currentStory || !currentStory.errors || currentStory.errors.length === 0) return false;
-    const totalErrorsInStory = currentStory.errors.length;
-    // Count revealed errors that BELONG to the current story.
-    let count = 0;
-    currentStory.errors.forEach(err => {
-        if (revealedErrors[err.id])
-            count++;
-    });
-    return count === totalErrorsInStory;
-  }, [currentStory, revealedErrors]);
+    // This hook's meaning changes. It's no longer about *live* finding.
+    // It might be used *after* submission to check if all *actual* errors were part of user's correct selections.
+    // Or, it might be removed if not directly used in UI logic post-submission for enabling next button.
+    // For now, the "Next Story" button appears simply when storySubmitted is true.
+    if (!currentStory || !currentStory.errors || !storySubmitted) return false;
+
+    let allCorrectlyIdentified = true;
+    if (currentStory.errors.length === 0 && Object.keys(userSelections).length > 0) {
+        // Story has no errors, but user selected some.
+        allCorrectlyIdentified = false;
+    } else {
+        for (const error of currentStory.errors) {
+            const errorSegmentIndex = currentStory.content.findIndex(s => s.errorId === error.id);
+            if (errorSegmentIndex === -1 || !userSelections[errorSegmentIndex]) {
+                allCorrectlyIdentified = false; // Missed an error
+                break;
+            }
+        }
+        if (allCorrectlyIdentified) {
+            for (const selectedIndex in userSelections) {
+                if (!currentStory.content[parseInt(selectedIndex)].isError) {
+                    allCorrectlyIdentified = false; // Selected a non-error
+                    break;
+                }
+            }
+        }
+    }
+    return allCorrectlyIdentified;
+  }, [currentStory, userSelections, storySubmitted]);
 
   if (categories.length === 0) {
     return <Text p={5}>{t('quiz.loading', currentLanguage)}</Text>;

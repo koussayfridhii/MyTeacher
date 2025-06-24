@@ -683,9 +683,17 @@ const translations = {
     "grammarDetective.noStoriesInCategory": "No stories in this category or select a category.",
     "grammarDetective.categoryComplete": "Category Complete!",
     "grammarDetective.selectCategoryPrompt": "Please select a category to start.",
-    "grammarDetective.notAnError": "That's not the error we were looking for.", // Retained if used elsewhere, but new key is more specific
-    "grammarDetective.clickedNonError": "That wasn't an error. Moving to the next question.",
+    "grammarDetective.notAnError": "That's not the error we were looking for.",
+    "grammarDetective.clickedNonError": "That wasn't an error. Moving to the next question.", // This might be obsolete now
     "grammarDetective.wellDone": "Well done!",
+    "grammarDetective.submitResponse": "Submit Response",
+    "grammarDetective.responseSubmittedTitle": "Results Evaluated",
+    "grammarDetective.responseSubmittedDesc": "Review the feedback below and click 'Next Story' to continue.",
+    "grammarDetective.feedbackSectionTitle": "Feedback",
+    "grammarDetective.feedbackCorrectTitle": "Correctly Identified",
+    "grammarDetective.feedbackMissedTitle": "Error Missed",
+    "grammarDetective.feedbackIncorrectSelectionTitle": "Incorrectly Selected",
+    "grammarDetective.feedbackIncorrectSelectionExpl": "This was not an error.",
   },
   fr: {
     parents: "Parents",
@@ -1403,9 +1411,17 @@ const translations = {
     "grammarDetective.noStoriesInCategory": "Aucune histoire dans cette catégorie ou sélectionnez une catégorie.",
     "grammarDetective.categoryComplete": "Catégorie Terminée !",
     "grammarDetective.selectCategoryPrompt": "Veuillez sélectionner une catégorie pour commencer.",
-    "grammarDetective.notAnError": "Ce n'est pas l'erreur que nous cherchions.", // Retained
-    "grammarDetective.clickedNonError": "Ce n'était pas une erreur. Passage à la question suivante.",
+    "grammarDetective.notAnError": "Ce n'est pas l'erreur que nous cherchions.",
+    "grammarDetective.clickedNonError": "Ce n'était pas une erreur. Passage à la question suivante.", // This might be obsolete now
     "grammarDetective.wellDone": "Bien joué !",
+    "grammarDetective.submitResponse": "Soumettre la Réponse",
+    "grammarDetective.responseSubmittedTitle": "Résultats Évalués",
+    "grammarDetective.responseSubmittedDesc": "Examinez les commentaires ci-dessous et cliquez sur 'Histoire Suivante' pour continuer.",
+    "grammarDetective.feedbackSectionTitle": "Commentaires",
+    "grammarDetective.feedbackCorrectTitle": "Correctement Identifié",
+    "grammarDetective.feedbackMissedTitle": "Erreur Manquée",
+    "grammarDetective.feedbackIncorrectSelectionTitle": "Incorrectement Sélectionné",
+    "grammarDetective.feedbackIncorrectSelectionExpl": "Ceci n'était pas une erreur.",
   },
   ar: {
     parents: "أولياء الأمور",
@@ -2078,9 +2094,17 @@ const translations = {
     "grammarDetective.noStoriesInCategory": "لا توجد قصص في هذه الفئة أو اختر فئة.",
     "grammarDetective.categoryComplete": "اكتملت الفئة!",
     "grammarDetective.selectCategoryPrompt": "يرجى اختيار فئة للبدء.",
-    "grammarDetective.notAnError": "ليس هذا هو الخطأ الذي كنا نبحث عنه.", // Retained
-    "grammarDetective.clickedNonError": "لم يكن ذلك خطأ. الانتقال إلى السؤال التالي.",
+    "grammarDetective.notAnError": "ليس هذا هو الخطأ الذي كنا نبحث عنه.",
+    "grammarDetective.clickedNonError": "لم يكن ذلك خطأ. الانتقال إلى السؤال التالي.", // This might be obsolete now
     "grammarDetective.wellDone": "أحسنت!",
+    "grammarDetective.submitResponse": "إرسال الإجابة",
+    "grammarDetective.responseSubmittedTitle": "تم تقييم النتائج",
+    "grammarDetective.responseSubmittedDesc": "راجع الملاحظات أدناه وانقر على 'القصة التالية' للمتابعة.",
+    "grammarDetective.feedbackSectionTitle": "الملاحظات",
+    "grammarDetective.feedbackCorrectTitle": "تم التحديد بشكل صحيح",
+    "grammarDetective.feedbackMissedTitle": "خطأ لم يتم اكتشافه",
+    "grammarDetective.feedbackIncorrectSelectionTitle": "تم التحديد بشكل خاطئ",
+    "grammarDetective.feedbackIncorrectSelectionExpl": "هذا لم يكن خطأ.",
   },
 };
 
