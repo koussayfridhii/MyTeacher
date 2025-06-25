@@ -883,8 +883,8 @@ const LandingPage = () => {
           left="0"
           right="0"
           bottom="0"
-          bgGradient="linear(to-r, teal.500, green.500)"
-          opacity={0.8} // Apply opacity to the gradient overlay
+          bgGradient="linear(to-b, gray.800, gray.800)"
+          opacity={0.5} // Apply opacity to the gradient overlay
           zIndex="0" // Ensure it's behind the content
         />
         <VStack
@@ -906,7 +906,8 @@ const LandingPage = () => {
           <Button
             as={Link}
             to={heroCtaPath} // Use dynamic path
-            colorScheme="whiteAlpha"
+            bg="primary"
+            color={"white"}
             size="lg"
             _hover={{ bg: "whiteAlpha.900", color: "teal.500" }}
           >
