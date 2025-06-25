@@ -30,6 +30,11 @@ import {
   GridItem,
   Box as ChakraBox, // To avoid conflict with ReactQuill's Box if it had one
   Switch, // Import Switch for boolean toggles
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
 import { FaUpload } from "react-icons/fa";
 import apiClient from "../../hooks/apiClient";
@@ -649,7 +654,7 @@ const LandingContentManagementPage = () => {
     return (
       <FormControl key={fieldKey} mb={6}>
         <FormLabel fontWeight="bold">{fieldConfig.label}</FormLabel>
-        <Tabs variant="enclosed" colorScheme="teal">
+        <Tabs variant="enclosed" colorScheme="teal" isLazy>
           <TabList>
             {languages.map((lang) => (
               <Tab key={lang.code}>{lang.name}</Tab>
@@ -855,40 +860,44 @@ const LandingContentManagementPage = () => {
         Manage Landing Page Content
       </Heading>
 
-      <VStack spacing={10} align="stretch">
+      <Accordion allowMultiple defaultIndex={[0]} width="100%">
         {Object.entries(sections).map(([sectionKey, sectionConfig]) => (
-          <Box
-            key={sectionKey}
-            p={6}
-            borderWidth="1px"
-            borderRadius="lg"
-            boxShadow="md"
-          >
-            <Heading as="h2" size="lg" mb={6} borderBottomWidth="1px" pb={2}>
-              {sectionConfig.title}
-            </Heading>
-            <Grid
-              templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
-              gap={6}
-            >
-              {sectionConfig.fields.map((fieldKey) => (
-                <GridItem
-                  key={fieldKey}
-                  colSpan={
-                    contentFields[fieldKey].type === "textarea" ||
-                    contentFields[fieldKey].type === "image" ||
-                    sectionConfig.fields.length === 1
-                      ? 2
-                      : 1
-                  }
-                >
-                  {renderFormField(fieldKey, contentFields[fieldKey])}
-                </GridItem>
-              ))}
-            </Grid>
-          </Box>
+          <AccordionItem key={sectionKey} mb={4}>
+            <h2>
+              <AccordionButton _expanded={{ bg: "teal.500", color: "white" }}>
+                <Box flex="1" textAlign="left" fontWeight="bold" fontSize="xl">
+                  {sectionConfig.title}
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+            </h2>
+            <AccordionPanel pb={4} borderWidth="1px" borderRadius="md" boxShadow="sm">
+              <Grid
+                templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
+                gap={6}
+                mt={4}
+              >
+                {sectionConfig.fields.map((fieldKey) => (
+                  <GridItem
+                    key={fieldKey}
+                    colSpan={
+                      contentFields[fieldKey].type === "textarea" ||
+                      contentFields[fieldKey].type === "richtext" || // Ensure richtext also gets full width if desired
+                      contentFields[fieldKey].type === "image" ||
+                      sectionConfig.fields.length === 1 || // if it's the only field in section
+                      (sectionConfig.fields.length % 2 !== 0 && sectionConfig.fields.indexOf(fieldKey) === sectionConfig.fields.length - 1) // If it's the last odd item
+                        ? 2
+                        : 1
+                    }
+                  >
+                    {renderFormField(fieldKey, contentFields[fieldKey])}
+                  </GridItem>
+                ))}
+              </Grid>
+            </AccordionPanel>
+          </AccordionItem>
         ))}
-      </VStack>
+      </Accordion>
 
       <Button
         colorScheme="green"
