@@ -54,7 +54,7 @@ app.use(
       "Accept",
       "Authorization",
     ],
-    credentials: true, // Allow cookies/auth headers
+    credentials: "include", // Allow cookies/auth headers
     optionsSuccessStatus: 200, // Some legacy browsers choke on 204
   })
 );
