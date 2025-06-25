@@ -83,13 +83,17 @@ const Coordinators = () => {
       setSortOrder("asc");
     }
   };
-
+  const token = localStorage.getItem("token");
   const onSubmit = async (data) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/users/create`, {
-        ...data,
-        role: "coordinator",
-      });
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/create`,
+        {
+          ...data,
+          role: "coordinator",
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       reset();
       onClose();
       refetch();
