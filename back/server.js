@@ -31,6 +31,12 @@ const allowedOrigins = [
   "https://www.befirstlearning.com",
   "http://www.befirstlearning.com",
 ];
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -41,11 +47,18 @@ app.use(
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
+    credentials: true, // Allow cookies/auth headers
+    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
   })
 );
+
 // app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(passport.initialize());
