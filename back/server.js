@@ -29,7 +29,9 @@ const app = express();
 
 const allowedOrigins = [
   "https://www.befirstlearning.com",
+  "https://befirstlearning.com",
   "http://www.befirstlearning.com",
+  "http://befirstlearning.com",
 ];
 
 app.use((req, res, next) => {
