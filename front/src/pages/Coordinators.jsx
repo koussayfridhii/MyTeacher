@@ -22,6 +22,7 @@ import {
   FormControl,
   FormLabel,
   useDisclosure,
+  useToast, // Import useToast
 } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { useCoordinators } from "../hooks/useCoordinators";
@@ -35,7 +36,14 @@ const Coordinators = () => {
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState("firstName");
   const [sortOrder, setSortOrder] = useState("asc");
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure(); // For create modal
+  const toast = useToast(); // For notifications
+
+  // State for confirmation modals
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [selectedCoordinatorId, setSelectedCoordinatorId] = useState(null);
+  const [isDisapproving, setIsDisapproving] = useState(false); // To know if we are disapproving or approving
 
   const {
     register,
@@ -102,6 +110,84 @@ const Coordinators = () => {
     }
   };
 
+  const openDeleteModal = (id) => {
+    setSelectedCoordinatorId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setSelectedCoordinatorId(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const openApproveModal = (id, currentlyApproved) => {
+    setSelectedCoordinatorId(id);
+    setIsDisapproving(currentlyApproved); // If currently approved, action is to disapprove
+    setIsApproveModalOpen(true);
+  };
+
+  const closeApproveModal = () => {
+    setSelectedCoordinatorId(null);
+    setIsApproveModalOpen(false);
+  };
+
+  const handleDeleteCoordinator = async () => {
+    if (!selectedCoordinatorId) return;
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/users/${selectedCoordinatorId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast({
+        title: currentLanguage === "fr" ? "Coordinateur supprimé" : currentLanguage === "ar" ? "تم حذف المنسق" : "Coordinator Deleted",
+        description: currentLanguage === "fr" ? "Le coordinateur a été supprimé avec succès." : currentLanguage === "ar" ? "تم حذف المنسق بنجاح." : "The coordinator has been successfully deleted.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      refetch();
+      closeDeleteModal();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: currentLanguage === "fr" ? "Erreur de suppression" : currentLanguage === "ar" ? "خطأ في الحذف" : "Deletion Error",
+        description: err.response?.data?.error || (currentLanguage === "fr" ? "Impossible de supprimer le coordinateur." : currentLanguage === "ar" ? "فشل حذف المنسق." : "Failed to delete coordinator."),
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleToggleApproveCoordinator = async () => {
+    if (!selectedCoordinatorId) return;
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/users/approve/${selectedCoordinatorId}`,
+        { approve: !isDisapproving }, // Send the opposite of current disapproval state
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast({
+        title: isDisapproving ? (currentLanguage === "fr" ? "Coordinateur désapprouvé" : currentLanguage === "ar" ? "تم عدم الموافقة على المنسق" : "Coordinator Disapproved") : (currentLanguage === "fr" ? "Coordinateur approuvé" : currentLanguage === "ar" ? "تمت الموافقة على المنسق" : "Coordinator Approved"),
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      refetch();
+      closeApproveModal();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: currentLanguage === "fr" ? "Erreur de mise à jour" : currentLanguage === "ar" ? "خطأ في التحديث" : "Update Error",
+        description: err.response?.data?.error || (currentLanguage === "fr" ? "Impossible de mettre à jour le statut du coordinateur." : currentLanguage === "ar" ? "فشل تحديث حالة المنسق." : "Failed to update coordinator status."),
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+
   if (isLoading)
     return (
       <Center h="100%">
@@ -158,9 +244,17 @@ const Coordinators = () => {
               "studentsCreatedThisMonth",
               "totalIncome",
               "incomeThisMonth",
+              "actions", // Added actions column
             ].map((field, idx) => {
               let labelText;
-              if (field === "firstName") {
+              if (field === "actions") {
+                labelText =
+                  currentLanguage === "fr"
+                    ? "Actions"
+                    : currentLanguage === "ar"
+                    ? "الإجراءات"
+                    : "Actions";
+              } else if (field === "firstName") {
                 labelText =
                   currentLanguage === "fr"
                     ? "Prénom"
@@ -267,11 +361,97 @@ const Coordinators = () => {
               <Td isNumeric>{coord.studentsCreatedThisMonth}</Td>
               <Td isNumeric>{coord.totalIncome}</Td>
               <Td isNumeric>{coord.incomeThisMonth}</Td>
+              <Td>
+                <Button
+                  size="sm"
+                  colorScheme="red"
+                  mr={2}
+                  onClick={() => openDeleteModal(coord._id)} // Updated onClick
+                >
+                  {currentLanguage === "fr"
+                    ? "Supprimer"
+                    : currentLanguage === "ar"
+                    ? "حذف"
+                    : "Delete"}
+                </Button>
+                <Button
+                  size="sm"
+                  colorScheme={coord.isApproved ? "yellow" : "green"}
+                  onClick={() => openApproveModal(coord._id, coord.isApproved)} // Updated onClick
+                >
+                  {coord.isApproved
+                    ? currentLanguage === "fr"
+                      ? "Désapprouver"
+                      : currentLanguage === "ar"
+                      ? "عدم الموافقة"
+                      : "Disapprove"
+                    : currentLanguage === "fr"
+                    ? "Approuver"
+                    : currentLanguage === "ar"
+                    ? "موافقة"
+                    : "Approve"}
+                </Button>
+              </Td>
             </Tr>
           ))}
         </Tbody>
       </Table>
 
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            {currentLanguage === "fr" ? "Confirmer la suppression" : currentLanguage === "ar" ? "تأكيد الحذف" : "Confirm Deletion"}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>
+              {currentLanguage === "fr" ? "Êtes-vous sûr de vouloir supprimer ce coordinateur ?" : currentLanguage === "ar" ? "هل أنت متأكد أنك تريد حذف هذا المنسق؟" : "Are you sure you want to delete this coordinator?"}
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={closeDeleteModal}>
+              {currentLanguage === "fr" ? "Annuler" : currentLanguage === "ar" ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button colorScheme="red" onClick={handleDeleteCoordinator}>
+              {currentLanguage === "fr" ? "Supprimer" : currentLanguage === "ar" ? "حذف" : "Delete"}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Approve/Disapprove Confirmation Modal */}
+      <Modal isOpen={isApproveModalOpen} onClose={closeApproveModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            {isDisapproving
+              ? (currentLanguage === "fr" ? "Confirmer la désapprobation" : currentLanguage === "ar" ? "تأكيد عدم الموافقة" : "Confirm Disapproval")
+              : (currentLanguage === "fr" ? "Confirmer l'approbation" : currentLanguage === "ar" ? "تأكيد الموافقة" : "Confirm Approval")}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>
+              {isDisapproving
+                ? (currentLanguage === "fr" ? "Êtes-vous sûr de vouloir désapprouver ce coordinateur ?" : currentLanguage === "ar" ? "هل أنت متأكد أنك تريد عدم الموافقة على هذا المنسق؟" : "Are you sure you want to disapprove this coordinator?")
+                : (currentLanguage === "fr" ? "Êtes-vous sûr de vouloir approuver ce coordinateur ?" : currentLanguage === "ar" ? "هل أنت متأكد أنك تريد الموافقة على هذا المنسق؟" : "Are you sure you want to approve this coordinator?")}
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={closeApproveModal}>
+              {currentLanguage === "fr" ? "Annuler" : currentLanguage === "ar" ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button colorScheme={isDisapproving ? "yellow" : "green"} onClick={handleToggleApproveCoordinator}>
+              {isDisapproving
+                ? (currentLanguage === "fr" ? "Désapprouver" : currentLanguage === "ar" ? "عدم الموافقة" : "Disapprove")
+                : (currentLanguage === "fr" ? "Approuver" : currentLanguage === "ar" ? "موافقة" : "Approve")}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Create Coordinator Modal */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
