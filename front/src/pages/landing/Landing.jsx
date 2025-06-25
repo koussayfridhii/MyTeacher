@@ -903,16 +903,33 @@ const LandingPage = () => {
           <Text fontSize="xl" color="white" mb={2}>
             {getText("hero_subtitle", "Success starts with Be First Learning")}
           </Text>
-          <Button
-            as={Link}
-            to={heroCtaPath} // Use dynamic path
-            bg="primary"
-            color={"white"}
-            size="lg"
-            _hover={{ bg: "whiteAlpha.900", color: "teal.500" }}
-          >
-            {getText("hero_cta_button", "Get Started Now")}
-          </Button>
+          <ButtonGroup spacing={4}>
+            <Button
+              as={Link}
+              to={heroCtaPath} // Use dynamic path
+              bg="primary"
+              color={"white"}
+              size="lg"
+              _hover={{ bg: "whiteAlpha.900", color: "teal.500" }}
+            >
+              {getText("hero_cta_button", "Get Started Now")}
+            </Button>
+            {landingContent?.hero_call_button_enabled &&
+              landingContent?.hero_call_button_phone_number && (
+                <Button
+                  as="a"
+                  href={`tel:${landingContent.hero_call_button_phone_number}`}
+                  variant="outline"
+                  colorScheme="whiteAlpha"
+                  color="white"
+                  borderColor="whiteAlpha.700"
+                  size="lg"
+                  _hover={{ bg: "whiteAlpha.200" }}
+                >
+                  {getText("hero_call_button_text", "Call Us")}
+                </Button>
+              )}
+          </ButtonGroup>
         </VStack>
       </Flex>
       <Box

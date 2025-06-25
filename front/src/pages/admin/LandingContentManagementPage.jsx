@@ -29,6 +29,7 @@ import {
   Grid,
   GridItem,
   Box as ChakraBox, // To avoid conflict with ReactQuill's Box if it had one
+  Switch, // Import Switch for boolean toggles
 } from "@chakra-ui/react";
 import { FaUpload } from "react-icons/fa";
 import apiClient from "../../hooks/apiClient";
@@ -48,6 +49,9 @@ const contentFields = {
   hero_title: { label: "Hero Title", type: "text" },
   hero_subtitle: { label: "Hero Subtitle", type: "textarea" },
   hero_cta_button: { label: "Hero CTA Button Text", type: "text" },
+  hero_call_button_text: { label: "Hero Call Button Text", type: "text" },
+  hero_call_button_phone_number: { label: "Hero Call Button Phone Number", type: "tel", isLocalized: false }, // Changed type to "tel"
+  hero_call_button_enabled: { label: "Enable Hero Call Button", type: "boolean", isLocalized: false }, // Added boolean type
   hero_image_url: {
     label: "Hero Image URL",
     type: "image",
@@ -383,6 +387,10 @@ const LandingContentManagementPage = () => {
     setContent((prev) => ({ ...prev, [key]: actualValue }));
   };
 
+  const handleBooleanChange = (fieldName, value) => {
+    setContent((prev) => ({ ...prev, [fieldName]: value }));
+  };
+
   // Specific handler for Quill to make it cleaner in the JSX
   // const handleQuillChange = (html, fieldName, langCode) => { // REMOVE
   //   const key = langCode ? `${fieldName}_${langCode}` : fieldName; // REMOVE
@@ -568,7 +576,10 @@ const LandingContentManagementPage = () => {
 
   const renderFormField = (fieldKey, fieldConfig) => {
     // Handle non-localized text fields (like URLs)
-    if (fieldConfig.type === "text" && fieldConfig.isLocalized === false) {
+    if (
+      (fieldConfig.type === "text" || fieldConfig.type === "tel") &&
+      fieldConfig.isLocalized === false
+    ) {
       return (
         <FormControl key={fieldKey} mb={6}>
           <FormLabel htmlFor={fieldKey} fontWeight="bold">
@@ -576,10 +587,27 @@ const LandingContentManagementPage = () => {
           </FormLabel>
           <Input
             id={fieldKey}
-            type="text" // Could be "url" for better semantics/validation, but "text" is fine
+            type={fieldConfig.type} // Use fieldConfig.type for "text" or "tel"
             value={content[fieldKey] || ""}
             onChange={(e) => handleInputChange(e, fieldKey, null)} // Pass null for langCode
             placeholder={`Enter ${fieldConfig.label}`}
+          />
+        </FormControl>
+      );
+    }
+
+    if (fieldConfig.type === "boolean") {
+      return (
+        <FormControl key={fieldKey} mb={6} display="flex" alignItems="center">
+          <FormLabel htmlFor={fieldKey} fontWeight="bold" mb="0">
+            {fieldConfig.label}
+          </FormLabel>
+          <Switch
+            id={fieldKey}
+            isChecked={content[fieldKey] || false}
+            onChange={(e) => handleBooleanChange(fieldKey, e.target.checked)}
+            colorScheme="teal"
+            ml={3}
           />
         </FormControl>
       );
@@ -686,6 +714,9 @@ const LandingContentManagementPage = () => {
         "hero_title",
         "hero_subtitle",
         "hero_cta_button",
+        "hero_call_button_text",
+        "hero_call_button_phone_number",
+        "hero_call_button_enabled",
         "hero_image_url",
       ],
     },
