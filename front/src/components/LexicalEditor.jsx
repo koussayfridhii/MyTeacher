@@ -74,9 +74,11 @@ function ToolbarPlugin() {
 // HTML Conversion & Initial Value Plugin
 function HtmlPlugin({ initialHtml, onChange }) {
   const [editor] = useLexicalComposerContext();
+  const lastProcessedHtmlRef = React.useRef(null); // Store the last HTML that was processed
 
   useEffect(() => {
-    if (initialHtml && editor) {
+    // Only re-process if the initialHtml string content has actually changed
+    if (initialHtml && editor && initialHtml !== lastProcessedHtmlRef.current) {
       editor.update(() => {
         const parser = new DOMParser();
         const dom = parser.parseFromString(initialHtml, 'text/html');
@@ -90,6 +92,7 @@ function HtmlPlugin({ initialHtml, onChange }) {
             $getRoot().append(...nodes);
         }
       });
+      lastProcessedHtmlRef.current = initialHtml; // Update after successful processing
     }
   }, [initialHtml, editor]);
 
