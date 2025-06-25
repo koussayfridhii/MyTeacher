@@ -914,8 +914,7 @@ const LandingPage = () => {
             >
               {getText("hero_cta_button", "Get Started Now")}
             </Button>
-            {landingContent?.hero_call_button_enabled &&
-              landingContent?.hero_call_button_phone_number && (
+            {landingContent?.hero_call_button_phone_number && (
                 <Button
                   as="a"
                   href={`tel:${landingContent.hero_call_button_phone_number}`}

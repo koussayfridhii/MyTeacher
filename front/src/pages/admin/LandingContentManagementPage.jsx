@@ -51,7 +51,6 @@ const contentFields = {
   hero_cta_button: { label: "Hero CTA Button Text", type: "text" },
   hero_call_button_text: { label: "Hero Call Button Text", type: "text" },
   hero_call_button_phone_number: { label: "Hero Call Button Phone Number", type: "tel", isLocalized: false }, // Changed type to "tel"
-  hero_call_button_enabled: { label: "Enable Hero Call Button", type: "boolean", isLocalized: false }, // Added boolean type
   hero_image_url: {
     label: "Hero Image URL",
     type: "image",
@@ -596,23 +595,6 @@ const LandingContentManagementPage = () => {
       );
     }
 
-    if (fieldConfig.type === "boolean") {
-      return (
-        <FormControl key={fieldKey} mb={6} display="flex" alignItems="center">
-          <FormLabel htmlFor={fieldKey} fontWeight="bold" mb="0">
-            {fieldConfig.label}
-          </FormLabel>
-          <Switch
-            id={fieldKey}
-            isChecked={content[fieldKey] || false}
-            onChange={(e) => handleBooleanChange(fieldKey, e.target.checked)}
-            colorScheme="teal"
-            ml={3}
-          />
-        </FormControl>
-      );
-    }
-
     if (fieldConfig.type === "image") {
       const imageUrl = content[fieldKey] || fieldConfig.default || "";
       return (
@@ -716,7 +698,6 @@ const LandingContentManagementPage = () => {
         "hero_cta_button",
         "hero_call_button_text",
         "hero_call_button_phone_number",
-        "hero_call_button_enabled",
         "hero_image_url",
       ],
     },
