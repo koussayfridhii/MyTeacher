@@ -56,6 +56,8 @@ export const getLandingContent = async (req, res) => {
         hero_title: { en: "Welcome to Our Platform!", fr: "Bienvenue sur Notre Plateforme!", ar: "!مرحبا بكم في منصتنا" },
         hero_subtitle: { en: "Discover amazing features.", fr: "Découvrez des fonctionnalités étonnantes.", ar: ".اكتشف ميزات مذهلة" },
         hero_cta_button: { en: "Get Started", fr: "Commencer", ar: "ابدأ" },
+        hero_call_button_text: { en: "Call Us", fr: "Appelez-nous", ar: "اتصل بنا" },
+        hero_call_button_phone_number: "",
         navbar_logo_text: { en: "Be First Learning", fr: "Be First Learning", ar: "Be First Learning" },
         navbar_logo_image_alt: { ...defaultLocalizedText },
         nav_features: { en: "Features", fr: "Fonctionnalités", ar: "الميزات" },
