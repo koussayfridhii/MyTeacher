@@ -147,7 +147,7 @@ export const approveUser = async (req, res, next) => {
     }
 
     const user = await User.findById(req.params.id);
-    if (!user || !["teacher", "student"].includes(user.role)) {
+    if (!user || !["teacher", "student", "coordinator"].includes(user.role)) {
       return res
         .status(404)
         .json({ error: "User not found or not approvable" });
@@ -657,7 +657,9 @@ export const deleteUser = async (req, res, next) => {
 
     // Additional checks can be added here, e.g., prevent deleting oneself
     if (userToDelete._id.equals(req.user._id)) {
-      return res.status(400).json({ error: "You cannot delete your own account." });
+      return res
+        .status(400)
+        .json({ error: "You cannot delete your own account." });
     }
 
     // Perform the delete operation
