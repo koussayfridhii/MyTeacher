@@ -147,7 +147,7 @@ export const approveUser = async (req, res, next) => {
     }
 
     const user = await User.findById(req.params.id);
-    if (!user || !["teacher", "student"].includes(user.role)) {
+    if (!user || !["teacher", "student", "coordinator"].includes(user.role)) {
       return res
         .status(404)
         .json({ error: "User not found or not approvable" });
@@ -634,6 +634,44 @@ export const getCoordinators = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// @route   DELETE /api/users/:id
+// @access  Admin
+export const deleteUser = async (req, res, next) => {
+  try {
+    const userIdToDelete = req.params.id;
+
+    // Prevent non-admins from using this
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Insufficient permissions to delete user." });
+    }
+
+    const userToDelete = await User.findById(userIdToDelete);
+    if (!userToDelete) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Additional checks can be added here, e.g., prevent deleting oneself
+    if (userToDelete._id.equals(req.user._id)) {
+      return res
+        .status(400)
+        .json({ error: "You cannot delete your own account." });
+    }
+
+    // Perform the delete operation
+    await User.findByIdAndDelete(userIdToDelete);
+
+    // Optionally, delete associated data like wallet, if necessary
+    // For now, we'll just delete the user.
+    // await Wallet.findOneAndDelete({ user: userIdToDelete });
+
+    res.status(200).json({ message: "User deleted successfully." });
+  } catch (err) {
+    next(err);
   }
 };
 

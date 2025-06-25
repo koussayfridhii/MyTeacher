@@ -136,8 +136,17 @@ export const signin = async (req, res, next) => {
       return; // response handled by sendVerificationEmail
     }
 
-    if (user.role === "teacher" && !user.isApproved)
-      return res.status(403).json({ error: "Teacher not approved yet" });
+    // Check if the user account is approved (applies to all roles that require approval)
+    // For now, we are focusing on coordinators, but this check is general.
+    if (!user.isApproved) {
+      // For teachers, a specific message is already in place.
+      // We can add a more generic one for other roles if needed, or make this one more general.
+      if (user.role === "teacher") {
+        return res.status(403).json({ error: "Teacher account not approved yet." });
+      }
+      // For coordinators and potentially other roles that need approval
+      return res.status(403).json({ error: "Your account is not yet approved. Please contact support." });
+    }
 
     if (user.currentJti) {
       if (forceLogin) {
