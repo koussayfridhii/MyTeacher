@@ -55,7 +55,11 @@ const contentFields = {
   hero_subtitle: { label: "Hero Subtitle", type: "textarea" },
   hero_cta_button: { label: "Hero CTA Button Text", type: "text" },
   hero_call_button_text: { label: "Hero Call Button Text", type: "text" },
-  hero_call_button_phone_number: { label: "Hero Call Button Phone Number", type: "tel", isLocalized: false }, // Changed type to "tel"
+  hero_call_button_phone_number: {
+    label: "Hero Call Button Phone Number",
+    type: "tel",
+    isLocalized: false,
+  }, // Changed type to "tel"
   hero_image_url: {
     label: "Hero Image URL",
     type: "image",
@@ -75,7 +79,7 @@ const contentFields = {
   navbar_signin: { label: "Navbar Sign In Button", type: "text" },
   navbar_signup: { label: "Navbar Sign Up Button", type: "text" },
   navbar_dashboard: { label: "Navbar Dashboard Button", type: "text" }, // Added for Dashboard button
-  navbar_logout: { label: "Navbar Logout Button", type: "text" },    // Added for Logout button
+  navbar_logout: { label: "Navbar Logout Button", type: "text" }, // Added for Logout button
   language_english: { label: "Language Selector: English", type: "text" },
   language_french: { label: "Language Selector: French", type: "text" },
   language_arabic: { label: "Language Selector: Arabic", type: "text" },
@@ -664,11 +668,14 @@ const LandingContentManagementPage = () => {
             {languages.map((lang) => (
               <TabPanel key={lang.code} p={0} pt={4}>
                 {fieldConfig.type === "richtext" ? (
-                  <LexicalEditor
+                  <Textarea
+                    id={`${fieldKey}_${lang.code}`}
                     value={content[`${fieldKey}_${lang.code}`] || ""}
-                    onChange={(html) =>
-                      handleRichTextChange(html, fieldKey, lang.code)
+                    onChange={(e) =>
+                      handleRichTextChange(e.target.value, fieldKey, lang.code)
                     }
+                    rows={8} // Give a bit more space for rich text content
+                    placeholder="Rich text (HTML) content - LexicalEditor temporarily replaced"
                   />
                 ) : fieldConfig.type === "textarea" ? (
                   <Textarea
@@ -721,7 +728,7 @@ const LandingContentManagementPage = () => {
         "navbar_signin",
         "navbar_signup",
         "navbar_dashboard", // Added dashboard button text field
-        "navbar_logout",    // Added logout button text field
+        "navbar_logout", // Added logout button text field
         "language_english",
         "language_french",
         "language_arabic",
@@ -871,7 +878,12 @@ const LandingContentManagementPage = () => {
                 <AccordionIcon />
               </AccordionButton>
             </h2>
-            <AccordionPanel pb={4} borderWidth="1px" borderRadius="md" boxShadow="sm">
+            <AccordionPanel
+              pb={4}
+              borderWidth="1px"
+              borderRadius="md"
+              boxShadow="sm"
+            >
               <Grid
                 templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
                 gap={6}
@@ -885,7 +897,9 @@ const LandingContentManagementPage = () => {
                       contentFields[fieldKey].type === "richtext" || // Ensure richtext also gets full width if desired
                       contentFields[fieldKey].type === "image" ||
                       sectionConfig.fields.length === 1 || // if it's the only field in section
-                      (sectionConfig.fields.length % 2 !== 0 && sectionConfig.fields.indexOf(fieldKey) === sectionConfig.fields.length - 1) // If it's the last odd item
+                      (sectionConfig.fields.length % 2 !== 0 &&
+                        sectionConfig.fields.indexOf(fieldKey) ===
+                          sectionConfig.fields.length - 1) // If it's the last odd item
                         ? 2
                         : 1
                     }
