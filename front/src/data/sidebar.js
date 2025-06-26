@@ -208,6 +208,16 @@ export const sidebarLinks = [
     },
     authorizedRoles: ["admin", "coordinator"],
   },
+  {
+    imgURL: "/assets/icons/group.svg", // TODO: Add an appropriate icon for groups
+    route: "/dashboard/groups",
+    label: {
+      ar: "المجموعات",
+      en: "Groups",
+      fr: "Groupes",
+    },
+    authorizedRoles: ["admin", "coordinator"],
+  },
 ];
 
 export const avatarImages = [
