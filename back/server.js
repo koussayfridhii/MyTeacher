@@ -21,6 +21,7 @@ import paymentProuveRoutes from "./routes/paymentProuveRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import landingContentRoutes from "./routes/landingContentRoutes.js";
 import contactMessageRoutes from "./routes/contactMessageRoutes.js"; // Import contact message routes
+import groupRoutes from "./routes/groupRoutes.js"; // Import group routes
 
 connectDB();
 
@@ -82,6 +83,7 @@ app.use("/api/payment-prouve", paymentProuveRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/landing-content", landingContentRoutes);
 app.use("/api/contact-messages", contactMessageRoutes); // Use contact message routes
+app.use("/api/groups", groupRoutes); // Use group routes
 
 app.get("/", (req, res) => {
   res.send("working !!!!!!!!!!!!!!!!!");

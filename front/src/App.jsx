@@ -50,6 +50,7 @@ const LandingContentManagementPage = lazy(() =>
 const DashboardMessages = lazy(() =>
   import("./pages/admin/DashboardMessages.jsx")
 ); // Import DashboardMessages
+const GroupsPage = lazy(() => import("./pages/GroupsPage.jsx")); // Import GroupsPage
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
@@ -128,6 +129,10 @@ const router = createBrowserRouter([
           {
             path: "messages", // Protection handled by withAuthorization in the component itself
             element: <DashboardMessages />,
+          },
+          {
+            path: "groups", // Protection will be handled by withAuthorization in the component
+            element: <GroupsPage />,
           },
           {
             path: "meeting",
