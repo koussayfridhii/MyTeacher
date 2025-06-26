@@ -37,7 +37,7 @@ import {
 import { AddIcon, DeleteIcon, EditIcon, ViewIcon } from "@chakra-ui/icons";
 import { useGroups } from "../hooks/useGroups";
 import { useGetUsers } from "../hooks/useGetUsers"; // To fetch teachers and students
-import { useFetchPlans } from "../hooks/useFetchCourses"; // Assuming this fetches plans
+import { useFetchPlans } from "../hooks/useFetchPlans"; // Corrected import for fetching plans
 import { useSelector } from "react-redux";
 import { Controller, useForm } from "react-hook-form";
 import { withAuthorization } from "../HOC/Protect"; // Import withAuthorization
