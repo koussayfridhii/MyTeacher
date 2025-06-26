@@ -13,15 +13,13 @@ import authorizeRole from "../middleware/role.js";
 
 const router = express.Router();
 
-const allowedRoles = ["admin", "coordinator"];
-
 // @route   POST /api/groups
 // @desc    Create a new group
 // @access  Private (Admin, Coordinator)
 router.post(
   "/",
   authMiddleware,
-  authorizeRole(allowedRoles),
+  authorizeRole("admin", "coordinator"),
   createGroup
 );
 
@@ -31,7 +29,7 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  authorizeRole(allowedRoles),
+  authorizeRole("admin", "coordinator"),
   getAllGroups
 );
 
@@ -41,7 +39,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
-  authorizeRole(allowedRoles),
+  authorizeRole("admin", "coordinator"),
   getGroupById
 );
 
@@ -51,7 +49,7 @@ router.get(
 router.put(
   "/:id/students/add",
   authMiddleware,
-  authorizeRole(allowedRoles),
+  authorizeRole("admin", "coordinator"),
   addStudentToGroup
 );
 
@@ -61,7 +59,7 @@ router.put(
 router.put(
   "/:id/students/remove",
   authMiddleware,
-  authorizeRole(allowedRoles),
+  authorizeRole("admin", "coordinator"),
   removeStudentFromGroup
 );
 
@@ -71,7 +69,7 @@ router.put(
 router.put(
   "/:id",
   authMiddleware,
-  authorizeRole(allowedRoles),
+  authorizeRole("admin", "coordinator"),
   updateGroup
 );
 
@@ -81,7 +79,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  authorizeRole(allowedRoles),
+  authorizeRole("admin", "coordinator"),
   deleteGroup
 );
 
