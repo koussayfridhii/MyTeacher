@@ -210,8 +210,17 @@ const GroupsPage = () => {
 
   const canManageGroups = currentUser?.role === 'admin' || currentUser?.role === 'coordinator';
 
-  if (groupsLoading && groups.length === 0) return <Spinner />;
-  if (groupsError) return <Text color="red.500">Error loading groups: {groupsError}</Text>;
+  // Destructure errors from hooks
+  const { error: usersError } = useGetUsers();
+  const { error: plansError } = useFetchPlans();
+
+
+  if (groupsLoading && groups.length === 0 && !groupsError) return <Spinner />; // Only show main spinner if no error yet for groups
+  // Display errors prominently if they occur
+  if (groupsError) return <Text color="red.500" fontSize="lg">Error loading groups: {groupsError.message || JSON.stringify(groupsError)}</Text>;
+  if (usersError) return <Text color="red.500" fontSize="lg">Error loading users: {usersError.message || JSON.stringify(usersError)}</Text>;
+  if (plansError) return <Text color="red.500" fontSize="lg">Error loading plans: {plansError.message || JSON.stringify(plansError)}</Text>;
+
 
   const translations = {
     groupsPageTitle: { en: "Manage Groups", ar: "إدارة المجموعات", fr: "Gérer les Groupes" },
