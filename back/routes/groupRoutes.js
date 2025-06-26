@@ -9,7 +9,7 @@ import {
   deleteGroup,
 } from "../controllers/groupController.js";
 import authMiddleware from "../middleware/auth.js";
-import { authorizeRole } from "../middleware/role.js";
+import authorizeRole from "../middleware/role.js";
 
 const router = express.Router();
 

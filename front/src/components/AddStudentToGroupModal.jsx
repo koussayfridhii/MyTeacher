@@ -39,19 +39,20 @@ const AddStudentToGroupModal = ({ isOpen, onClose, group, fetchGroups }) => {
       if (!isOpen || !group) return;
       setIsLoading(true);
       try {
-        // Fetch all students (or students not in any group, or students of a certain coordinator if applicable)
-        // This endpoint might need to be adjusted based on how students are managed/filtered
-        const response = await apiClient.get("/users/students"); // Assuming endpoint for all students
+        // Fetch all users and filter for approved students not already in the group
+        const usersResponse = await apiClient.get("/users");
 
-        // Filter out students already in the current group
         const groupStudentIds = group.students.map(s => s._id);
-        const filtered = response.data.users.filter(
-          (student) => !groupStudentIds.includes(student._id) && student.isApproved // Only approved students
+        const filteredStudents = usersResponse.data.users.filter(
+          (user) =>
+            user.role === "student" &&
+            user.isApproved &&
+            !groupStudentIds.includes(user._id)
         );
-        setAvailableStudents(filtered);
+        setAvailableStudents(filteredStudents);
         setFormError(null);
       } catch (err) {
-        console.error("Error fetching students:", err);
+        console.error("Error fetching students:", err.response ? err.response.data : err.message);
         setFormError(
           t("errorFetchingModalData", language, "en", {
             error: "Failed to load students.",

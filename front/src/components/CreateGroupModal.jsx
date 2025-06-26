@@ -43,15 +43,28 @@ const CreateGroupModal = ({ isOpen, onClose, fetchGroups, editingGroup, currentU
     const fetchTeachersAndPlans = async () => {
       setIsLoading(true);
       try {
-        const teachersRes = await apiClient.get("/users/teachers"); // Assuming endpoint for teachers
-        setTeachers(teachersRes.data.users.filter(u => u.isApproved)); // Filter for approved teachers
+        // Fetch all users and filter for approved teachers
+        const usersRes = await apiClient.get("/users");
+        const approvedTeachers = usersRes.data.users.filter(
+          (user) => user.role === "teacher" && user.isApproved
+        );
+        setTeachers(approvedTeachers);
 
+        // Fetch plans
         const plansRes = await apiClient.get("/plans");
-        setPlans(plansRes.data);
+        if (plansRes.data && Array.isArray(plansRes.data)) {
+          setPlans(plansRes.data);
+        } else if (plansRes.data && Array.isArray(plansRes.data.plans)) { // if plans are nested under a 'plans' key
+          setPlans(plansRes.data.plans);
+        }
+        else {
+          console.error("Plans data is not in expected format:", plansRes.data);
+          setPlans([]); // Set to empty array if format is incorrect
+        }
 
         setFormError(null);
       } catch (err) {
-        console.error("Error fetching teachers or plans:", err);
+        console.error("Error fetching teachers or plans:", err.response ? err.response.data : err.message);
         setFormError(
           t("errorFetchingModalData", language, "en", {
             error: "Failed to load data for form.",
