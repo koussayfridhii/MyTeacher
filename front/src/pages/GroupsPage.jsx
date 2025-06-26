@@ -57,8 +57,8 @@ const GroupsPage = () => {
     setGroup,
   } = useGroups();
 
-  const { users: allUsers, isLoading: usersLoading } = useGetUsers();
-  const { plans: allPlans, isLoading: plansLoading } = useFetchPlans();
+  const { data: allUsers, isLoading: usersLoading, error: usersError_hook } = useGetUsers(); // Corrected destructuring for allUsers
+  const { plans: allPlans, isLoading: plansLoading, error: plansError_hook } = useFetchPlans();
   const language = useSelector((state) => state.language.language);
   const currentUser = useSelector((state) => state.user.user);
 
@@ -210,16 +210,14 @@ const GroupsPage = () => {
 
   const canManageGroups = currentUser?.role === 'admin' || currentUser?.role === 'coordinator';
 
-  // Destructure errors from hooks
-  const { error: usersError } = useGetUsers();
-  const { error: plansError } = useFetchPlans();
-
+  // Error variables are now usersError_hook and plansError_hook from destructuring above.
+  // groupsError is already available from useGroups()
 
   if (groupsLoading && groups.length === 0 && !groupsError) return <Spinner />; // Only show main spinner if no error yet for groups
   // Display errors prominently if they occur
   if (groupsError) return <Text color="red.500" fontSize="lg">Error loading groups: {groupsError.message || JSON.stringify(groupsError)}</Text>;
-  if (usersError) return <Text color="red.500" fontSize="lg">Error loading users: {usersError.message || JSON.stringify(usersError)}</Text>;
-  if (plansError) return <Text color="red.500" fontSize="lg">Error loading plans: {plansError.message || JSON.stringify(plansError)}</Text>;
+  if (usersError_hook) return <Text color="red.500" fontSize="lg">Error loading users: {usersError_hook.message || JSON.stringify(usersError_hook)}</Text>;
+  if (plansError_hook) return <Text color="red.500" fontSize="lg">Error loading plans: {plansError_hook.message || JSON.stringify(plansError_hook)}</Text>;
 
 
   const translations = {
