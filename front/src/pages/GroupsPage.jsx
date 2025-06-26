@@ -93,11 +93,11 @@ const GroupsPage = () => {
     fetchGroups();
   }, [fetchGroups]);
 
-  const teachers = useMemo(() => allUsers.filter(user => user.role === 'teacher'), [allUsers]);
-  const students = useMemo(() => allUsers.filter(user => user.role === 'student'), [allUsers]);
+  const teachers = useMemo(() => (allUsers || []).filter(user => user.role === 'teacher'), [allUsers]);
+  const students = useMemo(() => (allUsers || []).filter(user => user.role === 'student'), [allUsers]);
 
   const filteredAndSortedGroups = useMemo(() => {
-    let filtered = groups;
+    let filtered = groups || [];
     if (searchTerm) {
       filtered = groups.filter(
         (group) =>
