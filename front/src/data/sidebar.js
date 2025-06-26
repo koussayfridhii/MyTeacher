@@ -61,6 +61,16 @@ export const sidebarLinks = [
     authorizedRoles: ["admin", "coordinator"],
   },
   {
+    imgURL: "/assets/icons/users.svg", // Using a generic users icon for groups
+    route: "/dashboard/groups",
+    label: {
+      ar: "المجموعات",
+      en: "Groups",
+      fr: "Groupes",
+    },
+    authorizedRoles: ["admin", "coordinator"],
+  },
+  {
     imgURL: "/assets/icons/topup.svg",
     route: "/dashboard/topup",
     label: {

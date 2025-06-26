@@ -50,6 +50,7 @@ const LandingContentManagementPage = lazy(() =>
 const DashboardMessages = lazy(() =>
   import("./pages/admin/DashboardMessages.jsx")
 ); // Import DashboardMessages
+const GroupsPage = lazy(() => import("./pages/GroupsPage.jsx")); // Import GroupsPage
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
@@ -106,6 +107,7 @@ const router = createBrowserRouter([
           { path: "parents", element: <Parents /> },
           { path: "wallet-history", element: <WalletHistory /> },
           { path: "payment-proof", element: <PaymentProof /> },
+          { path: "groups", element: <GroupsPage /> }, // Added GroupsPage route
           { path: "comments", element: <CommentsPage /> },
           { path: "grammar-detective", element: <GrammarDetectivePage /> }, // Added Grammar Detective route
           { path: "math-game", element: <MathGamePage /> }, // Added Math Game route

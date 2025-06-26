@@ -22,6 +22,11 @@ const planSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    maxStudentsPerGroup: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
   },
   { timestamps: true }
 );

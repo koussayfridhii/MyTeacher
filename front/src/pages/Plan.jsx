@@ -59,6 +59,7 @@ const Plan = () => {
     cost: "",
     color: "#000000",
     numberOfStudents: "",
+    maxStudentsPerGroup: "", // Added maxStudentsPerGroup
   });
 
   const token = localStorage.getItem("token");
@@ -123,6 +124,7 @@ const Plan = () => {
       cost: plan.cost,
       color: plan.color,
       numberOfStudents: plan.numberOfStudents,
+      maxStudentsPerGroup: plan.maxStudentsPerGroup || "", // Initialize with existing or empty
     });
     onEditOpen();
   };
@@ -133,8 +135,8 @@ const Plan = () => {
   };
 
   const handleSubmitEdit = async () => {
-    const { name, cost, color, numberOfStudents } = formData;
-    if (!name || !cost || !color || !numberOfStudents) {
+    const { name, cost, color, numberOfStudents, maxStudentsPerGroup } = formData;
+    if (!name || !cost || !color || !numberOfStudents || !maxStudentsPerGroup) { // Added maxStudentsPerGroup check
       toast({
         title:
           currentLanguage === "fr"
@@ -177,8 +179,8 @@ const Plan = () => {
   };
 
   const handleSubmitCreate = async () => {
-    const { name, cost, color, numberOfStudents } = formData;
-    if (!name || !cost || !color || !numberOfStudents) {
+    const { name, cost, color, numberOfStudents, maxStudentsPerGroup } = formData;
+    if (!name || !cost || !color || !numberOfStudents || !maxStudentsPerGroup) { // Added maxStudentsPerGroup check
       toast({
         title:
           currentLanguage === "fr"
@@ -237,6 +239,7 @@ const Plan = () => {
                 cost: "",
                 color: "#000000",
                 numberOfStudents: "",
+                maxStudentsPerGroup: "", // Reset for create form
               });
               onCreateOpen();
             }}
@@ -280,6 +283,13 @@ const Plan = () => {
                 </Th>
                 <Th>
                   {currentLanguage === "fr"
+                    ? "Max Étudiants/Groupe"
+                    : currentLanguage === "ar"
+                    ? "الحد الأقصى للطلاب/مجموعة"
+                    : "Max Students/Group"}
+                </Th>
+                <Th>
+                  {currentLanguage === "fr"
                     ? "Couleur"
                     : currentLanguage === "ar"
                     ? "اللون"
@@ -309,6 +319,7 @@ const Plan = () => {
                   <Td>{plan.name}</Td>
                   <Td>${plan.cost}</Td>
                   <Td>{plan.numberOfStudents}</Td>
+                  <Td>{plan.maxStudentsPerGroup}</Td>
                   <Td>
                     <Badge bgColor={plan.color} color="white">
                       {plan.color}
@@ -382,6 +393,40 @@ const Plan = () => {
                   name="cost"
                   value={formData.cost}
                   onChange={handleFormChange}
+                />
+              </NumberInput>
+            </FormControl>
+            <FormControl isRequired mb={3}>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Max Étudiants par Groupe"
+                  : currentLanguage === "ar"
+                  ? "الحد الأقصى للطلاب لكل مجموعة"
+                  : "Max Students Per Group"}
+              </FormLabel>
+              <NumberInput>
+                <NumberInputField
+                  name="maxStudentsPerGroup"
+                  value={formData.maxStudentsPerGroup}
+                  onChange={handleFormChange}
+                  min={1}
+                />
+              </NumberInput>
+            </FormControl>
+            <FormControl isRequired mb={3}>
+              <FormLabel>
+                {currentLanguage === "fr"
+                  ? "Max Étudiants par Groupe"
+                  : currentLanguage === "ar"
+                  ? "الحد الأقصى للطلاب لكل مجموعة"
+                  : "Max Students Per Group"}
+              </FormLabel>
+              <NumberInput>
+                <NumberInputField
+                  name="maxStudentsPerGroup"
+                  value={formData.maxStudentsPerGroup}
+                  onChange={handleFormChange}
+                  min={1}
                 />
               </NumberInput>
             </FormControl>

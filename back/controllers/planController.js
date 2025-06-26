@@ -1,14 +1,21 @@
 import Plan from "../models/Plan.js";
 
 export const createPlan = async (req, res, next) => {
-  const { cost, numberOfStudents, color, name } = req.body;
+  const { cost, numberOfStudents, color, name, maxStudentsPerGroup } = req.body;
   if (req.user.role !== "admin") {
     return res
       .status(403)
       .json({ error: "Insufficient permissions to create this role." });
   }
-  const plan = await Plan.create({ cost, numberOfStudents, color, name });
-  res.status(201).json({ success: true, plan });
+  if (maxStudentsPerGroup === undefined || maxStudentsPerGroup < 1) {
+    return res.status(400).json({ error: "maxStudentsPerGroup is required and must be at least 1" });
+  }
+  try {
+    const plan = await Plan.create({ cost, numberOfStudents, color, name, maxStudentsPerGroup });
+    res.status(201).json({ success: true, plan });
+  } catch (err) {
+    next(err);
+  }
 };
 export const getPlans = async (req, res, next) => {
   const plans = await Plan.find();
@@ -22,7 +29,18 @@ export const updatePlan = async (req, res, next) => {
         .status(403)
         .json({ error: "Insufficient permissions to update a plan." });
     }
-    const updated = await Plan.findByIdAndUpdate(req.params.id, req.body, {
+    const { maxStudentsPerGroup } = req.body;
+    if (maxStudentsPerGroup !== undefined && maxStudentsPerGroup < 1) {
+      return res.status(400).json({ error: "maxStudentsPerGroup must be at least 1" });
+    }
+    // Ensure maxStudentsPerGroup is explicitly included if provided, or not sent if not.
+    const updateData = { ...req.body };
+    if (maxStudentsPerGroup === undefined) {
+      delete updateData.maxStudentsPerGroup; // Avoid sending undefined if not meant to be updated
+    }
+
+
+    const updated = await Plan.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
