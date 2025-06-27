@@ -25,7 +25,7 @@ const sendVerificationEmail = async (user, res, verify = false) => {
         <p>If the button doesn’t work, copy & paste: </p>
          <a href="${url}" style="color:#004080;">${url}</a>
         <hr style="border:none;border-top:1px solid #eee;margin:40px 0;" />
-        <p style="font-size:12px;color:#999;">© ${new Date().getFullYear()} My Teacher. All rights reserved.</p>
+        <p style="font-size:12px;color:#999;">© ${new Date().getFullYear()} Be First Learning. All rights reserved.</p>
       </div>
     </div>
   `;
@@ -142,10 +142,14 @@ export const signin = async (req, res, next) => {
       // For teachers, a specific message is already in place.
       // We can add a more generic one for other roles if needed, or make this one more general.
       if (user.role === "teacher") {
-        return res.status(403).json({ error: "Teacher account not approved yet." });
+        return res
+          .status(403)
+          .json({ error: "Teacher account not approved yet." });
       }
       // For coordinators and potentially other roles that need approval
-      return res.status(403).json({ error: "Your account is not yet approved. Please contact support." });
+      return res.status(403).json({
+        error: "Your account is not yet approved. Please contact support.",
+      });
     }
 
     if (user.currentJti) {
@@ -300,7 +304,11 @@ export const forgotPassword = async (req, res) => {
           <p>If you didn’t request this, ignore this email.</p>
         </div>
       `;
-      await sendMail(user.email, "My Teacher — Reset Your Password", emailHtml);
+      await sendMail(
+        user.email,
+        "My Be first Learning — Reset Your Password",
+        emailHtml
+      );
     }
     return res.status(200).json({
       message: "If that email is registered, a reset link has been sent.",

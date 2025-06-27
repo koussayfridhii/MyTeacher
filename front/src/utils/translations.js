@@ -494,7 +494,7 @@ const translations = {
     "messagingPanel.closeButtonArialLabel": "Close chat",
     "messagingPanel.loadingChat": "Loading chat...",
     "messagingPanel.title": "Chat",
-    "mobileNav.brandName": "My Teacher",
+    "mobileNav.brandName": "Be First Learning",
     "mobileNav.logoAlt": "yoom logo",
     "mobileNav.menuIconAlt": "menu icon",
     "mobileNav.openMenuArialLabel": "Open menu",
@@ -635,11 +635,14 @@ const translations = {
     // Quiz Game Translations
     "quiz.title": "Trivia Quiz",
     "quiz.loading": "Loading...",
-    "quiz.error.fetch": "Failed to fetch questions. Please check your connection.",
+    "quiz.error.fetch":
+      "Failed to fetch questions. Please check your connection.",
     "quiz.error.api": "Could not retrieve questions from the Trivia API.",
-    "quiz.error.api.noResults": "Not enough questions for this category/selection. Please try 'Any Category' or a different one.",
+    "quiz.error.api.noResults":
+      "Not enough questions for this category/selection. Please try 'Any Category' or a different one.",
     "quiz.error.api.invalidParam": "Invalid parameter sent to Trivia API.",
-    "quiz.error.rateLimit": "Too many requests. Please wait a moment and try again.",
+    "quiz.error.rateLimit":
+      "Too many requests. Please wait a moment and try again.",
     "quiz.error.fetchCategories": "Failed to fetch categories.",
     "quiz.tryAgain": "Try Again",
     "quiz.tryAgainCategory": "Choose Category Again",
@@ -667,28 +670,35 @@ const translations = {
     // Home page game section
     "home.gamesSectionTitle": "Games & Activities",
     "home.mathQuizTitle": "Math Quiz",
-    "home.mathQuizDescription": "Test your arithmetic skills in a fun and timed quiz!",
+    "home.mathQuizDescription":
+      "Test your arithmetic skills in a fun and timed quiz!",
     "home.triviaQuizTitle": "Trivia Quiz",
-    "home.triviaQuizDescription": "Challenge your knowledge with questions from various categories!",
+    "home.triviaQuizDescription":
+      "Challenge your knowledge with questions from various categories!",
     // Grammar Detective Game Translations
     "grammarDetective.title": "Grammar Detective",
     "home.grammarDetectiveTitle": "Grammar Detective Game",
-    "home.grammarDetectiveDescription": "Become a detective and spot grammatical errors in texts. Supports multiple languages!",
+    "home.grammarDetectiveDescription":
+      "Become a detective and spot grammatical errors in texts. Supports multiple languages!",
     "grammarDetective.language": "Language",
     "grammarDetective.category": "Category",
     "grammarDetective.story": "Story",
     "grammarDetective.findErrors": "Find the grammatical errors:",
     "grammarDetective.explanation": "Explanation",
     "grammarDetective.corrected": "Corrected",
-    "grammarDetective.noStoriesInCategory": "No stories in this category or select a category.",
+    "grammarDetective.noStoriesInCategory":
+      "No stories in this category or select a category.",
     "grammarDetective.categoryComplete": "Category Complete!",
-    "grammarDetective.selectCategoryPrompt": "Please select a category to start.",
+    "grammarDetective.selectCategoryPrompt":
+      "Please select a category to start.",
     "grammarDetective.notAnError": "That's not the error we were looking for.",
-    "grammarDetective.clickedNonError": "That wasn't an error. Moving to the next question.", // This might be obsolete now
+    "grammarDetective.clickedNonError":
+      "That wasn't an error. Moving to the next question.", // This might be obsolete now
     "grammarDetective.wellDone": "Well done!",
     "grammarDetective.submitResponse": "Submit Response",
     "grammarDetective.responseSubmittedTitle": "Results Evaluated",
-    "grammarDetective.responseSubmittedDesc": "Review the feedback below and click 'Next Story' to continue.",
+    "grammarDetective.responseSubmittedDesc":
+      "Review the feedback below and click 'Next Story' to continue.",
     "grammarDetective.feedbackSectionTitle": "Feedback",
     "grammarDetective.feedbackCorrectTitle": "Correctly Identified",
     "grammarDetective.feedbackMissedTitle": "Error Missed",
@@ -1254,7 +1264,7 @@ const translations = {
     "messagingPanel.closeButtonArialLabel": "FR: Close chat",
     "messagingPanel.loadingChat": "FR: Loading chat...",
     "messagingPanel.title": "FR: Chat",
-    "mobileNav.brandName": "FR: My Teacher",
+    "mobileNav.brandName": "FR: Be First Learning",
     "mobileNav.logoAlt": "FR: yoom logo",
     "mobileNav.menuIconAlt": "FR: menu icon",
     "mobileNav.openMenuArialLabel": "FR: Open menu",
@@ -1400,11 +1410,14 @@ const translations = {
     // Quiz Game Translations (French)
     "quiz.title": "Quiz Trivia",
     "quiz.loading": "Chargement...",
-    "quiz.error.fetch": "Échec de la récupération des questions. Veuillez vérifier votre connexion.",
+    "quiz.error.fetch":
+      "Échec de la récupération des questions. Veuillez vérifier votre connexion.",
     "quiz.error.api": "Impossible de récupérer les questions de l'API Trivia.",
-    "quiz.error.api.noResults": "Pas assez de questions pour cette catégorie/sélection. Veuillez essayer 'N'importe quelle catégorie' ou une autre.",
+    "quiz.error.api.noResults":
+      "Pas assez de questions pour cette catégorie/sélection. Veuillez essayer 'N'importe quelle catégorie' ou une autre.",
     "quiz.error.api.invalidParam": "Paramètre invalide envoyé à l'API Trivia.",
-    "quiz.error.rateLimit": "Trop de requêtes. Veuillez patienter un moment et réessayer.",
+    "quiz.error.rateLimit":
+      "Trop de requêtes. Veuillez patienter un moment et réessayer.",
     "quiz.error.fetchCategories": "Échec de la récupération des catégories.",
     "quiz.tryAgain": "Réessayer",
     "quiz.tryAgainCategory": "Choisir à nouveau la catégorie",
@@ -1432,33 +1445,42 @@ const translations = {
     // Home page game section
     "home.gamesSectionTitle": "Jeux et Activités",
     "home.mathQuizTitle": "Quiz de Maths",
-    "home.mathQuizDescription": "Testez vos compétences en arithmétique dans un quiz amusant et chronométré !",
+    "home.mathQuizDescription":
+      "Testez vos compétences en arithmétique dans un quiz amusant et chronométré !",
     "home.triviaQuizTitle": "Quiz Trivia",
-    "home.triviaQuizDescription": "Mettez vos connaissances au défi avec des questions de différentes catégories !",
+    "home.triviaQuizDescription":
+      "Mettez vos connaissances au défi avec des questions de différentes catégories !",
     // Grammar Detective Game Translations (French)
     "grammarDetective.title": "Détective de la Grammaire",
     "home.grammarDetectiveTitle": "Jeu Détective de la Grammaire",
-    "home.grammarDetectiveDescription": "Devenez détective et repérez les erreurs grammaticales dans les textes. Supporte plusieurs langues !",
+    "home.grammarDetectiveDescription":
+      "Devenez détective et repérez les erreurs grammaticales dans les textes. Supporte plusieurs langues !",
     "grammarDetective.language": "Langue",
     "grammarDetective.category": "Catégorie",
     "grammarDetective.story": "Histoire",
     "grammarDetective.findErrors": "Trouvez les erreurs grammaticales :",
     "grammarDetective.explanation": "Explication",
     "grammarDetective.corrected": "Corrigé",
-    "grammarDetective.noStoriesInCategory": "Aucune histoire dans cette catégorie ou sélectionnez une catégorie.",
+    "grammarDetective.noStoriesInCategory":
+      "Aucune histoire dans cette catégorie ou sélectionnez une catégorie.",
     "grammarDetective.categoryComplete": "Catégorie Terminée !",
-    "grammarDetective.selectCategoryPrompt": "Veuillez sélectionner une catégorie pour commencer.",
+    "grammarDetective.selectCategoryPrompt":
+      "Veuillez sélectionner une catégorie pour commencer.",
     "grammarDetective.notAnError": "Ce n'est pas l'erreur que nous cherchions.",
-    "grammarDetective.clickedNonError": "Ce n'était pas une erreur. Passage à la question suivante.", // This might be obsolete now
+    "grammarDetective.clickedNonError":
+      "Ce n'était pas une erreur. Passage à la question suivante.", // This might be obsolete now
     "grammarDetective.wellDone": "Bien joué !",
     "grammarDetective.submitResponse": "Soumettre la Réponse",
     "grammarDetective.responseSubmittedTitle": "Résultats Évalués",
-    "grammarDetective.responseSubmittedDesc": "Examinez les commentaires ci-dessous et cliquez sur 'Histoire Suivante' pour continuer.",
+    "grammarDetective.responseSubmittedDesc":
+      "Examinez les commentaires ci-dessous et cliquez sur 'Histoire Suivante' pour continuer.",
     "grammarDetective.feedbackSectionTitle": "Commentaires",
     "grammarDetective.feedbackCorrectTitle": "Correctement Identifié",
     "grammarDetective.feedbackMissedTitle": "Erreur Manquée",
-    "grammarDetective.feedbackIncorrectSelectionTitle": "Incorrectement Sélectionné",
-    "grammarDetective.feedbackIncorrectSelectionExpl": "Ceci n'était pas une erreur.",
+    "grammarDetective.feedbackIncorrectSelectionTitle":
+      "Incorrectement Sélectionné",
+    "grammarDetective.feedbackIncorrectSelectionExpl":
+      "Ceci n'était pas une erreur.",
 
     // Groups Page Translations (French)
     manageGroups: "Gérer les Groupes",
@@ -1476,14 +1498,18 @@ const translations = {
     deleteGroupConfirmation: "Êtes-vous sûr de vouloir supprimer ce groupe ?",
     errorDeletingGroup: "Erreur lors de la suppression du groupe: {error}",
     noGroupsFound: "Aucun groupe trouvé.",
-    searchGroupsPlaceholder: "Rechercher des groupes (nom, matière, niveau, professeur)...",
+    searchGroupsPlaceholder:
+      "Rechercher des groupes (nom, matière, niveau, professeur)...",
     groupCreatedSuccessTitle: "Groupe Créé",
     groupCreatedSuccessDesc: "Le groupe a été créé avec succès.",
     groupUpdatedSuccessTitle: "Groupe Mis à Jour",
     groupUpdatedSuccessDesc: "Le groupe a été mis à jour avec succès.",
-    errorCreatingGroup: "Erreur lors de la création du groupe. Veuillez vérifier le formulaire.",
-    errorUpdatingGroup: "Erreur lors de la mise à jour du groupe. Veuillez vérifier le formulaire.",
-    errorFetchingModalData: "Erreur lors de la récupération des données pour le modal: {error}",
+    errorCreatingGroup:
+      "Erreur lors de la création du groupe. Veuillez vérifier le formulaire.",
+    errorUpdatingGroup:
+      "Erreur lors de la mise à jour du groupe. Veuillez vérifier le formulaire.",
+    errorFetchingModalData:
+      "Erreur lors de la récupération des données pour le modal: {error}",
     maxStudents: "Max: {count} étudiants",
     groupDetails: "Détails du Groupe",
     addStudentToGroup: "Ajouter un Étudiant au Groupe",
@@ -1491,10 +1517,13 @@ const translations = {
     noStudentsInGroup: "Aucun étudiant dans ce groupe pour le moment.",
     selectStudentsToAdd: "Sélectionnez les étudiants à ajouter",
     studentAddedSuccess: "Étudiant ajouté au groupe avec succès.",
-    errorAddingStudent: "Erreur lors de l'ajout de l'étudiant au groupe: {error}",
+    errorAddingStudent:
+      "Erreur lors de l'ajout de l'étudiant au groupe: {error}",
     studentRemovedSuccess: "Étudiant retiré du groupe avec succès.",
-    errorRemovingStudent: "Erreur lors du retrait de l'étudiant du groupe: {error}",
-    groupIsFull: "Le groupe est complet. Impossible d'ajouter plus d'étudiants.",
+    errorRemovingStudent:
+      "Erreur lors du retrait de l'étudiant du groupe: {error}",
+    groupIsFull:
+      "Le groupe est complet. Impossible d'ajouter plus d'étudiants.",
     studentAlreadyInGroup: "Cet étudiant est déjà dans le groupe.",
   },
   ar: {
@@ -1974,7 +2003,7 @@ const translations = {
     "messagingPanel.closeButtonArialLabel": "AR: Close chat",
     "messagingPanel.loadingChat": "AR: Loading chat...",
     "messagingPanel.title": "AR: Chat",
-    "mobileNav.brandName": "AR: My Teacher",
+    "mobileNav.brandName": "AR: Be First Learning",
     "mobileNav.logoAlt": "AR: yoom logo",
     "mobileNav.menuIconAlt": "AR: menu icon",
     "mobileNav.openMenuArialLabel": "AR: Open menu",
@@ -2122,9 +2151,12 @@ const translations = {
     "quiz.loading": "جارٍ التحميل...",
     "quiz.error.fetch": "فشل في جلب الأسئلة. يرجى التحقق من اتصالك.",
     "quiz.error.api": "لم نتمكن من استرداد الأسئلة من API المعلومات العامة.",
-    "quiz.error.api.noResults": "لا توجد أسئلة كافية لهذه الفئة/الاختيار. يرجى تجربة 'أي فئة' أو فئة مختلفة.",
-    "quiz.error.api.invalidParam": "معلمة غير صالحة مرسلة إلى API المعلومات العامة.",
-    "quiz.error.rateLimit": "طلبات كثيرة جدا. يرجى الانتظار لحظة والمحاولة مرة أخرى.",
+    "quiz.error.api.noResults":
+      "لا توجد أسئلة كافية لهذه الفئة/الاختيار. يرجى تجربة 'أي فئة' أو فئة مختلفة.",
+    "quiz.error.api.invalidParam":
+      "معلمة غير صالحة مرسلة إلى API المعلومات العامة.",
+    "quiz.error.rateLimit":
+      "طلبات كثيرة جدا. يرجى الانتظار لحظة والمحاولة مرة أخرى.",
     "quiz.error.fetchCategories": "فشل في جلب الفئات.",
     "quiz.tryAgain": "حاول مرة أخرى",
     "quiz.tryAgainCategory": "اختر الفئة مرة أخرى",
@@ -2152,28 +2184,33 @@ const translations = {
     // Home page game section
     "home.gamesSectionTitle": "الألعاب والأنشطة",
     "home.mathQuizTitle": "اختبار الرياضيات",
-    "home.mathQuizDescription": "اختبر مهاراتك في الحساب في اختبار ممتع ومحدد بوقت!",
+    "home.mathQuizDescription":
+      "اختبر مهاراتك في الحساب في اختبار ممتع ومحدد بوقت!",
     "home.triviaQuizTitle": "اختبار المعلومات العامة",
     "home.triviaQuizDescription": "تحدى معلوماتك بأسئلة من مختلف الفئات!",
     // Grammar Detective Game Translations (Arabic)
     "grammarDetective.title": "متحري القواعد",
     "home.grammarDetectiveTitle": "لعبة متحرّي القواعد",
-    "home.grammarDetectiveDescription": "كن متحرّيًا واكتشف الأخطاء النحوية في النصوص. يدعم عدة لغات!",
+    "home.grammarDetectiveDescription":
+      "كن متحرّيًا واكتشف الأخطاء النحوية في النصوص. يدعم عدة لغات!",
     "grammarDetective.language": "اللغة",
     "grammarDetective.category": "الفئة",
     "grammarDetective.story": "القصة",
     "grammarDetective.findErrors": "ابحث عن الأخطاء النحوية:",
     "grammarDetective.explanation": "الشرح",
     "grammarDetective.corrected": "الصحيح",
-    "grammarDetective.noStoriesInCategory": "لا توجد قصص في هذه الفئة أو اختر فئة.",
+    "grammarDetective.noStoriesInCategory":
+      "لا توجد قصص في هذه الفئة أو اختر فئة.",
     "grammarDetective.categoryComplete": "اكتملت الفئة!",
     "grammarDetective.selectCategoryPrompt": "يرجى اختيار فئة للبدء.",
     "grammarDetective.notAnError": "ليس هذا هو الخطأ الذي كنا نبحث عنه.",
-    "grammarDetective.clickedNonError": "لم يكن ذلك خطأ. الانتقال إلى السؤال التالي.", // This might be obsolete now
+    "grammarDetective.clickedNonError":
+      "لم يكن ذلك خطأ. الانتقال إلى السؤال التالي.", // This might be obsolete now
     "grammarDetective.wellDone": "أحسنت!",
     "grammarDetective.submitResponse": "إرسال الإجابة",
     "grammarDetective.responseSubmittedTitle": "تم تقييم النتائج",
-    "grammarDetective.responseSubmittedDesc": "راجع الملاحظات أدناه وانقر على 'القصة التالية' للمتابعة.",
+    "grammarDetective.responseSubmittedDesc":
+      "راجع الملاحظات أدناه وانقر على 'القصة التالية' للمتابعة.",
     "grammarDetective.feedbackSectionTitle": "الملاحظات",
     "grammarDetective.feedbackCorrectTitle": "تم التحديد بشكل صحيح",
     "grammarDetective.feedbackMissedTitle": "خطأ لم يتم اكتشافه",
@@ -2196,7 +2233,8 @@ const translations = {
     deleteGroupConfirmation: "هل أنت متأكد أنك تريد حذف هذه المجموعة؟",
     errorDeletingGroup: "خطأ في حذف المجموعة: {error}",
     noGroupsFound: "لم يتم العثور على مجموعات.",
-    searchGroupsPlaceholder: "البحث في المجموعات (الاسم، المادة، المستوى، المعلم)...",
+    searchGroupsPlaceholder:
+      "البحث في المجموعات (الاسم، المادة، المستوى، المعلم)...",
     groupCreatedSuccessTitle: "تم إنشاء المجموعة",
     groupCreatedSuccessDesc: "تم إنشاء المجموعة بنجاح.",
     groupUpdatedSuccessTitle: "تم تحديث المجموعة",
