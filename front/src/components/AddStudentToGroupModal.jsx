@@ -42,7 +42,11 @@ const AddStudentToGroupModal = ({ isOpen, onClose, group, fetchGroups }) => {
         // Fetch all users and filter for approved students not already in the group
         const usersResponse = await apiClient.get("/users");
 
-        const groupStudentIds = group.students.map(s => s._id);
+        // Ensure group.students exists and is an array before mapping
+        const groupStudentIds = Array.isArray(group?.students)
+            ? group.students.map(s => s.student?._id).filter(id => id) // Get student._id and filter out any undefined if structure is unexpected
+            : [];
+
         const filteredStudents = usersResponse.data.users.filter(
           (user) =>
             user.role === "student" &&
