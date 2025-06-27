@@ -23,7 +23,8 @@ export const createGroup = async (req, res) => {
       return res.status(400).json({ message: "Invalid teacher selected." });
     }
 
-    // Validate Students
+    // Validate Students and prepare for new structure
+    let studentObjects = [];
     if (students && students.length > 0) {
       for (const studentId of students) {
         const studentUser = await User.findById(studentId);
@@ -32,8 +33,9 @@ export const createGroup = async (req, res) => {
             .status(400)
             .json({ message: `Invalid student ID: ${studentId}` });
         }
+        studentObjects.push({ student: studentId, addedBy: createdBy });
       }
-      if (students.length > groupPlan.numberOfStudents) {
+      if (studentObjects.length > groupPlan.numberOfStudents) {
         return res.status(400).json({
           message: `Number of students exceeds the plan limit of ${groupPlan.numberOfStudents}`,
         });
@@ -42,7 +44,7 @@ export const createGroup = async (req, res) => {
 
     const group = new Group({
       name,
-      students: students || [],
+      students: studentObjects,
       subject,
       teacher,
       level,
@@ -68,10 +70,11 @@ export const createGroup = async (req, res) => {
 export const getAllGroups = async (req, res) => {
   try {
     const groups = await Group.find({})
-      .populate("students", "firstName lastName email") // Populate student details
+      .populate("students.student", "firstName lastName email _id") // Populate student details
+      .populate("students.addedBy", "firstName lastName email _id") // Populate who added the student
       .populate("teacher", "firstName lastName email") // Populate teacher details
       .populate("plan", "name numberOfStudents") // Populate plan details
-      .populate("createdBy", "firstName lastName email"); // Populate creator details
+      .populate("createdBy", "firstName lastName email _id"); // Populate creator details
     res.json(groups);
   } catch (error) {
     console.error("Error getting groups:", error);
@@ -85,10 +88,11 @@ export const getAllGroups = async (req, res) => {
 export const getGroupById = async (req, res) => {
   try {
     const group = await Group.findById(req.params.id)
-      .populate("students", "firstName lastName email")
+      .populate("students.student", "firstName lastName email _id")
+      .populate("students.addedBy", "firstName lastName email _id")
       .populate("teacher", "firstName lastName email")
       .populate("plan", "name numberOfStudents")
-      .populate("createdBy", "firstName lastName email");
+      .populate("createdBy", "firstName lastName email _id");
 
     if (group) {
       res.json(group);
@@ -119,7 +123,7 @@ export const addStudentToGroup = async (req, res) => {
       return res.status(400).json({ message: "Invalid student ID provided." });
     }
 
-    if (group.students.includes(studentId)) {
+    if (group.students.some(s => s.student.toString() === studentId)) {
       return res.status(400).json({ message: "Student already in this group" });
     }
 
@@ -129,11 +133,12 @@ export const addStudentToGroup = async (req, res) => {
       });
     }
 
-    group.students.push(studentId);
+    group.students.push({ student: studentId, addedBy: req.user.id });
     await group.save();
 
     const updatedGroup = await Group.findById(req.params.id)
-      .populate("students", "firstName lastName email")
+      .populate("students.student", "firstName lastName email")
+      .populate("students.addedBy", "firstName lastName email")
       .populate("teacher", "firstName lastName email")
       .populate("plan", "name numberOfStudents")
       .populate("createdBy", "firstName lastName email");
@@ -153,25 +158,44 @@ export const addStudentToGroup = async (req, res) => {
 // @access  Private (Admin, Coordinator)
 export const removeStudentFromGroup = async (req, res) => {
   try {
-    const { studentId } = req.body;
+    const { studentId } = req.body; // This is studentIdToRemove
     const group = await Group.findById(req.params.id);
 
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    const studentIndex = group.students.indexOf(studentId);
-    if (studentIndex === -1) {
+    const studentEntryIndex = group.students.findIndex(
+      (s) => s.student.toString() === studentId
+    );
+
+    if (studentEntryIndex === -1) {
       return res
         .status(400)
         .json({ message: "Student not found in this group" });
     }
 
-    group.students.splice(studentIndex, 1);
+    const studentEntry = group.students[studentEntryIndex];
+
+    // Authorization check: Admin or the coordinator who added the student
+    if (
+      req.user.role !== "admin" &&
+      studentEntry.addedBy.toString() !== req.user.id
+    ) {
+      return res
+        .status(403)
+        .json({
+          message:
+            "Forbidden: You do not have permission to remove this student.",
+        });
+    }
+
+    group.students.splice(studentEntryIndex, 1);
     await group.save();
 
     const updatedGroup = await Group.findById(req.params.id)
-      .populate("students", "firstName lastName email")
+      .populate("students.student", "firstName lastName email")
+      .populate("students.addedBy", "firstName lastName email")
       .populate("teacher", "firstName lastName email")
       .populate("plan", "name numberOfStudents")
       .populate("createdBy", "firstName lastName email");

@@ -23,8 +23,15 @@ import {
   HStack,
   VStack,
   TagLabel,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverHeader,
+  PopoverBody,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon, ViewIcon } from "@chakra-ui/icons";
+import { AddIcon, EditIcon, DeleteIcon, ViewIcon, CloseIcon } from "@chakra-ui/icons";
 import { useSelector } from "react-redux";
 import apiClient from "../hooks/apiClient";
 import { t } from "../utils/translations";
@@ -115,6 +122,34 @@ const GroupsPageComponent = () => {
   const handleAddStudentModalOpen = (group) => {
     setSelectedGroupForStudentAdd(group);
     onAddStudentOpen();
+  };
+
+  const handleRemoveStudent = async (groupId, studentId, studentName) => {
+    if (
+      window.confirm(
+        t("removeStudentConfirmation", language, "en", {
+          studentName: studentName,
+          groupName: groups.find((g) => g._id === groupId)?.name || "this group",
+        })
+      )
+    ) {
+      try {
+        await apiClient.put(`/groups/${groupId}/students/remove`, {
+          studentId,
+        });
+        fetchGroups(); // Refresh list
+        // Add toast notification for success (optional)
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            t("errorRemovingStudent", language, "en", {
+              error: "Failed to remove student",
+            })
+        );
+        // Add toast notification for error (optional)
+        console.error("Error removing student:", err);
+      }
+    }
   };
 
   const filteredGroups = useMemo(() => {
@@ -293,37 +328,72 @@ const GroupsPageComponent = () => {
                       <Text fontSize="sm">
                         {group.students?.length || 0} /{" "}
                         {group.plan?.numberOfStudents}
-                        <Tooltip label={t("addStudentToGroup", language)}>
-                          <IconButton
-                            icon={<AddIcon />}
-                            size="xs"
-                            variant="ghost"
-                            colorScheme="green"
-                            ml={1}
-                            onClick={() => handleAddStudentModalOpen(group)}
-                            aria-label={t("addStudentToGroup", language)}
-                          />
-                        </Tooltip>
+                        {canModify && ( // Only show add student if user can modify the group
+                          <Tooltip label={t("addStudentToGroup", language)}>
+                            <IconButton
+                              icon={<AddIcon />}
+                              size="xs"
+                              variant="ghost"
+                              colorScheme="green"
+                              ml={1}
+                              onClick={() => handleAddStudentModalOpen(group)}
+                              aria-label={t("addStudentToGroup", language)}
+                              isDisabled={group.students?.length >= group.plan?.numberOfStudents}
+                            />
+                          </Tooltip>
+                        )}
                       </Text>
-                      {group.students && group.students.length > 0 && (
-                        <Tooltip
-                          label={group.students
-                            .map((s) => `${s.firstName} ${s.lastName}`)
-                            .join(", ")}
-                          aria-label="Student list"
-                          placement="top-start"
-                        >
-                          <Text
-                            fontSize="xs"
-                            color="gray.500"
-                            isTruncated
-                            maxWidth="150px"
-                          >
-                            {group.students
-                              .map((s) => `${s.firstName} ${s.lastName}`)
-                              .join(", ")}
-                          </Text>
-                        </Tooltip>
+
+                      {group.students && group.students.length > 0 ? (
+                        <Popover placement="top-start">
+                          <PopoverTrigger>
+                            <Button size="xs" variant="link" colorScheme="blue">
+                              {t("viewStudents", language, "en", {
+                                count: group.students.length,
+                              })}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent>
+                            <PopoverArrow />
+                            <PopoverCloseButton />
+                            <PopoverHeader>
+                              {t("studentsInGroup", language)}
+                            </PopoverHeader>
+                            <PopoverBody>
+                              <VStack align="start" spacing={2}>
+                                {group.students.map((studentEntry) => {
+                                  const studentUser = studentEntry.student;
+                                  const canRemoveStudent = user.role === 'admin' ||
+                                                         (user.role === 'coordinator' && studentEntry.addedBy && studentEntry.addedBy._id === user._id);
+                                  return (
+                                    <HStack key={studentUser?._id} justify="space-between" w="full">
+                                      <Text fontSize="sm">
+                                        {studentUser?.firstName}{" "}
+                                        {studentUser?.lastName}
+                                      </Text>
+                                      {canRemoveStudent && (
+                                        <Tooltip label={t("removeStudent", language)}>
+                                          <IconButton
+                                            icon={<CloseIcon />}
+                                            size="xs"
+                                            variant="ghost"
+                                            colorScheme="red"
+                                            onClick={() => handleRemoveStudent(group._id, studentUser._id, `${studentUser?.firstName} ${studentUser?.lastName}`)}
+                                            aria-label={t("removeStudent", language)}
+                                          />
+                                        </Tooltip>
+                                      )}
+                                    </HStack>
+                                  );
+                                })}
+                              </VStack>
+                            </PopoverBody>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <Text fontSize="xs" color="gray.500">
+                          {t("noStudentsInGroup", language)}
+                        </Text>
                       )}
                     </VStack>
                   </Td>
