@@ -328,7 +328,7 @@ const GroupsPageComponent = () => {
                       <Text fontSize="sm">
                         {group.students?.length || 0} /{" "}
                         {group.plan?.numberOfStudents}
-                        {canModify && ( // Only show add student if user can modify the group
+                        {(user.role === 'admin' || user.role === 'coordinator') && (
                           <Tooltip label={t("addStudentToGroup", language)}>
                             <IconButton
                               icon={<AddIcon />}
