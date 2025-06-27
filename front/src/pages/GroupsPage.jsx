@@ -21,6 +21,8 @@ import {
   Text,
   Tooltip,
   HStack,
+  VStack,
+  TagLabel,
 } from "@chakra-ui/react";
 import { AddIcon, EditIcon, DeleteIcon, ViewIcon } from "@chakra-ui/icons";
 import { useSelector } from "react-redux";
@@ -30,22 +32,31 @@ import CreateGroupModal from "../components/CreateGroupModal";
 import AddStudentToGroupModal from "../components/AddStudentToGroupModal";
 import { withAuthorization } from "../HOC/Protect";
 
-const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
+const GroupsPageComponent = () => {
+  // Renamed to avoid conflict before HOC
   const {
     isOpen: isCreateOpen,
     onOpen: onCreateOpen,
     onClose: onCreateClose,
   } = useDisclosure();
-  const { isOpen: isAddStudentOpen, onOpen: onAddStudentOpen, onClose: onAddStudentClose } = useDisclosure();
+  const {
+    isOpen: isAddStudentOpen,
+    onOpen: onAddStudentOpen,
+    onClose: onAddStudentClose,
+  } = useDisclosure();
 
   const [groups, setGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingGroup, setEditingGroup] = useState(null);
-  const [selectedGroupForStudentAdd, setSelectedGroupForStudentAdd] = useState(null);
+  const [selectedGroupForStudentAdd, setSelectedGroupForStudentAdd] =
+    useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState({ key: "name", direction: "ascending" });
+  const [sortConfig, setSortConfig] = useState({
+    key: "name",
+    direction: "ascending",
+  });
 
   const language = useSelector((state) => state.language.language);
   const user = useSelector((state) => state.user.user); // to get current user for createdBy
@@ -106,7 +117,6 @@ const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
     onAddStudentOpen();
   };
 
-
   const filteredGroups = useMemo(() => {
     return groups.filter((group) => {
       const searchLower = searchTerm.toLowerCase();
@@ -114,8 +124,10 @@ const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
         group.name.toLowerCase().includes(searchLower) ||
         group.subject.toLowerCase().includes(searchLower) ||
         group.level.toLowerCase().includes(searchLower) ||
-        (group.teacher?.firstName && group.teacher.firstName.toLowerCase().includes(searchLower)) ||
-        (group.teacher?.lastName && group.teacher.lastName.toLowerCase().includes(searchLower))
+        (group.teacher?.firstName &&
+          group.teacher.firstName.toLowerCase().includes(searchLower)) ||
+        (group.teacher?.lastName &&
+          group.teacher.lastName.toLowerCase().includes(searchLower))
       );
     });
   }, [groups, searchTerm]);
@@ -128,13 +140,26 @@ const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
         let bValue = b[sortConfig.key];
 
         if (sortConfig.key === "teacher") {
-            aValue = `${a.teacher?.firstName} ${a.teacher?.lastName}`;
-            bValue = `${b.teacher?.firstName} ${b.teacher?.lastName}`;
+          aValue = `${a.teacher?.firstName || ""} ${
+            a.teacher?.lastName || ""
+          }`.toLowerCase();
+          bValue = `${b.teacher?.firstName || ""} ${
+            b.teacher?.lastName || ""
+          }`.toLowerCase();
         } else if (sortConfig.key === "plan") {
-            aValue = a.plan?.name;
-            bValue = b.plan?.name;
+          aValue = a.plan?.name?.toLowerCase();
+          bValue = b.plan?.name?.toLowerCase();
+        } else if (sortConfig.key === "createdBy") {
+          aValue = `${a.createdBy?.firstName || ""} ${
+            a.createdBy?.lastName || ""
+          }`.toLowerCase();
+          bValue = `${b.createdBy?.firstName || ""} ${
+            b.createdBy?.lastName || ""
+          }`.toLowerCase();
+        } else if (typeof aValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
         }
-
 
         if (aValue < bValue) {
           return sortConfig.direction === "ascending" ? -1 : 1;
@@ -162,7 +187,6 @@ const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
     }
     return "";
   };
-
 
   if (isLoading) {
     return (
@@ -195,74 +219,122 @@ const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
       )}
 
       <Input
-        placeholder={language === "en" ? "Search groups (name, subject, level, teacher)..." : "Rechercher des groupes (nom, matière, niveau, professeur)..."}
+        placeholder={
+          language === "en"
+            ? "Search groups (name, subject, level, teacher)..."
+            : "Rechercher des groupes (nom, matière, niveau, professeur)..."
+        }
         mb={5}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        width={{ base: "100%", md: "50%"}}
+        width={{ base: "100%", md: "50%" }}
       />
 
       {sortedGroups.length === 0 && !isLoading ? (
-         <Text fontSize="lg" textAlign="center" mt={10}>
-            {language === "en" ? "No groups found." : "Aucun groupe trouvé."}
+        <Text fontSize="lg" textAlign="center" mt={10}>
+          {language === "en" ? "No groups found." : "Aucun groupe trouvé."}
         </Text>
       ) : (
-      <Table variant="simple" size="md">
-        <Thead>
-          <Tr>
-            <Th cursor="pointer" onClick={() => requestSort('name')}>
+        <Table variant="simple" size="md">
+          <Thead>
+            <Tr>
+              <Th cursor="pointer" onClick={() => requestSort("name")}>
                 {language === "en" ? "Name" : "Nom"}
-                {getSortIndicator('name')}
-            </Th>
-            <Th cursor="pointer" onClick={() => requestSort('subject')}>
+                {getSortIndicator("name")}
+              </Th>
+              <Th cursor="pointer" onClick={() => requestSort("subject")}>
                 {language === "en" ? "Subject" : "Matière"}
-                {getSortIndicator('subject')}
-            </Th>
-            <Th cursor="pointer" onClick={() => requestSort('teacher')}>
+                {getSortIndicator("subject")}
+              </Th>
+              <Th cursor="pointer" onClick={() => requestSort("teacher")}>
                 {language === "en" ? "Teacher" : "Professeur"}
-                {getSortIndicator('teacher')}
-            </Th>
-            <Th cursor="pointer" onClick={() => requestSort('level')}>
+                {getSortIndicator("teacher")}
+              </Th>
+              <Th cursor="pointer" onClick={() => requestSort("level")}>
                 {language === "en" ? "Level" : "Niveau"}
-                {getSortIndicator('level')}
-            </Th>
-            <Th cursor="pointer" onClick={() => requestSort('plan')}>
+                {getSortIndicator("level")}
+              </Th>
+              <Th cursor="pointer" onClick={() => requestSort("plan")}>
                 {language === "en" ? "Plan" : "Plan"}
-                {getSortIndicator('plan')}
-            </Th>
-            <Th>{language === "en" ? "Students" : "Étudiants"}</Th>
-            <Th>{language === "en" ? "Actions" : "Actions"}</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {sortedGroups.map((group) => (
-            <Tr key={group._id}>
-              <Td>{group.name}</Td>
-              <Td>{group.subject}</Td>
-              <Td>{`${group.teacher?.firstName || ""} ${group.teacher?.lastName || ""}`}</Td>
-              <Td>{group.level}</Td>
-              <Td>
-                <Tag colorScheme={group.plan?.color?.toLowerCase() || "gray"}>
-                    {group.plan?.name} ({group.plan?.numberOfStudents} max)
-                </Tag>
-                </Td>
-              <Td>
-                {group.students?.length || 0} / {group.plan?.numberOfStudents}
-                <Tooltip label={t("addStudentToGroup", language)}>
-                    <IconButton
-                        icon={<AddIcon />}
-                        size="sm"
-                        variant="ghost"
-                        colorScheme="green"
-                        ml={2}
-                        onClick={() => handleAddStudentModalOpen(group)}
-                        aria-label={t("addStudentToGroup", language)}
-                    />
-                </Tooltip>
-              </Td>
-              <Td>
-                <HStack spacing={2}>
-                {/* <Tooltip label={language === "en" ? "View Details" : "Voir les détails"}>
+                {getSortIndicator("plan")}
+              </Th>
+              <Th>{language === "en" ? "Students" : "Étudiants"}</Th>
+              <Th cursor="pointer" onClick={() => requestSort("createdBy")}>
+                {language === "en" ? "Created By" : "Créé par"}
+                {getSortIndicator("createdBy")}
+              </Th>
+              <Th>{language === "en" ? "Actions" : "Actions"}</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {sortedGroups.map((group) => {
+              const canModify =
+                user.role === "admin" ||
+                (user.role === "coordinator" &&
+                  group.createdBy &&
+                  group.createdBy._id === user._id);
+              return (
+                <Tr key={group._id}>
+                  <Td>{group.name}</Td>
+                  <Td>{group.subject}</Td>
+                  <Td>{`${group.teacher?.firstName || ""} ${
+                    group.teacher?.lastName || ""
+                  }`}</Td>
+                  <Td>{group.level}</Td>
+                  <Td>
+                    <Tag
+                      colorScheme={group.plan?.color?.toLowerCase() || "gray"}
+                    >
+                      {group.plan?.name} ({group.plan?.numberOfStudents} max)
+                    </Tag>
+                  </Td>
+                  <Td>
+                    <VStack align="start" spacing={1}>
+                      <Text fontSize="sm">
+                        {group.students?.length || 0} /{" "}
+                        {group.plan?.numberOfStudents}
+                        <Tooltip label={t("addStudentToGroup", language)}>
+                          <IconButton
+                            icon={<AddIcon />}
+                            size="xs"
+                            variant="ghost"
+                            colorScheme="green"
+                            ml={1}
+                            onClick={() => handleAddStudentModalOpen(group)}
+                            aria-label={t("addStudentToGroup", language)}
+                          />
+                        </Tooltip>
+                      </Text>
+                      {group.students && group.students.length > 0 && (
+                        <Tooltip
+                          label={group.students
+                            .map((s) => `${s.firstName} ${s.lastName}`)
+                            .join(", ")}
+                          aria-label="Student list"
+                          placement="top-start"
+                        >
+                          <Text
+                            fontSize="xs"
+                            color="gray.500"
+                            isTruncated
+                            maxWidth="150px"
+                          >
+                            {group.students
+                              .map((s) => `${s.firstName} ${s.lastName}`)
+                              .join(", ")}
+                          </Text>
+                        </Tooltip>
+                      )}
+                    </VStack>
+                  </Td>
+                  <Td>
+                    {group.createdBy
+                      ? `${group.createdBy.firstName} ${group.createdBy.lastName}`
+                      : "N/A"}
+                  </Td>
+                  <Td>
+                    <HStack spacing={2}>
+                      {/* <Tooltip label={language === "en" ? "View Details" : "Voir les détails"}>
                     <IconButton
                         icon={<ViewIcon />}
                         size="sm"
@@ -270,30 +342,49 @@ const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
                         onClick={() => {}} // Add view details functionality
                     />
                 </Tooltip> */}
-                <Tooltip label={language === "en" ? "Edit Group" : "Modifier le Groupe"}>
-                    <IconButton
-                        icon={<EditIcon />}
-                        size="sm"
-                        variant="ghost"
-                        colorScheme="blue"
-                        onClick={() => handleEditModalOpen(group)}
-                    />
-                </Tooltip>
-                <Tooltip label={language === "en" ? "Delete Group" : "Supprimer le Groupe"}>
-                    <IconButton
-                        icon={<DeleteIcon />}
-                        size="sm"
-                        variant="ghost"
-                        colorScheme="red"
-                        onClick={() => handleDeleteGroup(group._id)}
-                    />
-                </Tooltip>
-                </HStack>
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
+                      {canModify && (
+                        <>
+                          <Tooltip
+                            label={
+                              language === "en"
+                                ? "Edit Group"
+                                : "Modifier le Groupe"
+                            }
+                          >
+                            <IconButton
+                              icon={<EditIcon />}
+                              size="sm"
+                              variant="ghost"
+                              colorScheme="blue"
+                              onClick={() => handleEditModalOpen(group)}
+                              aria-label={t("editGroup", language)}
+                            />
+                          </Tooltip>
+                          <Tooltip
+                            label={
+                              language === "en"
+                                ? "Delete Group"
+                                : "Supprimer le Groupe"
+                            }
+                          >
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              variant="ghost"
+                              colorScheme="red"
+                              onClick={() => handleDeleteGroup(group._id)}
+                              aria-label={t("deleteGroup", language)}
+                            />
+                          </Tooltip>
+                        </>
+                      )}
+                    </HStack>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </Tbody>
+        </Table>
       )}
 
       <CreateGroupModal
@@ -306,16 +397,19 @@ const GroupsPageComponent = () => { // Renamed to avoid conflict before HOC
 
       {selectedGroupForStudentAdd && (
         <AddStudentToGroupModal
-            isOpen={isAddStudentOpen}
-            onClose={onAddStudentClose}
-            group={selectedGroupForStudentAdd}
-            fetchGroups={fetchGroups}
+          isOpen={isAddStudentOpen}
+          onClose={onAddStudentClose}
+          group={selectedGroupForStudentAdd}
+          fetchGroups={fetchGroups}
         />
       )}
     </Box>
   );
 };
 
-const GroupsPage = withAuthorization(GroupsPageComponent, ["admin", "coordinator"]);
+const GroupsPage = withAuthorization(GroupsPageComponent, [
+  "admin",
+  "coordinator",
+]);
 
 export default GroupsPage;

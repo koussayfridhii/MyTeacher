@@ -7,7 +7,8 @@ import User from "../models/User.js"; // To validate student and teacher roles
 // @access  Private (Admin, Coordinator)
 export const createGroup = async (req, res) => {
   try {
-    const { name, students, subject, teacher, level, plan, comments } = req.body;
+    const { name, students, subject, teacher, level, plan, comments } =
+      req.body;
     const createdBy = req.user.id;
 
     // Validate Plan
@@ -19,9 +20,7 @@ export const createGroup = async (req, res) => {
     // Validate Teacher
     const teacherUser = await User.findById(teacher);
     if (!teacherUser || teacherUser.role !== "teacher") {
-      return res
-        .status(400)
-        .json({ message: "Invalid teacher selected." });
+      return res.status(400).json({ message: "Invalid teacher selected." });
     }
 
     // Validate Students
@@ -40,7 +39,6 @@ export const createGroup = async (req, res) => {
         });
       }
     }
-
 
     const group = new Group({
       name,
@@ -103,7 +101,6 @@ export const getGroupById = async (req, res) => {
   }
 };
 
-
 // @desc    Add a student to a group
 // @route   PUT /api/groups/:id/students/add
 // @access  Private (Admin, Coordinator)
@@ -119,15 +116,11 @@ export const addStudentToGroup = async (req, res) => {
     // Validate Student
     const studentUser = await User.findById(studentId);
     if (!studentUser || studentUser.role !== "student") {
-      return res
-        .status(400)
-        .json({ message: "Invalid student ID provided." });
+      return res.status(400).json({ message: "Invalid student ID provided." });
     }
 
     if (group.students.includes(studentId)) {
-      return res
-        .status(400)
-        .json({ message: "Student already in this group" });
+      return res.status(400).json({ message: "Student already in this group" });
     }
 
     if (group.students.length >= group.plan.numberOfStudents) {
@@ -148,7 +141,7 @@ export const addStudentToGroup = async (req, res) => {
     res.json(updatedGroup);
   } catch (error) {
     console.error("Error adding student to group:", error);
-     if (error.name === "ValidationError") {
+    if (error.name === "ValidationError") {
       return res.status(400).json({ message: error.message });
     }
     res.status(500).json({ message: "Server error" });
@@ -202,6 +195,19 @@ export const updateGroup = async (req, res) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
+    // Authorization check: Only admin or the creating coordinator can update
+    if (
+      req.user.role === "coordinator" &&
+      group.createdBy.toString() !== req.user.id
+    ) {
+      return res
+        .status(403)
+        .json({
+          message:
+            "Forbidden: Coordinators can only update groups they created",
+        });
+    }
+
     // If plan is being changed, validate student count against new plan
     if (plan && plan.toString() !== group.plan._id.toString()) {
       const newPlan = await Plan.findById(plan);
@@ -217,13 +223,12 @@ export const updateGroup = async (req, res) => {
     }
 
     if (teacher) {
-        const teacherUser = await User.findById(teacher);
-        if (!teacherUser || teacherUser.role !== "teacher") {
-            return res.status(400).json({ message: "Invalid teacher selected." });
-        }
-        group.teacher = teacher;
+      const teacherUser = await User.findById(teacher);
+      if (!teacherUser || teacherUser.role !== "teacher") {
+        return res.status(400).json({ message: "Invalid teacher selected." });
+      }
+      group.teacher = teacher;
     }
-
 
     group.name = name || group.name;
     group.subject = subject || group.subject;
@@ -256,12 +261,25 @@ export const deleteGroup = async (req, res) => {
   try {
     const group = await Group.findById(req.params.id);
 
-    if (group) {
-      await group.deleteOne(); // or group.remove() for older mongoose
-      res.json({ message: "Group removed" });
-    } else {
-      res.status(404).json({ message: "Group not found" });
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
     }
+
+    // Authorization check: Only admin or the creating coordinator can delete
+    if (
+      req.user.role === "coordinator" &&
+      group.createdBy.toString() !== req.user.id
+    ) {
+      return res
+        .status(403)
+        .json({
+          message:
+            "Forbidden: Coordinators can only delete groups they created",
+        });
+    }
+
+    await group.deleteOne(); // or group.remove() for older mongoose
+    res.json({ message: "Group removed" });
   } catch (error) {
     console.error("Error deleting group:", error);
     res.status(500).json({ message: "Server error" });
