@@ -23,8 +23,22 @@ import {
   HStack,
   VStack,
   TagLabel,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverCloseButton,
+  PopoverHeader,
+  PopoverBody,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  useToast,
 } from "@chakra-ui/react";
-import { AddIcon, EditIcon, DeleteIcon, ViewIcon } from "@chakra-ui/icons";
+import { AddIcon, EditIcon, DeleteIcon, ViewIcon, CloseIcon } from "@chakra-ui/icons";
 import { useSelector } from "react-redux";
 import apiClient from "../hooks/apiClient";
 import { t } from "../utils/translations";
@@ -44,9 +58,27 @@ const GroupsPageComponent = () => {
     onOpen: onAddStudentOpen,
     onClose: onAddStudentClose,
   } = useDisclosure();
+  const {
+    isOpen: isDeleteDialogOpen,
+    onOpen: onDeleteDialogOpen,
+    onClose: onDeleteDialogClose,
+  } = useDisclosure();
 
   const [groups, setGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [groupToDelete, setGroupToDelete] = useState(null);
+  const cancelRefDeleteGroup = React.useRef();
+  const toast = useToast(); // Already initialized
+
+  // States for Remove Student Dialog
+  const {
+    isOpen: isRemoveStudentDialogOpen,
+    onOpen: onRemoveStudentDialogOpen,
+    onClose: onRemoveStudentDialogClose,
+  } = useDisclosure();
+  const [studentToRemoveDetails, setStudentToRemoveDetails] = useState(null);
+  const cancelRefRemoveStudent = React.useRef();
+
   const [error, setError] = useState(null);
   const [editingGroup, setEditingGroup] = useState(null);
   const [selectedGroupForStudentAdd, setSelectedGroupForStudentAdd] =
@@ -94,27 +126,78 @@ const GroupsPageComponent = () => {
     onCreateOpen();
   };
 
-  const handleDeleteGroup = async (groupId) => {
-    if (window.confirm(t("deleteGroupConfirmation", language, "en"))) {
-      try {
-        await apiClient.delete(`/groups/${groupId}`);
-        fetchGroups(); // Refresh list
-        // Add toast notification for success
-      } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            t("errorDeletingGroup", language, "en", {
-              error: "Failed to delete group",
-            })
-        );
-        // Add toast notification for error
-      }
+  const initiateDeleteGroup = (group) => {
+    setGroupToDelete(group);
+    onDeleteDialogOpen();
+  };
+
+  const confirmDeleteGroup = async () => {
+    if (!groupToDelete) return;
+    try {
+      await apiClient.delete(`/groups/${groupToDelete._id}`);
+      fetchGroups(); // Refresh list
+      toast({
+        title: t("groupDeletedSuccessTitle", language, "en", { default: "Group Deleted" }),
+        description: t("groupDeletedSuccessMessage", language, "en", { groupName: groupToDelete.name, default: `Group '${groupToDelete.name}' has been deleted.` }),
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (err) {
+      toast({
+        title: t("errorDeletingGroupTitle", language, "en", { default: "Error Deleting Group" }),
+        description: err.response?.data?.message || t("errorDeletingGroup", language, "en", { error: "Failed to delete group" }),
+        status: "error",
+        duration: 7000,
+        isClosable: true,
+      });
+      console.error("Error deleting group:", err);
+    } finally {
+      setGroupToDelete(null);
+      onDeleteDialogClose();
     }
   };
 
   const handleAddStudentModalOpen = (group) => {
     setSelectedGroupForStudentAdd(group);
     onAddStudentOpen();
+  };
+
+  const initiateRemoveStudent = (groupId, studentId, studentName, groupName) => {
+    setStudentToRemoveDetails({ groupId, studentId, studentName, groupName });
+    onRemoveStudentDialogOpen();
+  };
+
+  const confirmRemoveStudent = async () => {
+    if (!studentToRemoveDetails) return;
+    const { groupId, studentId, studentName, groupName } = studentToRemoveDetails;
+
+    try {
+      await apiClient.put(`/groups/${groupId}/students/remove`, {
+        studentId,
+      });
+      fetchGroups(); // Refresh list
+      toast({
+        title: t("studentRemovedSuccessTitle", language, "en", { default: "Student Removed" }),
+        description: t("studentRemovedSuccessMessage", language, "en", { studentName, groupName, default: `${studentName} has been removed from group '${groupName}'.` }),
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (err) {
+      toast({
+        title: t("errorRemovingStudentTitle", language, "en", { default: "Error Removing Student" }),
+        description: err.response?.data?.message || t("errorRemovingStudent", language, "en", { error: "Failed to remove student" }),
+        status: "error",
+        duration: 7000,
+        isClosable: true,
+      });
+      // setError( err.response?.data?.message || t("errorRemovingStudent", language, "en", { error: "Failed to remove student" }) ); // Optionally keep page level error too
+      console.error("Error removing student:", err);
+    } finally {
+      setStudentToRemoveDetails(null);
+      onRemoveStudentDialogClose();
+    }
   };
 
   const filteredGroups = useMemo(() => {
@@ -293,37 +376,72 @@ const GroupsPageComponent = () => {
                       <Text fontSize="sm">
                         {group.students?.length || 0} /{" "}
                         {group.plan?.numberOfStudents}
-                        <Tooltip label={t("addStudentToGroup", language)}>
-                          <IconButton
-                            icon={<AddIcon />}
-                            size="xs"
-                            variant="ghost"
-                            colorScheme="green"
-                            ml={1}
-                            onClick={() => handleAddStudentModalOpen(group)}
-                            aria-label={t("addStudentToGroup", language)}
-                          />
-                        </Tooltip>
+                        {(user.role === 'admin' || user.role === 'coordinator') && (
+                          <Tooltip label={t("addStudentToGroup", language)}>
+                            <IconButton
+                              icon={<AddIcon />}
+                              size="xs"
+                              variant="ghost"
+                              colorScheme="green"
+                              ml={1}
+                              onClick={() => handleAddStudentModalOpen(group)}
+                              aria-label={t("addStudentToGroup", language)}
+                              isDisabled={group.students?.length >= group.plan?.numberOfStudents}
+                            />
+                          </Tooltip>
+                        )}
                       </Text>
-                      {group.students && group.students.length > 0 && (
-                        <Tooltip
-                          label={group.students
-                            .map((s) => `${s.firstName} ${s.lastName}`)
-                            .join(", ")}
-                          aria-label="Student list"
-                          placement="top-start"
-                        >
-                          <Text
-                            fontSize="xs"
-                            color="gray.500"
-                            isTruncated
-                            maxWidth="150px"
-                          >
-                            {group.students
-                              .map((s) => `${s.firstName} ${s.lastName}`)
-                              .join(", ")}
-                          </Text>
-                        </Tooltip>
+
+                      {group.students && group.students.length > 0 ? (
+                        <Popover placement="top-start">
+                          <PopoverTrigger>
+                            <Button size="xs" variant="link" colorScheme="blue">
+                              {t("viewStudents", language, "en", {
+                                count: group.students.length,
+                              })}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent>
+                            <PopoverArrow />
+                            <PopoverCloseButton />
+                            <PopoverHeader>
+                              {t("studentsInGroup", language)}
+                            </PopoverHeader>
+                            <PopoverBody>
+                              <VStack align="start" spacing={2}>
+                                {group.students.map((studentEntry) => {
+                                  const studentUser = studentEntry.student;
+                                  const canRemoveStudent = user.role === 'admin' ||
+                                                         (user.role === 'coordinator' && studentEntry.addedBy && studentEntry.addedBy._id === user._id);
+                                  return (
+                                    <HStack key={studentUser?._id} justify="space-between" w="full">
+                                      <Text fontSize="sm">
+                                        {studentUser?.firstName}{" "}
+                                        {studentUser?.lastName}
+                                      </Text>
+                                      {canRemoveStudent && (
+                                        <Tooltip label={t("removeStudent", language)}>
+                                          <IconButton
+                                            icon={<CloseIcon />}
+                                            size="xs"
+                                            variant="ghost"
+                                            colorScheme="red"
+                                            onClick={() => initiateRemoveStudent(group._id, studentUser._id, `${studentUser?.firstName} ${studentUser?.lastName}`, group.name)}
+                                            aria-label={t("removeStudent", language)}
+                                          />
+                                        </Tooltip>
+                                      )}
+                                    </HStack>
+                                  );
+                                })}
+                              </VStack>
+                            </PopoverBody>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <Text fontSize="xs" color="gray.500">
+                          {t("noStudentsInGroup", language)}
+                        </Text>
                       )}
                     </VStack>
                   </Td>
@@ -372,7 +490,7 @@ const GroupsPageComponent = () => {
                               size="sm"
                               variant="ghost"
                               colorScheme="red"
-                              onClick={() => handleDeleteGroup(group._id)}
+                              onClick={() => initiateDeleteGroup(group)}
                               aria-label={t("deleteGroup", language)}
                             />
                           </Tooltip>
@@ -403,6 +521,66 @@ const GroupsPageComponent = () => {
           fetchGroups={fetchGroups}
         />
       )}
+
+      {/* Delete Group Alert Dialog */}
+      <AlertDialog
+        isOpen={isDeleteDialogOpen}
+        leastDestructiveRef={cancelRefDeleteGroup}
+        onClose={onDeleteDialogClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              {t("deleteGroupTitle", language, "en", { default: "Delete Group" })}
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              {t("deleteGroupConfirmation", language, "en", { groupName: groupToDelete?.name, default: `Are you sure you want to delete the group '${groupToDelete?.name}'? This action cannot be undone.` })}
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRefDeleteGroup} onClick={onDeleteDialogClose}>
+                {t("cancel", language, "en", { default: "Cancel" })}
+              </Button>
+              <Button colorScheme="red" onClick={confirmDeleteGroup} ml={3}>
+                {t("delete", language, "en", { default: "Delete" })}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      {/* Remove Student Alert Dialog */}
+      <AlertDialog
+        isOpen={isRemoveStudentDialogOpen}
+        leastDestructiveRef={cancelRefRemoveStudent}
+        onClose={onRemoveStudentDialogClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              {t("removeStudentTitle", language, "en", { default: "Remove Student" })}
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              {t("removeStudentConfirmation", language, "en", {
+                studentName: studentToRemoveDetails?.studentName,
+                groupName: studentToRemoveDetails?.groupName,
+                default: `Are you sure you want to remove ${studentToRemoveDetails?.studentName} from the group '${studentToRemoveDetails?.groupName}'?`
+              })}
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRefRemoveStudent} onClick={onRemoveStudentDialogClose}>
+                {t("cancel", language, "en", { default: "Cancel" })}
+              </Button>
+              <Button colorScheme="red" onClick={confirmRemoveStudent} ml={3}>
+                {t("remove", language, "en", { default: "Remove" })}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

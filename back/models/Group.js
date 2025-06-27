@@ -9,8 +9,16 @@ const groupSchema = new mongoose.Schema(
     },
     students: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Assuming 'User' model with role 'student'
+        student: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User", // Assuming 'User' model with role 'student'
+          required: true,
+        },
+        addedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User", // User who added this student (admin or coordinator)
+          required: true,
+        },
       },
     ],
     subject: {
@@ -49,8 +57,9 @@ const groupSchema = new mongoose.Schema(
 // Ensure that a student can only be in a group once
 groupSchema.path("students").validate(function (students) {
   if (!students) return true;
-  const uniqueStudents = new Set(students.map(String));
-  return uniqueStudents.size === students.length;
+  const studentIds = students.map(s => s.student && s.student.toString());
+  const uniqueStudents = new Set(studentIds.filter(id => id)); // Filter out potential null/undefined during validation
+  return uniqueStudents.size === studentIds.length;
 }, "A student can only be added to a group once.");
 
 const Group = mongoose.model("Group", groupSchema);
