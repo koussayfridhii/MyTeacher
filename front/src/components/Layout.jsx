@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { Box, Flex, useColorModeValue } from "@chakra-ui/react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import Chatbot from "./Chatbot"; // Import the Chatbot component
 
 const Layout = () => {
   const user = useSelector((state) => state.user.user);
@@ -41,6 +42,7 @@ const Layout = () => {
           <Outlet />
         </Box>
       </Flex>
+      {user && <Chatbot />} {/* Add Chatbot here, ensure it's only shown if user is logged in */}
     </Box>
   );
 };
