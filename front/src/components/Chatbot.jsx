@@ -17,8 +17,10 @@ import {
 } from '@chakra-ui/react';
 import { FiMessageSquare, FiX, FiSend, FiMic, FiVolume2 } from 'react-icons/fi'; // Example icons
 import axios from 'axios'; // Import axios
+import { useSelector } from 'react-redux'; // Import useSelector
 
 const Chatbot = () => {
+  const user = useSelector((state) => state.user.user); // Get user from Redux store
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -50,6 +52,14 @@ const Chatbot = () => {
     setIsLoading(true);
     setError(null);
 
+    if (!user || !user.token) {
+      setError('Authentication token not found. Please log in again.');
+      setIsLoading(false);
+      const errorMessage = { sender: 'bot', text: 'Error: You are not authorized. Please log in.' };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      return;
+    }
+
     const chatHistoryForAPI = messages.map(msg => ({
       role: msg.sender === 'user' ? 'user' : 'assistant',
       content: msg.text,
@@ -67,12 +77,11 @@ const Chatbot = () => {
           history: chatHistoryForAPI,
         },
         {
-          // Add withCredentials if you are using cookie-based authentication
+          headers: {
+            'Authorization': `Bearer ${user.token}`, // Add JWT token to headers
+          },
+          // Add withCredentials if you were using cookie-based authentication ALONGSIDE token (uncommon for Bearer)
           // withCredentials: true,
-          // headers: {
-          //   // Add Authorization header if your route is protected by JWT in header
-          //   // 'Authorization': `Bearer ${your_jwt_token}`,
-          // }
         }
       );
 
