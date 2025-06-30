@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 import { FiMessageSquare, FiX, FiSend, FiMic, FiVolume2 } from 'react-icons/fi'; // Example icons
+import axios from 'axios'; // Import axios
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,34 +56,44 @@ const Chatbot = () => {
     }));
 
     try {
-      const response = await fetch('/api/chatbot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add Authorization header if your route is protected
-          // 'Authorization': `Bearer ${your_jwt_token}`,
-        },
-        body: JSON.stringify({
+      // Use axios for the API call
+      const response = await axios.post(
+        'http://localhost:5000/api/chatbot', // Explicit backend URL
+        {
           message: input,
           subject,
           level,
           language,
           history: chatHistoryForAPI,
-        }),
-      });
+        },
+        {
+          // Add withCredentials if you are using cookie-based authentication
+          // withCredentials: true,
+          // headers: {
+          //   // Add Authorization header if your route is protected by JWT in header
+          //   // 'Authorization': `Bearer ${your_jwt_token}`,
+          // }
+        }
+      );
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const botMessage = { sender: 'bot', text: data.reply };
+      const botMessage = { sender: 'bot', text: response.data.reply };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     } catch (err) {
       console.error('Chatbot API error:', err);
-      setError(err.message || 'Failed to get response from tutor.');
-      const errorMessage = { sender: 'bot', text: `Error: ${err.message || 'Could not connect to the tutor.'}` };
+      let errorMessageText = 'Failed to get response from the tutor.';
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        errorMessageText = err.response.data?.message || `Error: ${err.response.status} ${err.response.statusText}`;
+      } else if (err.request) {
+        // The request was made but no response was received
+        errorMessageText = 'No response from the tutor. Is the server running?';
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        errorMessageText = err.message;
+      }
+      setError(errorMessageText);
+      const errorMessage = { sender: 'bot', text: `Error: ${errorMessageText}` };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
