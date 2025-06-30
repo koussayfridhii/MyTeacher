@@ -1,91 +1,86 @@
-import asyncHandler from 'express-async-handler';
-import ollama from 'ollama';
+import asyncHandler from "express-async-handler";
+import ollama from "ollama";
 
-// @desc    Handle chatbot interaction
+// @desc    Handle chatbot interaction (with direct explanation & solving)
 // @route   POST /api/chatbot
 // @access  Private
 const handleChatbotInteraction = asyncHandler(async (req, res) => {
-  const { message, subject, level, language, history } = req.body; // history is an array of previous messages
+  const { message, subject, level, language, history } = req.body;
 
   if (!message) {
     res.status(400);
-    throw new Error('Message is required');
+    throw new Error("Message is required");
   }
 
-  const model = 'mistral'; // Or another model you have downloaded via Ollama
+  const model = "llama3";
 
-  // Construct the system prompt based on user selections
-  let systemPrompt = `You are BeFirst Learning's AI Tutor. Your goal is to help students solve exercises by guiding them step-by-step, never by giving the direct answer.
-Behave like a patient, friendly tutor. Use the Socratic method: ask questions, give hints, and help students reason their way through problems.
-Avoid giving full answers directly. Ask leading questions that help the student figure it out.
-Adapt explanations based on the student's level.
-Use clear, simple language.
-If the student is stuck, simplify the explanation or give an example.
----
-Current student context:
-Subject: ${subject || 'General'}
-Level: ${level || 'Middle School'}
-Language: ${language || 'English'}. Respond ONLY in this language.
----
-`;
+  // 💬 Explanation-style system prompts
+  const systemPrompts = {
+    english: `
+You are BeFirst Learning's AI Tutor.
+Your job is to SOLVE and EXPLAIN any academic question step by step, like a great teacher.
+- Give a clear and complete explanation of how to arrive at the answer.
+- Adapt the explanation to the student's level: ${level || "Middle School"}
+- Use simple, structured English.
+- If applicable, show the full step-by-step solution and final answer.
+Subject: ${subject || "General"}
+Respond ONLY in English.
+    `.trim(),
 
-  if (language && language.toLowerCase() === 'french') {
-    systemPrompt = `Tu es le tuteur IA de BeFirst Learning. Ton objectif est d'aider les élèves à résoudre des exercices en les guidant pas à pas, jamais en donnant la réponse directe.
-Comporte-toi comme un tuteur patient et amical. Utilise la méthode socratique : pose des questions, donne des indices et aide les élèves à raisonner pour résoudre les problèmes.
-Évite de donner des réponses complètes directement. Pose des questions suggestives qui aident l'élève à trouver la solution.
-Adapte tes explications en fonction du niveau de l'élève.
-Utilise un langage clair et simple.
-Si l'élève est bloqué, simplifie l'explication ou donne un exemple.
----
-Contexte actuel de l'étudiant :
-Matière : ${subject || 'Général'}
-Niveau : ${level || 'Collège'}
-Langue : ${language || 'Français'}. Réponds UNIQUEMENT dans cette langue.
----
-`;
-  } else if (language && language.toLowerCase() === 'arabic') {
-    systemPrompt = `أنت معلم الذكاء الاصطناعي الخاص بمنصة BeFirst Learning. هدفك هو مساعدة الطلاب على حل التمارين من خلال توجيههم خطوة بخطوة، وليس بإعطاء الإجابة المباشرة أبداً.
-تصرف كمعلم صبور وودود. استخدم الطريقة السقراطية: اطرح الأسئلة، قدم التلميحات، وساعد الطلاب على التفكير المنطقي لحل المشكلات.
-تجنب إعطاء إجابات كاملة بشكل مباشر. اطرح أسئلة توجيهية تساعد الطالب على اكتشاف الحل.
-كيف شرحك بناءً على مستوى الطالب.
-استخدم لغة واضحة وبسيطة.
-إذا واجه الطالب صعوبة، قم بتبسيط الشرح أو قدم مثالاً.
----
-السياق الحالي للطالب:
-المادة: ${subject || 'عام'}
-المستوى: ${level || 'المرحلة الإعدادية'}
-اللغة: ${language || 'العربية'}. أجب بهذه اللغة فقط.
----
-`;
-  }
+    french: `
+Tu es le tuteur IA de BeFirst Learning.
+Ton rôle est de RÉSOUDRE et EXPLIQUER chaque question étape par étape comme un bon enseignant.
+- Fournis une explication claire et complète du raisonnement.
+- Adapte l'explication au niveau de l'élève : ${level || "Collège"}
+- Utilise un français simple et structuré.
+- Si nécessaire, donne la solution complète avec la réponse finale.
+Matière : ${subject || "Général"}
+Réponds UNIQUEMENT en français.
+    `.trim(),
+
+    arabic: `
+أنت معلم الذكاء الاصطناعي لمنصة BeFirst Learning.
+مهمتك هي حل الأسئلة وشرحها خطوة بخطوة مثل المعلمين الممتازين.
+- قدم شرحًا واضحًا ومفصلًا لطريقة الوصول إلى الجواب.
+- اشرح حسب مستوى الطالب: ${level || "متوسط"}
+- استخدم لغة عربية بسيطة ومنظمة.
+- إذا أمكن، اعرض خطوات الحل كاملة والنتيجة النهائية.
+المادة: ${subject || "عام"}
+أجب فقط باللغة العربية.
+    `.trim(),
+  };
+
+  const langKey = (language || "english").toLowerCase();
+  const systemPrompt = systemPrompts[langKey] || systemPrompts["english"];
 
   const messages = [
-    { role: 'system', content: systemPrompt },
+    { role: "system", content: systemPrompt },
+    ...(Array.isArray(history) ? history : []).map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    })),
+    { role: "user", content: message },
   ];
 
-  // Add previous history if available
-  if (history && Array.isArray(history)) {
-    messages.push(...history);
-  }
-
-  // Add the current user message
-  messages.push({ role: 'user', content: message });
-
   try {
-    // Ensure Ollama server is running and the model is downloaded (e.g., ollama pull mistral)
     const response = await ollama.chat({
-      model: model,
-      messages: messages,
+      model,
+      messages,
     });
 
     res.json({
       reply: response.message.content,
-      // You might want to send back the full history or other metadata
+      history: [
+        ...messages,
+        { role: "assistant", content: response.message.content },
+      ],
     });
   } catch (error) {
-    console.error('Error communicating with Ollama:', error);
+    console.error("Error communicating with Ollama:", error);
     res.status(500);
-    throw new Error('Failed to communicate with AI Tutor. Please ensure Ollama is running and the model is available.');
+    throw new Error(
+      "Failed to communicate with AI Tutor. Please ensure Ollama is running and the model is available."
+    );
   }
 });
 

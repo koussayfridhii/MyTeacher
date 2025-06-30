@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -14,61 +14,64 @@ import {
   useColorModeValue,
   Icon,
   Tooltip,
-} from '@chakra-ui/react';
-import { FiMessageSquare, FiX, FiSend, FiMic, FiVolume2 } from 'react-icons/fi'; // Example icons
-import axios from 'axios'; // Import axios
-import { useSelector } from 'react-redux'; // Import useSelector
+} from "@chakra-ui/react";
+import { FiMessageSquare, FiX, FiSend, FiMic, FiVolume2 } from "react-icons/fi"; // Example icons
+import axios from "axios"; // Import axios
+import { useSelector } from "react-redux"; // Import useSelector
 
 const Chatbot = () => {
   const user = useSelector((state) => state.user.user); // Get user from Redux store
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const token = localStorage.getItem("token"); // Get token from localStorage
   // Chat settings
-  const [language, setLanguage] = useState('English'); // Default language
-  const [subject, setSubject] = useState('General'); // Default subject
-  const [level, setLevel] = useState('Middle School'); // Default level
+  const [language, setLanguage] = useState("English"); // Default language
+  const [subject, setSubject] = useState("General"); // Default subject
+  const [level, setLevel] = useState("Middle School"); // Default level
 
   const chatEndRef = useRef(null);
-  const bg = useColorModeValue('gray.50', 'gray.700');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const bg = useColorModeValue("gray.50", "gray.700");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.600");
 
   const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(scrollToBottom, [messages]);
 
   const handleSendMessage = async () => {
-    if (input.trim() === '') return;
+    if (input.trim() === "") return;
 
-    const userMessage = { sender: 'user', text: input };
+    const userMessage = { sender: "user", text: input };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
-    setInput('');
+    setInput("");
     setIsLoading(true);
     setError(null);
 
-    if (!user || !user.token) {
-      setError('Authentication token not found. Please log in again.');
+    if (!user || !token) {
+      setError("Authentication token not found. Please log in again.");
       setIsLoading(false);
-      const errorMessage = { sender: 'bot', text: 'Error: You are not authorized. Please log in.' };
+      const errorMessage = {
+        sender: "bot",
+        text: "Error: You are not authorized. Please log in.",
+      };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
       return;
     }
 
-    const chatHistoryForAPI = messages.map(msg => ({
-      role: msg.sender === 'user' ? 'user' : 'assistant',
+    const chatHistoryForAPI = messages.map((msg) => ({
+      role: msg.sender === "user" ? "user" : "assistant",
       content: msg.text,
     }));
 
     try {
       // Use axios for the API call
       const response = await axios.post(
-        'http://localhost:5000/api/chatbot', // Explicit backend URL
+        "http://localhost:5000/api/chatbot", // Explicit backend URL
         {
           message: input,
           subject,
@@ -78,31 +81,34 @@ const Chatbot = () => {
         },
         {
           headers: {
-            'Authorization': `Bearer ${user.token}`, // Add JWT token to headers
+            Authorization: `Bearer ${token}`, // Add JWT token to headers
           },
-          // Add withCredentials if you were using cookie-based authentication ALONGSIDE token (uncommon for Bearer)
-          // withCredentials: true,
         }
       );
 
-      const botMessage = { sender: 'bot', text: response.data.reply };
+      const botMessage = { sender: "bot", text: response.data.reply };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     } catch (err) {
-      console.error('Chatbot API error:', err);
-      let errorMessageText = 'Failed to get response from the tutor.';
+      console.error("Chatbot API error:", err);
+      let errorMessageText = "Failed to get response from the tutor.";
       if (err.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        errorMessageText = err.response.data?.message || `Error: ${err.response.status} ${err.response.statusText}`;
+        errorMessageText =
+          err.response.data?.message ||
+          `Error: ${err.response.status} ${err.response.statusText}`;
       } else if (err.request) {
         // The request was made but no response was received
-        errorMessageText = 'No response from the tutor. Is the server running?';
+        errorMessageText = "No response from the tutor. Is the server running?";
       } else {
         // Something happened in setting up the request that triggered an Error
         errorMessageText = err.message;
       }
       setError(errorMessageText);
-      const errorMessage = { sender: 'bot', text: `Error: ${errorMessageText}` };
+      const errorMessage = {
+        sender: "bot",
+        text: `Error: ${errorMessageText}`,
+      };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -112,23 +118,37 @@ const Chatbot = () => {
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
     if (!isOpen && messages.length === 0) {
-        // Initial greeting or prompt
-        setMessages([{ sender: 'bot', text: language === 'French' ? "Bonjour ! Comment puis-je t'aider aujourd'hui ?" : language === 'Arabic' ? "مرحباً! كيف يمكنني مساعدتك اليوم؟" : "Hello! How can I help you today?"}])
+      // Initial greeting or prompt
+      setMessages([
+        {
+          sender: "bot",
+          text:
+            language === "French"
+              ? "Bonjour ! Comment puis-je t'aider aujourd'hui ?"
+              : language === "Arabic"
+              ? "مرحباً! كيف يمكنني مساعدتك اليوم؟"
+              : "Hello! How can I help you today?",
+        },
+      ]);
     }
   };
 
   // Update greeting if language changes and chat is open
   useEffect(() => {
     if (isOpen && messages.length <= 1) {
-         const greeting = language === 'French' ? "Bonjour ! Comment puis-je t'aider aujourd'hui ?" : language === 'Arabic' ? "مرحباً! كيف يمكنني مساعدتك اليوم؟" : "Hello! How can I help you today?"
-         if (messages.length === 1 && messages[0].sender === 'bot') {
-            setMessages([{sender: 'bot', text: greeting}]);
-         } else if (messages.length === 0) {
-            setMessages([{sender: 'bot', text: greeting}]);
-         }
+      const greeting =
+        language === "French"
+          ? "Bonjour ! Comment puis-je t'aider aujourd'hui ?"
+          : language === "Arabic"
+          ? "مرحباً! كيف يمكنني مساعدتك اليوم؟"
+          : "Hello! How can I help you today?";
+      if (messages.length === 1 && messages[0].sender === "bot") {
+        setMessages([{ sender: "bot", text: greeting }]);
+      } else if (messages.length === 0) {
+        setMessages([{ sender: "bot", text: greeting }]);
+      }
     }
   }, [language, isOpen]);
-
 
   if (!isOpen) {
     return (
@@ -153,19 +173,19 @@ const Chatbot = () => {
     <Flex
       direction="column"
       position="fixed"
-      bottom={{ base: '0', md: '30px' }}
-      right={{ base: '0', md: '30px' }}
-      w={{ base: '100%', md: '400px' }}
-      h={{ base: '100%', md: '600px' }}
+      bottom={{ base: "0", md: "30px" }}
+      right={{ base: "0", md: "30px" }}
+      w={{ base: "100%", md: "400px" }}
+      h={{ base: "100%", md: "600px" }}
       bg={cardBg}
       boxShadow="xl"
-      borderRadius={{ base: 'none', md: 'lg' }}
+      borderRadius={{ base: "none", md: "lg" }}
       zIndex="1000"
       overflow="hidden"
     >
       <Flex
         p="4"
-        bg={useColorModeValue('teal.500', 'teal.700')}
+        bg={useColorModeValue("teal.500", "teal.700")}
         color="white"
         justifyContent="space-between"
         alignItems="center"
@@ -177,7 +197,7 @@ const Chatbot = () => {
           size="sm"
           variant="ghost"
           color="white"
-          _hover={{ bg: 'teal.600' }}
+          _hover={{ bg: "teal.600" }}
           aria-label="Close chat"
         />
       </Flex>
@@ -185,7 +205,12 @@ const Chatbot = () => {
       <VStack spacing={2} p={3} flex="1" overflowY="auto" bg={bg}>
         <FormControl>
           <FormLabel fontSize="sm">Language</FormLabel>
-          <Select value={language} onChange={(e) => setLanguage(e.target.value)} size="sm" borderColor={borderColor}>
+          <Select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            size="sm"
+            borderColor={borderColor}
+          >
             <option value="English">English</option>
             <option value="French">Français</option>
             <option value="Arabic">العربية</option>
@@ -193,17 +218,27 @@ const Chatbot = () => {
         </FormControl>
         <FormControl>
           <FormLabel fontSize="sm">Subject</FormLabel>
-          <Select value={subject} onChange={(e) => setSubject(e.target.value)} size="sm" borderColor={borderColor}>
+          <Select
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            size="sm"
+            borderColor={borderColor}
+          >
             <option value="General">General</option>
             <option value="Math">Math</option>
             <option value="Science">Science</option>
-            <option value="Languages">Languages</option>
+            <option value="english">English</option>
             <option value="History">History</option>
           </Select>
         </FormControl>
         <FormControl>
           <FormLabel fontSize="sm">Level</FormLabel>
-          <Select value={level} onChange={(e) => setLevel(e.target.value)} size="sm" borderColor={borderColor}>
+          <Select
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            size="sm"
+            borderColor={borderColor}
+          >
             <option value="Primary">Primary School</option>
             <option value="Middle School">Middle School</option>
             <option value="High School">High School</option>
@@ -216,11 +251,19 @@ const Chatbot = () => {
           <Flex
             key={index}
             w="full"
-            justify={msg.sender === 'user' ? 'flex-end' : 'flex-start'}
+            justify={msg.sender === "user" ? "flex-end" : "flex-start"}
           >
             <Box
-              bg={msg.sender === 'user' ? 'teal.500' : useColorModeValue('gray.200', 'gray.600')}
-              color={msg.sender === 'user' ? 'white' : useColorModeValue('black', 'white')}
+              bg={
+                msg.sender === "user"
+                  ? "teal.500"
+                  : useColorModeValue("gray.200", "gray.600")
+              }
+              color={
+                msg.sender === "user"
+                  ? "white"
+                  : useColorModeValue("black", "white")
+              }
               px="3"
               py="2"
               borderRadius="lg"
@@ -248,7 +291,7 @@ const Chatbot = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your question..."
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
           flex="1"
           mr="2"
           borderColor={borderColor}
