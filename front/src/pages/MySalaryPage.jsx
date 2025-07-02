@@ -14,8 +14,11 @@ import {
   useColorModeValue,
   VStack,
   Divider,
+  Button,
+  HStack, // Added Button
 } from "@chakra-ui/react";
 import apiClient from "../hooks/apiClient"; // Assuming this is your configured axios instance
+import html2pdf from "html2pdf.js"; // Added html2pdf
 import { useSelector } from "react-redux";
 import { withAuthorization } from "../HOC/Protect";
 
@@ -28,6 +31,8 @@ const MySalaryPage = () => {
   const cardBgColor = useColorModeValue("white", "gray.700");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const headingColor = useColorModeValue("gray.700", "white");
+
+  const salaryDetailsRef = React.useRef(); // Added ref for PDF export
 
   // Placeholder for translations - extend as needed
   const translations = {
@@ -73,6 +78,11 @@ const MySalaryPage = () => {
       ar: "لا توجد بيانات راتب متاحة.",
     },
     currency: { en: "TND", fr: "TND", ar: " دينار تونسي" }, // Assuming USD, adjust if different
+    exportPdf: {
+      en: "Export as PDF",
+      fr: "Exporter en PDF",
+      ar: "تصدير كملف PDF",
+    },
   };
 
   const t = (key) => translations[key]?.[language] || translations[key]?.en;
@@ -97,6 +107,20 @@ const MySalaryPage = () => {
 
     fetchSalaryData();
   }, []);
+
+  const handleExportPDF = () => {
+    const element = salaryDetailsRef.current;
+    if (element) {
+      const opt = {
+        margin: 0.5,
+        filename: "my-salary.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true }, // useCORS might be needed if images are from other domains
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      };
+      html2pdf().from(element).set(opt).save();
+    }
+  };
 
   if (loading) {
     return (
@@ -133,92 +157,101 @@ const MySalaryPage = () => {
   const bonusAmount = salaryData.topups_total * 0.05;
 
   return (
-    <Box p={5} maxW="xl" mx="auto">
-      <VStack spacing={6} align="stretch">
-        <Heading
-          as="h1"
-          size="xl"
-          textAlign="center"
-          color={headingColor}
-          mb={4}
-        >
-          {t("title")}
-        </Heading>
+    <>
+      <Box p={5} maxW="xl" mx="auto" ref={salaryDetailsRef}>
+        {" "}
+        {/* Added ref here */}
+        <VStack spacing={6} align="stretch">
+          <Heading
+            as="h1"
+            size="xl"
+            textAlign="center"
+            color={headingColor}
+            mb={4}
+          >
+            {t("title")}
+          </Heading>
 
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
-          <Stat
-            p={5}
-            shadow="md"
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
+            <Stat
+              p={5}
+              shadow="md"
+              borderWidth="1px"
+              borderRadius="md"
+              bg={cardBgColor}
+            >
+              <StatLabel color={textColor}>{t("baseSalary")}</StatLabel>
+              <StatNumber>
+                {salaryData.base_salary.toLocaleString()} {t("currency")}
+              </StatNumber>
+            </Stat>
+
+            <Stat
+              p={5}
+              shadow="md"
+              borderWidth="1px"
+              borderRadius="md"
+              bg={cardBgColor}
+            >
+              <StatLabel color={textColor}>{t("penalties")}</StatLabel>
+              <StatNumber color="red.500">
+                {salaryData.penalties.toLocaleString()} %
+              </StatNumber>
+            </Stat>
+
+            <Stat
+              p={5}
+              shadow="md"
+              borderWidth="1px"
+              borderRadius="md"
+              bg={cardBgColor}
+              gridColumn={{ md: "span 2" }}
+            >
+              <StatLabel color={textColor}>{t("studentTopUps")}</StatLabel>
+              <StatNumber>
+                {salaryData.topups_total.toLocaleString()} {t("currency")}
+              </StatNumber>
+              <StatHelpText>
+                {t("bonusPercentage")}:{" "}
+                {bonusAmount.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                {t("currency")}
+              </StatHelpText>
+            </Stat>
+          </SimpleGrid>
+
+          <Divider my={6} />
+
+          <Box
+            textAlign="center"
+            p={6}
+            shadow="lg"
             borderWidth="1px"
             borderRadius="md"
-            bg={cardBgColor}
+            bg={useColorModeValue("primary.500", "primary.300")}
+            color="text"
           >
-            <StatLabel color={textColor}>{t("baseSalary")}</StatLabel>
-            <StatNumber>
-              {salaryData.base_salary.toLocaleString()} {t("currency")}
-            </StatNumber>
-          </Stat>
-
-          <Stat
-            p={5}
-            shadow="md"
-            borderWidth="1px"
-            borderRadius="md"
-            bg={cardBgColor}
-          >
-            <StatLabel color={textColor}>{t("penalties")}</StatLabel>
-            <StatNumber color="red.500">
-              {salaryData.penalties.toLocaleString()} {t("currency")}
-            </StatNumber>
-          </Stat>
-
-          <Stat
-            p={5}
-            shadow="md"
-            borderWidth="1px"
-            borderRadius="md"
-            bg={cardBgColor}
-            gridColumn={{ md: "span 2" }}
-          >
-            <StatLabel color={textColor}>{t("studentTopUps")}</StatLabel>
-            <StatNumber>
-              {salaryData.topups_total.toLocaleString()} {t("currency")}
-            </StatNumber>
-            <StatHelpText>
-              {t("bonusPercentage")}:{" "}
-              {bonusAmount.toLocaleString(undefined, {
+            <Text fontSize="lg" fontWeight="medium" mb={1}>
+              {t("finalMonthlySalary")}
+            </Text>
+            <Text fontSize="3xl" fontWeight="bold">
+              {salaryData.monthly_salary.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}{" "}
               {t("currency")}
-            </StatHelpText>
-          </Stat>
-        </SimpleGrid>
-
-        <Divider my={6} />
-
-        <Box
-          textAlign="center"
-          p={6}
-          shadow="lg"
-          borderWidth="1px"
-          borderRadius="md"
-          bg={useColorModeValue("primary.500", "primary.300")}
-          color="white"
-        >
-          <Text fontSize="lg" fontWeight="medium" mb={1}>
-            {t("finalMonthlySalary")}
-          </Text>
-          <Text fontSize="3xl" fontWeight="bold">
-            {salaryData.monthly_salary.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{" "}
-            {t("currency")}
-          </Text>
-        </Box>
-      </VStack>
-    </Box>
+            </Text>
+          </Box>
+        </VStack>
+      </Box>
+      <HStack justifyContent="center" mt={6}>
+        <Button onClick={handleExportPDF} colorScheme="teal" mt={6}>
+          {t("exportPdf")}
+        </Button>
+      </HStack>
+    </>
   );
 };
 
