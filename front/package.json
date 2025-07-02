@@ -48,6 +48,7 @@
     "firebase": "^11.7.3",
     "framer-motion": "^12.12.2",
     "front": "^0.0.1",
+    "html2pdf.js": "^0.9.3",
     "lexical": "^0.17.0",
     "lucide-react": "^0.507.0",
     "meshline": "^3.3.1",

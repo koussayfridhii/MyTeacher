@@ -14,8 +14,10 @@ import {
   useColorModeValue,
   VStack,
   Divider,
+  Button, // Added Button
 } from "@chakra-ui/react";
 import apiClient from "../hooks/apiClient"; // Assuming this is your configured axios instance
+import html2pdf from "html2pdf.js"; // Added html2pdf
 import { useSelector } from "react-redux";
 import { withAuthorization } from "../HOC/Protect";
 
@@ -28,6 +30,8 @@ const MySalaryPage = () => {
   const cardBgColor = useColorModeValue("white", "gray.700");
   const textColor = useColorModeValue("gray.600", "gray.300");
   const headingColor = useColorModeValue("gray.700", "white");
+
+  const salaryDetailsRef = React.useRef(); // Added ref for PDF export
 
   // Placeholder for translations - extend as needed
   const translations = {
@@ -73,6 +77,11 @@ const MySalaryPage = () => {
       ar: "لا توجد بيانات راتب متاحة.",
     },
     currency: { en: "TND", fr: "TND", ar: " دينار تونسي" }, // Assuming USD, adjust if different
+    exportPdf: {
+      en: "Export as PDF",
+      fr: "Exporter en PDF",
+      ar: "تصدير كملف PDF",
+    },
   };
 
   const t = (key) => translations[key]?.[language] || translations[key]?.en;
@@ -97,6 +106,20 @@ const MySalaryPage = () => {
 
     fetchSalaryData();
   }, []);
+
+  const handleExportPDF = () => {
+    const element = salaryDetailsRef.current;
+    if (element) {
+      const opt = {
+        margin: 0.5,
+        filename: "my-salary.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true }, // useCORS might be needed if images are from other domains
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      };
+      html2pdf().from(element).set(opt).save();
+    }
+  };
 
   if (loading) {
     return (
@@ -133,7 +156,7 @@ const MySalaryPage = () => {
   const bonusAmount = salaryData.topups_total * 0.05;
 
   return (
-    <Box p={5} maxW="xl" mx="auto">
+    <Box p={5} maxW="xl" mx="auto" ref={salaryDetailsRef}> {/* Added ref here */}
       <VStack spacing={6} align="stretch">
         <Heading
           as="h1"
@@ -217,6 +240,10 @@ const MySalaryPage = () => {
             {t("currency")}
           </Text>
         </Box>
+
+        <Button onClick={handleExportPDF} colorScheme="teal" mt={6}>
+          {t("exportPdf")}
+        </Button>
       </VStack>
     </Box>
   );
