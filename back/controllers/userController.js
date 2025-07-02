@@ -4,6 +4,7 @@ import Wallet from "../models/Wallet.js";
 import Class from "../models/Class.js";
 import { sendMail } from "../utils/sendEmail.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose"; // Added for ObjectId
 // Helper: generate and send verification email
 const sendVerificationEmail = async (user, res, verify = false) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -60,7 +61,8 @@ export const createUser = async (req, res, next) => {
       coordinator,
       rib,
       about,
-      max_hours_per_week, // New field
+      max_hours_per_week,
+      base_salary, // Added for coordinator creation
     } = req.body;
 
     // Only coordinators or admins can create teacher/student
@@ -108,7 +110,21 @@ export const createUser = async (req, res, next) => {
       if (req.user.role === "admin" && max_hours_per_week !== undefined) {
         userData.max_hours_per_week = Number(max_hours_per_week);
       }
+    } else if (role === "coordinator") {
+      // Handle base_salary for coordinators
+      if (base_salary !== undefined && base_salary !== null && base_salary !== '') {
+        const salary = Number(base_salary);
+        if (!isNaN(salary) && salary >= 0) {
+          userData.base_salary = salary;
+        } else {
+          // Optionally, return an error if base_salary is invalid
+          // For now, it will just not set it if invalid, relying on model validation or default
+        }
+      } else {
+        userData.base_salary = 0; // Default to 0 if empty, null, or undefined
+      }
     }
+
 
     // If coordinator is creating a teacher/student, assign them and approve
     if (
@@ -371,8 +387,9 @@ export const getAllUsers = async (req, res, next) => {
     }, {});
 
     // Merge user data + flattened attendedClasses + wallet info
-    const usersWithWallets = users.map((userDoc) => {
-      const user = userDoc.toObject();
+    // And calculate salary for coordinators
+    const usersProcessed = await Promise.all(users.map(async (userDoc) => {
+      const user = userDoc.toObject(); // Convert to plain object for modification
       const classes = (user.attendedClasses || []).map((cls) => ({
         _id: cls._id,
         topic: cls.topic,
@@ -383,19 +400,85 @@ export const getAllUsers = async (req, res, next) => {
           : null,
       }));
 
-      return {
+      const userData = {
         ...user,
         coordinator: user.coordinator || null,
         attendedClasses: classes,
         wallet: walletMap[user._id.toString()] || null,
       };
-    });
 
-    res.json({ users: usersWithWallets });
+      if (user.role === "coordinator") {
+        userData.monthly_salary = await calculateCoordinatorSalary(user._id, user.base_salary);
+      }
+
+      return userData;
+    }));
+
+    res.json({ users: usersProcessed });
   } catch (err) {
     next(err);
   }
 };
+
+// Helper function to calculate coordinator salary
+const calculateCoordinatorSalary = async (coordinatorId, baseSalary = 0) => {
+  if (!mongoose.Types.ObjectId.isValid(coordinatorId)) {
+    console.error("Invalid coordinatorId provided to calculateCoordinatorSalary");
+    return baseSalary; // Or throw an error
+  }
+
+  try {
+    // Find students assigned to this coordinator
+    const students = await User.find({
+      coordinator: coordinatorId,
+      role: "student",
+    }).select("_id");
+
+    if (!students || students.length === 0) {
+      return baseSalary;
+    }
+
+    const studentIds = students.map((s) => s._id);
+
+    // Get the start and end of the current month
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999); // Last day, end of day
+
+    // Find wallets of these students
+    const studentWallets = await Wallet.find({
+      user: { $in: studentIds },
+    }).select("history");
+
+    let totalTopupsThisMonth = 0;
+
+    studentWallets.forEach((wallet) => {
+      if (wallet.history && wallet.history.length > 0) {
+        wallet.history.forEach((entry) => {
+          // Check if the transaction was created this month
+          const entryDate = new Date(entry.createdAt);
+          if (entryDate >= startOfMonth && entryDate <= endOfMonth) {
+            // Check if the reason is 'topup' (or other relevant income reasons)
+            // For now, strictly 'topup' as per requirement "5% of all topups"
+            if (entry.reason === "topup") {
+              const amount = entry.newBalance - entry.oldBalance;
+              if (amount > 0) { // Ensure it's an actual topup (positive amount)
+                totalTopupsThisMonth += amount;
+              }
+            }
+          }
+        });
+      }
+    });
+
+    const bonus = totalTopupsThisMonth * 0.05;
+    return (baseSalary || 0) + bonus;
+  } catch (error) {
+    console.error(`Error calculating salary for coordinator ${coordinatorId}:`, error);
+    return baseSalary; // Return base salary in case of error
+  }
+};
+
 // @route   DELETE /api/users/attended-class
 // @access  Admin
 export const deleteAttendedClass = async (req, res, next) => {
@@ -590,11 +673,43 @@ export const getCoordinators = async (req, res, next) => {
           students: 0,
           studentWallets: 0,
           monthStart: 0,
+          // Ensure base_salary is passed through if available from $match stage
+          // If not directly in aggregate, we'll need to fetch it or assume it's part of 'coord' object later
         },
       },
+      // We need to ensure that the fields from the initial User match are carried through,
+      // especially _id and base_salary. The $project stage above might be removing base_salary.
+      // Let's adjust the $project or re-fetch full user details if necessary.
+      // For simplicity, we'll assume the initial $match { role: "coordinator" } brings base_salary along
+      // and the $project stage needs to be careful not to remove it.
+      // However, $lookup and $addFields don't inherently remove fields from the original document matched by $match.
+      // The final $project is the one that trims fields. We must ensure 'base_salary' is not removed.
+
+      // Let's refine the $project to keep base_salary
+      {
+        $project: {
+          password: 0,
+          __v: 0,
+          students: 0, // these are intermediate fields from lookups
+          studentWallets: 0, // intermediate
+          monthStart: 0, // intermediate
+          // other fields from User schema like firstName, lastName, email, base_salary etc. are kept by default unless projected out
+        }
+      }
     ]);
 
-    // 2. Assign ranking in JS for different metrics
+    // After aggregation, coordinators should have their base_salary. Now calculate monthly_salary.
+    const coordinatorsWithMonthlySalary = await Promise.all(
+      coordinators.map(async (coord) => {
+        const monthlySalary = await calculateCoordinatorSalary(coord._id, coord.base_salary);
+        return {
+          ...coord,
+          monthly_salary: monthlySalary,
+        };
+      })
+    );
+
+    // 2. Assign ranking in JS for different metrics (using coordinatorsWithMonthlySalary)
     const assignRank = (arr, key) => {
       const sorted = [...arr].sort((a, b) => b[key] - a[key]);
       const ranks = {};
@@ -607,17 +722,20 @@ export const getCoordinators = async (req, res, next) => {
     };
 
     const rankTotal = assignRank(coordinators, "totalIncome");
-    const rankMonth = assignRank(coordinators, "incomeThisMonth");
-    const rankStudents = assignRank(coordinators, "studentCount");
+    const rankMonth = assignRank(coordinatorsWithMonthlySalary, "incomeThisMonth");
+    const rankStudents = assignRank(coordinatorsWithMonthlySalary, "studentCount");
     const rankStudentsMonth = assignRank(
-      coordinators,
+      coordinatorsWithMonthlySalary,
       "studentsCreatedThisMonth"
     );
-    const rankAssigned = assignRank(coordinators, "assignedCount");
-    const rankAssignedMonth = assignRank(coordinators, "assignedThisMonth");
+    const rankAssigned = assignRank(coordinatorsWithMonthlySalary, "assignedCount");
+    const rankAssignedMonth = assignRank(coordinatorsWithMonthlySalary, "assignedThisMonth");
+    // Potentially add rank for monthly_salary if desired
+    // const rankMonthlySalary = assignRank(coordinatorsWithMonthlySalary, "monthly_salary");
+
 
     // 3. Merge ranks into final result
-    const result = coordinators.map((coord) => ({
+    const result = coordinatorsWithMonthlySalary.map((coord) => ({
       ...coord,
       rankTotalIncome: rankTotal[coord._id.toString()] || null,
       rankIncomeThisMonth: rankMonth[coord._id.toString()] || null,
@@ -711,6 +829,7 @@ export const updateUserByAdmin = async (req, res, next) => {
       "rib",
       "about",
       "max_hours_per_week",
+      "base_salary", // Added base_salary to allowed updates
     ];
 
     // Filter updates to only allowed fields
@@ -770,6 +889,32 @@ export const updateUserByAdmin = async (req, res, next) => {
         );
       }
     }
+
+    // Handle base_salary update
+    if (filteredUpdates.hasOwnProperty("base_salary")) {
+      const newRole = filteredUpdates.role || userToUpdate.role;
+      if (newRole === "coordinator") {
+        if (filteredUpdates.base_salary === null || filteredUpdates.base_salary === "" || filteredUpdates.base_salary === undefined) {
+          filteredUpdates.base_salary = 0; // Default to 0 if empty or null
+        } else {
+          const salary = Number(filteredUpdates.base_salary);
+          if (isNaN(salary) || salary < 0) {
+            return res.status(400).json({
+              error: "Invalid value for base_salary. Must be a non-negative number or null/empty for 0.",
+            });
+          }
+          filteredUpdates.base_salary = salary;
+        }
+      } else {
+        // If the role is not coordinator (either currently or being changed to non-coordinator),
+        // ensure base_salary is nulled out.
+        filteredUpdates.base_salary = null;
+      }
+    } else if (filteredUpdates.role && filteredUpdates.role !== "coordinator" && userToUpdate.role === "coordinator") {
+      // If role is changed FROM coordinator and base_salary is not in updates, nullify it
+      filteredUpdates.base_salary = null;
+    }
+
 
     // If role is changed from teacher, nullify teacher-specific fields
     if (
