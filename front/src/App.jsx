@@ -55,8 +55,6 @@ const DashboardMessages = lazy(() =>
 const GroupsPage = lazy(() => import("./pages/GroupsPage.jsx")); // Import GroupsPage
 const MySalaryPage = lazy(() => import("./pages/MySalaryPage.jsx")); // Import MySalaryPage
 
-// Route Guards / HOCs
-import CoordinatorRoute from "./components/CoordinatorRoute.jsx"; // Import CoordinatorRoute
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
