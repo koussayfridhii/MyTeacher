@@ -41,7 +41,9 @@ const WalletHistory = lazy(() => import("./pages/WalletHistory.jsx"));
 const Parents = lazy(() => import("./pages/Parents.jsx"));
 const PaymentProof = lazy(() => import("./pages/PaymentProof.jsx"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage.jsx"));
-const GrammarDetectivePage = lazy(() => import("./pages/GrammarDetectivePage.jsx")); // Added Grammar Detective Page
+const GrammarDetectivePage = lazy(() =>
+  import("./pages/GrammarDetectivePage.jsx")
+); // Added Grammar Detective Page
 const MathGamePage = lazy(() => import("./pages/MathGamePage.jsx")); // Added Math Game Page
 const TriviaGamePage = lazy(() => import("./pages/TriviaGamePage.jsx")); // Added Trivia Game Page
 const LandingContentManagementPage = lazy(() =>
@@ -51,6 +53,10 @@ const DashboardMessages = lazy(() =>
   import("./pages/admin/DashboardMessages.jsx")
 ); // Import DashboardMessages
 const GroupsPage = lazy(() => import("./pages/GroupsPage.jsx")); // Import GroupsPage
+const MySalaryPage = lazy(() => import("./pages/MySalaryPage.jsx")); // Import MySalaryPage
+
+// Route Guards / HOCs
+import CoordinatorRoute from "./components/CoordinatorRoute.jsx"; // Import CoordinatorRoute
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
@@ -133,6 +139,10 @@ const router = createBrowserRouter([
           {
             path: "groups", // Protection will be handled by withAuthorization in the component
             element: <GroupsPage />,
+          },
+          {
+            path: "salary",
+            element: <MySalaryPage />, // Protection will be handled by withAuthorization in the component
           },
           {
             path: "meeting",
