@@ -71,6 +71,27 @@ const userSchema = new mongoose.Schema(
       }
     },
 
+    penalties: {
+      type: Number,
+      default: 0,
+      validate: {
+        validator: function(val) {
+          // Only applicable if the role is coordinator.
+          // Controller logic should ensure this is only set for coordinators.
+          // If set for a non-coordinator, this validation might pass if 0,
+          // but the field should ideally be nulled out by controller logic.
+          if (this.role === "coordinator") {
+            return typeof val === 'number' && val >= 0;
+          }
+          // If not a coordinator, penalties should be 0 (or null)
+          // and controller should enforce this.
+          // Allowing 0 for non-coordinators to simplify model, assuming controller handles role-specific logic.
+          return val === 0 || (typeof val === 'number' && val >=0);
+        },
+        message: props => `Penalties must be a non-negative number. Value: ${props.value}`
+      }
+    },
+
     // Internal role for RBAC (admin, coordinator, teacher, student, parent)
     role: {
       type: String,

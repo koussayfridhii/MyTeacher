@@ -115,6 +115,16 @@ export const sidebarLinks = [
     authorizedRoles: ["coordinator"],
   },
   {
+    imgURL: "/assets/icons/coin.svg", // Using coin icon for salary, consider a more specific one if available
+    route: "/dashboard/salary",
+    label: {
+      ar: "راتبي",
+      en: "My Salary",
+      fr: "Mon Salaire",
+    },
+    authorizedRoles: ["coordinator"],
+  },
+  {
     imgURL: "/assets/icons/parent.svg", // Placeholder icon, consider a more specific one if available
     route: "/dashboard/parents",
     label: {

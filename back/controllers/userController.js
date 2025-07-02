@@ -408,7 +408,9 @@ export const getAllUsers = async (req, res, next) => {
       };
 
       if (user.role === "coordinator") {
-        userData.monthly_salary = await calculateCoordinatorSalary(user._id, user.base_salary);
+        // Ensure user.penalties is available; it should be from userDoc.toObject()
+        const salaryDetails = await calculateCoordinatorSalary(user._id, user.base_salary, user.penalties);
+        userData.monthly_salary = salaryDetails.finalSalary;
       }
 
       return userData;
@@ -421,10 +423,10 @@ export const getAllUsers = async (req, res, next) => {
 };
 
 // Helper function to calculate coordinator salary
-const calculateCoordinatorSalary = async (coordinatorId, baseSalary = 0) => {
+export const calculateCoordinatorSalary = async (coordinatorId, baseSalary = 0, penalties = 0) => {
   if (!mongoose.Types.ObjectId.isValid(coordinatorId)) {
     console.error("Invalid coordinatorId provided to calculateCoordinatorSalary");
-    return baseSalary; // Or throw an error
+    return { finalSalary: baseSalary || 0, totalTopupsThisMonth: 0 }; // Or throw an error
   }
 
   try {
@@ -434,48 +436,49 @@ const calculateCoordinatorSalary = async (coordinatorId, baseSalary = 0) => {
       role: "student",
     }).select("_id");
 
-    if (!students || students.length === 0) {
-      return baseSalary;
-    }
-
-    const studentIds = students.map((s) => s._id);
-
-    // Get the start and end of the current month
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999); // Last day, end of day
-
-    // Find wallets of these students
-    const studentWallets = await Wallet.find({
-      user: { $in: studentIds },
-    }).select("history");
-
     let totalTopupsThisMonth = 0;
 
-    studentWallets.forEach((wallet) => {
-      if (wallet.history && wallet.history.length > 0) {
-        wallet.history.forEach((entry) => {
-          // Check if the transaction was created this month
-          const entryDate = new Date(entry.createdAt);
-          if (entryDate >= startOfMonth && entryDate <= endOfMonth) {
-            // Check if the reason is 'topup' (or other relevant income reasons)
-            // For now, strictly 'topup' as per requirement "5% of all topups"
-            if (entry.reason === "topup") {
-              const amount = entry.newBalance - entry.oldBalance;
-              if (amount > 0) { // Ensure it's an actual topup (positive amount)
-                totalTopupsThisMonth += amount;
+    if (students && students.length > 0) {
+      const studentIds = students.map((s) => s._id);
+
+      // Get the start and end of the current month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0); // Start of the first day
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999); // End of the last day
+
+      // Find wallets of these students
+      const studentWallets = await Wallet.find({
+        user: { $in: studentIds },
+      }).select("history");
+
+      studentWallets.forEach((wallet) => {
+        if (wallet.history && wallet.history.length > 0) {
+          wallet.history.forEach((entry) => {
+            // Check if the transaction was created this month
+            const entryDate = new Date(entry.createdAt);
+            if (entryDate >= startOfMonth && entryDate <= endOfMonth) {
+              // Check if the reason is 'topup'
+              if (entry.reason === "topup") {
+                const amount = entry.newBalance - entry.oldBalance;
+                if (amount > 0) { // Ensure it's an actual topup (positive amount)
+                  totalTopupsThisMonth += amount;
+                }
               }
             }
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    }
 
     const bonus = totalTopupsThisMonth * 0.05;
-    return (baseSalary || 0) + bonus;
+    const finalSalary = (baseSalary || 0) + bonus - (penalties || 0);
+
+    return { finalSalary, totalTopupsThisMonth };
+
   } catch (error) {
     console.error(`Error calculating salary for coordinator ${coordinatorId}:`, error);
-    return baseSalary; // Return base salary in case of error
+    // Return base salary minus penalties in case of error fetching topups
+    return { finalSalary: (baseSalary || 0) - (penalties || 0), totalTopupsThisMonth: 0 };
   }
 };
 
@@ -699,12 +702,15 @@ export const getCoordinators = async (req, res, next) => {
     ]);
 
     // After aggregation, coordinators should have their base_salary. Now calculate monthly_salary.
+    // The `penalties` field should be available on `coord` as it's part of the User model
+    // and not explicitly projected out in the aggregation's $project stage.
     const coordinatorsWithMonthlySalary = await Promise.all(
       coordinators.map(async (coord) => {
-        const monthlySalary = await calculateCoordinatorSalary(coord._id, coord.base_salary);
+        const salaryDetails = await calculateCoordinatorSalary(coord._id, coord.base_salary, coord.penalties);
         return {
           ...coord,
-          monthly_salary: monthlySalary,
+          monthly_salary: salaryDetails.finalSalary,
+          // We might need totalTopupsThisMonth for other purposes later, but not for current ranking logic
         };
       })
     );
@@ -829,7 +835,8 @@ export const updateUserByAdmin = async (req, res, next) => {
       "rib",
       "about",
       "max_hours_per_week",
-      "base_salary", // Added base_salary to allowed updates
+      "base_salary",
+      "penalties", // Added penalties to allowed updates
     ];
 
     // Filter updates to only allowed fields
@@ -913,6 +920,41 @@ export const updateUserByAdmin = async (req, res, next) => {
     } else if (filteredUpdates.role && filteredUpdates.role !== "coordinator" && userToUpdate.role === "coordinator") {
       // If role is changed FROM coordinator and base_salary is not in updates, nullify it
       filteredUpdates.base_salary = null;
+    }
+
+    // Handle penalties update
+    // Determine the role that will be effective after this update
+    const effectiveRole = filteredUpdates.role || userToUpdate.role;
+
+    if (filteredUpdates.hasOwnProperty("penalties")) {
+      if (effectiveRole === "coordinator") {
+        if (filteredUpdates.penalties === null || filteredUpdates.penalties === "" || typeof filteredUpdates.penalties === 'undefined') {
+          filteredUpdates.penalties = 0; // Default to 0 if empty, null, or undefined
+        } else {
+          const penaltiesValue = Number(filteredUpdates.penalties);
+          if (isNaN(penaltiesValue) || penaltiesValue < 0) {
+            return res.status(400).json({
+              error: "Invalid value for penalties. Must be a non-negative number or null/empty for 0.",
+            });
+          }
+          filteredUpdates.penalties = penaltiesValue;
+        }
+      } else {
+        // If the role is not coordinator, penalties should be 0
+        filteredUpdates.penalties = 0;
+      }
+    } else if (effectiveRole !== "coordinator" && userToUpdate.role === "coordinator") {
+      // If role is changed FROM coordinator and 'penalties' is not in updates, set to 0
+      filteredUpdates.penalties = 0;
+    } else if (effectiveRole !== "coordinator" && userToUpdate.penalties !== 0) {
+      // If user is not a coordinator and penalties somehow has a non-zero value (e.g. old data), set to 0
+      // This case might not be strictly necessary if penalties are always set to 0 for non-coordinators
+      // upon role change or if penalties field is not part of the update.
+      // However, it ensures data integrity if an admin is just updating other fields for a non-coordinator.
+      // We only apply this if 'penalties' is not part of the current update request for a non-coordinator.
+      if (!filteredUpdates.hasOwnProperty("penalties")) {
+          filteredUpdates.penalties = 0;
+      }
     }
 
 

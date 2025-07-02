@@ -51,6 +51,10 @@ const DashboardMessages = lazy(() =>
   import("./pages/admin/DashboardMessages.jsx")
 ); // Import DashboardMessages
 const GroupsPage = lazy(() => import("./pages/GroupsPage.jsx")); // Import GroupsPage
+const MySalaryPage = lazy(() => import("./pages/MySalaryPage.jsx")); // Import MySalaryPage
+
+// Route Guards / HOCs
+import CoordinatorRoute from "./components/CoordinatorRoute.jsx"; // Import CoordinatorRoute
 
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
@@ -133,6 +137,13 @@ const router = createBrowserRouter([
           {
             path: "groups", // Protection will be handled by withAuthorization in the component
             element: <GroupsPage />,
+          },
+          {
+            path: "salary", // New route for coordinator salary
+            element: <CoordinatorRoute />, // Protected by CoordinatorRoute
+            children: [
+              { index: true, element: <MySalaryPage /> }
+            ]
           },
           {
             path: "meeting",

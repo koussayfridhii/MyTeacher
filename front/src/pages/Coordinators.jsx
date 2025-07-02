@@ -102,6 +102,7 @@ const Coordinators = () => {
     setEditValue("mobileNumber", coordinator.mobileNumber);
     setEditValue("rib", coordinator.rib || "");
     setEditValue("base_salary", coordinator.base_salary !== null && coordinator.base_salary !== undefined ? coordinator.base_salary : 0);
+    setEditValue("penalties", coordinator.penalties !== null && coordinator.penalties !== undefined ? coordinator.penalties : 0);
     onEditModalOpen();
   };
 
@@ -153,6 +154,17 @@ const Coordinators = () => {
       // Remove password if not changed (assuming password field is empty if not changing)
       if (!payload.password) {
         delete payload.password;
+      }
+
+      // Handle penalties
+      if (payload.penalties === "" || payload.penalties === undefined || payload.penalties === null) {
+        payload.penalties = 0;
+      } else {
+        payload.penalties = Number(payload.penalties);
+        if (isNaN(payload.penalties) || payload.penalties < 0) {
+            toast({ title: "Invalid Penalties", description: "Penalties must be a non-negative number.", status: "error", duration: 5000, isClosable: true });
+            return;
+        }
       }
 
 
@@ -349,6 +361,7 @@ const Coordinators = () => {
               "totalIncome",
               "incomeThisMonth",
               "base_salary", // Added Base Salary
+              "penalties",   // Added Penalties
               "monthly_salary", // Added Monthly Salary
               "actions",
             ].map((field, idx) => {
@@ -374,6 +387,13 @@ const Coordinators = () => {
                     : currentLanguage === "ar"
                     ? "الراتب الشهري"
                     : "Monthly Salary";
+              } else if (field === "penalties") {
+                labelText =
+                  currentLanguage === "fr"
+                    ? "Pénalités"
+                    : currentLanguage === "ar"
+                    ? "الخصومات"
+                    : "Penalties";
               } else if (field === "firstName") {
                 labelText =
                   currentLanguage === "fr"
@@ -482,6 +502,7 @@ const Coordinators = () => {
               <Td isNumeric>{coord.totalIncome}</Td>
               <Td isNumeric>{coord.incomeThisMonth}</Td>
               <Td isNumeric>{coord.base_salary !== null && coord.base_salary !== undefined ? coord.base_salary : "-"}</Td>
+              <Td isNumeric color={coord.penalties > 0 ? "red.500" : undefined}>{coord.penalties !== null && coord.penalties !== undefined ? coord.penalties : "0"}</Td>
               <Td isNumeric>{coord.monthly_salary !== null && coord.monthly_salary !== undefined ? coord.monthly_salary.toFixed(2) : "-"}</Td>
               <Td>
                 <HStack spacing={2} justifyContent="center" wrap="wrap">
@@ -798,6 +819,7 @@ const Coordinators = () => {
                 // { labelKey: "password", name: "password", required: false, type: "password", note: currentLanguage === "fr" ? "Laisser vide pour ne pas changer" : currentLanguage === "ar" ? "اتركه فارغًا لعدم التغيير" : "Leave blank to keep unchanged" },
                 { labelKey: "rib", name: "rib", required: false },
                 { labelKey: "baseSalary", name: "base_salary", required: false, type: "number" },
+                { labelKey: "penalties", name: "penalties", required: false, type: "number" },
               ].map((field) => {
                 let translatedLabel;
                 let translatedPlaceholder;
@@ -809,6 +831,7 @@ const Coordinators = () => {
                 // else if (field.labelKey === "password") translatedLabel = currentLanguage === "fr" ? "Mot de passe" : currentLanguage === "ar" ? "كلمة المرور" : "Password"; // Password label removed
                 else if (field.labelKey === "rib") translatedLabel = currentLanguage === "fr" ? "RIB" : currentLanguage === "ar" ? "RIB" : "RIB";
                 else if (field.labelKey === "baseSalary") translatedLabel = currentLanguage === "fr" ? "Salaire de Base" : currentLanguage === "ar" ? "الراتب الأساسي" : "Base Salary";
+                else if (field.labelKey === "penalties") translatedLabel = currentLanguage === "fr" ? "Pénalités" : currentLanguage === "ar" ? "الخصومات" : "Penalties";
                 else translatedLabel = field.labelKey;
 
                 translatedPlaceholder = translatedLabel;
