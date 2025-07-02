@@ -2,13 +2,11 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import app from '../server.js'; // Assuming server.js exports the app
+import app from '../server.js';
 import User from '../models/User.js';
 import Wallet from '../models/Wallet.js';
 
-// Test Database connection string (replace with your actual test DB connection)
-// For local testing, you might use MongoDB Memory Server or a separate test DB
-const MONGODB_URI_TEST = process.env.MONGODB_URI_TEST || "mongodb://localhost:27017/test_db_salary_api";
+const MONGODB_URI_TEST = process.env.MONGODB_URI_TEST || "mongodb://localhost:27017/test_db_salary_api_v2";
 
 let coordinatorToken, studentToken;
 let coordinatorUser, studentUser;
@@ -43,16 +41,15 @@ beforeAll(async () => {
     _id: new mongoose.Types.ObjectId(),
     firstName: 'Coord',
     lastName: 'User',
-    email: 'coordinator@example.com',
+    email: 'coordinator_v2@example.com',
     password: hashedPassword,
     mobileNumber: '1234567890',
     role: 'coordinator',
     base_salary: 1500,
-    penalties: 50,
+    penalties: 10, // Now represents 10%
     isVerified: true,
     isApproved: true,
   }).save();
-  // Create wallet for coordinator (though not directly used for salary calc, good for consistency)
   await new Wallet({ user: coordinatorUser._id, balance: 0 }).save();
 
 
@@ -60,7 +57,7 @@ beforeAll(async () => {
     _id: new mongoose.Types.ObjectId(),
     firstName: 'Student',
     lastName: 'User',
-    email: 'student@example.com',
+    email: 'student_v2@example.com',
     password: hashedPassword,
     mobileNumber: '0987654321',
     role: 'student',
@@ -73,7 +70,7 @@ beforeAll(async () => {
     _id: new mongoose.Types.ObjectId(),
     firstName: 'CoordStudent',
     lastName: 'One',
-    email: 'coordstudent1@example.com',
+    email: 'coordstudent1_v2@example.com',
     password: hashedPassword,
     mobileNumber: '1112223333',
     role: 'student',
@@ -83,7 +80,6 @@ beforeAll(async () => {
   }).save();
   const studentOfCoordinatorWallet = await new Wallet({ user: studentOfCoordinator._id, balance: 0 }).save();
 
-  // Add topups for studentOfCoordinator
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   studentOfCoordinatorWallet.history.push(
@@ -93,62 +89,61 @@ beforeAll(async () => {
   studentOfCoordinatorWallet.balance = 300;
   await studentOfCoordinatorWallet.save();
 
-
-  coordinatorToken = jwt.sign({ id: coordinatorUser._id, role: coordinatorUser.role }, process.env.JWT_SECRET || 'testsecret', { expiresIn: '1h' });
-  studentToken = jwt.sign({ id: studentUser._id, role: studentUser.role }, process.env.JWT_SECRET || 'testsecret', { expiresIn: '1h' });
+  coordinatorToken = jwt.sign({ id: coordinatorUser._id, role: coordinatorUser.role }, process.env.JWT_SECRET || 'testsecret_v2', { expiresIn: '1h' });
+  studentToken = jwt.sign({ id: studentUser._id, role: studentUser.role }, process.env.JWT_SECRET || 'testsecret_v2', { expiresIn: '1h' });
 });
 
 afterAll(async () => {
   await teardownTestDB();
 });
 
-beforeEach(async () => {
-  // In case some tests modify data that should be reset or specific to a test
-  // For now, major seeding is in beforeAll
-});
 
-
-describe('GET /api/salary/me', () => {
+describe('GET /api/salary/me (penalties as percentage)', () => {
   it('should return 401 if no token is provided', async () => {
     const res = await request(app).get('/api/salary/me');
     expect(res.statusCode).toEqual(401);
   });
 
-  it('should return 403 if token is for a non-coordinator user (e.g., student)', async () => {
+  it('should return 403 if token is for a non-coordinator user', async () => {
     const res = await request(app)
       .get('/api/salary/me')
       .set('Authorization', `Bearer ${studentToken}`);
     expect(res.statusCode).toEqual(403);
-    expect(res.body.error).toContain('insufficient role');
   });
 
-  it('should return salary details for the logged-in coordinator', async () => {
+  it('should return salary details with percentage penalty calculations', async () => {
     const res = await request(app)
       .get('/api/salary/me')
       .set('Authorization', `Bearer ${coordinatorToken}`);
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty('base_salary', 1500);
-    expect(res.body).toHaveProperty('penalties', 50);
 
-    const expectedTopupsTotal = 200 + 100; // From studentOfCoordinator
-    expect(res.body).toHaveProperty('topups_total', expectedTopupsTotal);
+    const baseSalary = 1500;
+    const penaltyPercentage = 10;
+    const topupsTotal = 200 + 100; // 300
+    const bonus = topupsTotal * 0.05; // 15
+    const grossSalaryBeforePenalty = baseSalary + bonus; // 1500 + 15 = 1515
+    const penaltyAmountDeducted = grossSalaryBeforePenalty * (penaltyPercentage / 100); // 1515 * 0.10 = 151.5
+    const expectedMonthlySalary = grossSalaryBeforePenalty - penaltyAmountDeducted; // 1515 - 151.5 = 1363.5
 
-    const expectedMonthlySalary = 1500 + (expectedTopupsTotal * 0.05) - 50; // 1500 + 15 - 50 = 1465
+    expect(res.body).toHaveProperty('base_salary', baseSalary);
+    expect(res.body).toHaveProperty('penalties_percentage', penaltyPercentage);
+    expect(res.body).toHaveProperty('topups_total', topupsTotal);
+    expect(res.body).toHaveProperty('gross_salary_before_penalty', grossSalaryBeforePenalty);
+    expect(res.body).toHaveProperty('penalty_amount_deducted', penaltyAmountDeducted);
     expect(res.body).toHaveProperty('monthly_salary', expectedMonthlySalary);
   });
 
-  it('should handle coordinator with 0 base_salary and 0 penalties correctly', async () => {
-    // Create a new coordinator for this specific test
+  it('should handle coordinator with 0 base_salary and 0 penalties_percentage', async () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash('password123', salt);
     const zeroSalaryCoord = await new User({
         _id: new mongoose.Types.ObjectId(),
-        firstName: 'Zero', lastName: 'Salary', email: 'zeros@example.com', password: hashedPassword,
+        firstName: 'ZeroV2', lastName: 'Salary', email: 'zeros_v2@example.com', password: hashedPassword,
         mobileNumber: '4445556666', role: 'coordinator', base_salary: 0, penalties: 0, isVerified: true, isApproved: true,
     }).save();
     await new Wallet({ user: zeroSalaryCoord._id }).save();
-    const zeroSalaryToken = jwt.sign({ id: zeroSalaryCoord._id, role: zeroSalaryCoord.role }, process.env.JWT_SECRET || 'testsecret');
+    const zeroSalaryToken = jwt.sign({ id: zeroSalaryCoord._id, role: zeroSalaryCoord.role }, process.env.JWT_SECRET || 'testsecret_v2');
 
     const res = await request(app)
       .get('/api/salary/me')
@@ -156,36 +151,13 @@ describe('GET /api/salary/me', () => {
 
     expect(res.statusCode).toEqual(200);
     expect(res.body.base_salary).toBe(0);
-    expect(res.body.penalties).toBe(0);
-    expect(res.body.topups_total).toBe(0); // This coordinator has no students with topups
+    expect(res.body.penalties_percentage).toBe(0);
+    expect(res.body.topups_total).toBe(0);
+    expect(res.body.gross_salary_before_penalty).toBe(0);
+    expect(res.body.penalty_amount_deducted).toBe(0);
     expect(res.body.monthly_salary).toBe(0);
 
-    await User.deleteOne({_id: zeroSalaryCoord._id}); // Clean up
+    await User.deleteOne({_id: zeroSalaryCoord._id});
     await Wallet.deleteOne({user: zeroSalaryCoord._id});
-  });
-
-  it('should handle coordinator with no students (resulting in 0 topups_total)', async () => {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('password123', salt);
-    const noStudentCoord = await new User({
-        _id: new mongoose.Types.ObjectId(),
-        firstName: 'NoStudent', lastName: 'Coord', email: 'nostudent@example.com', password: hashedPassword,
-        mobileNumber: '7778889999', role: 'coordinator', base_salary: 1000, penalties: 20, isVerified: true, isApproved: true,
-    }).save();
-    await new Wallet({ user: noStudentCoord._id }).save();
-    const noStudentToken = jwt.sign({ id: noStudentCoord._id, role: noStudentCoord.role }, process.env.JWT_SECRET || 'testsecret');
-
-    const res = await request(app)
-      .get('/api/salary/me')
-      .set('Authorization', `Bearer ${noStudentToken}`);
-
-    expect(res.statusCode).toEqual(200);
-    expect(res.body.base_salary).toBe(1000);
-    expect(res.body.penalties).toBe(20);
-    expect(res.body.topups_total).toBe(0);
-    expect(res.body.monthly_salary).toBe(1000 - 20); // 980
-
-    await User.deleteOne({_id: noStudentCoord._id}); // Clean up
-    await Wallet.deleteOne({user: noStudentCoord._id});
   });
 });

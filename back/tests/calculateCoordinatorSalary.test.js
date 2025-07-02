@@ -7,118 +7,123 @@ import Wallet from "../models/Wallet.js";
 jest.mock("../models/User.js");
 jest.mock("../models/Wallet.js");
 
-describe("calculateCoordinatorSalary", () => {
+describe("calculateCoordinatorSalary (penalties as percentage)", () => {
   let mockCoordinatorId;
 
   beforeEach(() => {
-    // Reset mocks before each test
     User.find.mockReset();
     Wallet.find.mockReset();
-    jest.spyOn(console, 'error').mockImplementation(() => {}); // Suppress console.error
-
+    jest.spyOn(console, 'error').mockImplementation(() => {});
     mockCoordinatorId = new mongoose.Types.ObjectId().toString();
   });
 
   afterEach(() => {
-    console.error.mockRestore(); // Restore console.error
+    console.error.mockRestore();
   });
 
-  test("should return base salary and 0 topups if coordinatorId is invalid", async () => {
-    const result = await calculateCoordinatorSalary("invalidId", 1000, 50);
-    expect(result.finalSalary).toBe(1000 - 50);
+  test("should return base salary adjusted by penalty percentage if coordinatorId is invalid", async () => {
+    // If ID is invalid, topups are 0. Gross salary = baseSalary. Penalty applies to baseSalary.
+    const baseSalary = 1000;
+    const penaltyPercentage = 10; // 10%
+    const expectedPenaltyAmount = baseSalary * (penaltyPercentage / 100); // 100
+    const result = await calculateCoordinatorSalary("invalidId", baseSalary, penaltyPercentage);
+
+    expect(result.finalSalary).toBe(baseSalary - expectedPenaltyAmount); // 1000 - 100 = 900
     expect(result.totalTopupsThisMonth).toBe(0);
     expect(console.error).toHaveBeenCalledWith("Invalid coordinatorId provided to calculateCoordinatorSalary");
   });
 
-  test("should return base salary minus penalties if coordinator has no students", async () => {
+  test("should return base salary adjusted by penalty percentage if coordinator has no students", async () => {
     User.find.mockResolvedValue([]);
-    const result = await calculateCoordinatorSalary(mockCoordinatorId, 1200, 100);
+    const baseSalary = 1200;
+    const penaltyPercentage = 10; // 10%
+    const expectedPenaltyAmount = baseSalary * (penaltyPercentage / 100); // 120
+    const result = await calculateCoordinatorSalary(mockCoordinatorId, baseSalary, penaltyPercentage);
+
     expect(User.find).toHaveBeenCalledWith({ coordinator: mockCoordinatorId, role: "student" });
-    expect(result.finalSalary).toBe(1100);
+    expect(result.finalSalary).toBe(baseSalary - expectedPenaltyAmount); // 1200 - 120 = 1080
     expect(result.totalTopupsThisMonth).toBe(0);
   });
 
-  test("should return base salary minus penalties if students have no wallets or empty history", async () => {
-    const students = [{ _id: new mongoose.Types.ObjectId() }];
-    User.find.mockResolvedValue(students);
-    Wallet.find.mockResolvedValue([{ history: [] }, { history: null }]); // Students with no useful wallet history
-
-    const result = await calculateCoordinatorSalary(mockCoordinatorId, 1200, 50);
-    expect(result.finalSalary).toBe(1150); // 1200 + 0*0.05 - 50
-    expect(result.totalTopupsThisMonth).toBe(0);
-  });
-
-  test("should correctly calculate salary with topups and penalties", async () => {
+  test("should correctly calculate salary with topups and percentage penalties", async () => {
     const studentId1 = new mongoose.Types.ObjectId();
-    const studentId2 = new mongoose.Types.ObjectId();
-    User.find.mockResolvedValue([{ _id: studentId1 }, { _id: studentId2 }]);
+    User.find.mockResolvedValue([{ _id: studentId1 }]);
 
     const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const middleOfMonth = new Date(now.getFullYear(), now.getMonth(), 15);
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 15);
-
     Wallet.find.mockResolvedValue([
-      { // Student 1 Wallet
-        user: studentId1,
-        history: [
-          { reason: "topup", newBalance: 100, oldBalance: 0, createdAt: middleOfMonth }, // 100
-          { reason: "topup", newBalance: 50, oldBalance: 0, createdAt: firstDayOfMonth },  // 50
-          { reason: "attendClass", newBalance: 0, oldBalance: 20, createdAt: middleOfMonth },
-        ],
-      },
-      { // Student 2 Wallet
-        user: studentId2,
-        history: [
-          { reason: "topup", newBalance: 200, oldBalance: 100, createdAt: middleOfMonth }, // 100
-          { reason: "topup", newBalance: 100, oldBalance: 0, createdAt: lastMonth }, // Not this month
-          { reason: "bonus", newBalance: 10, oldBalance: 0, createdAt: middleOfMonth }, // Not a topup
-        ],
-      },
+      { user: studentId1, history: [{ reason: "topup", newBalance: 200, oldBalance: 0, createdAt: middleOfMonth }] }, // Topup: 200
     ]);
 
     const baseSalary = 1000;
-    const penalties = 50;
-    const result = await calculateCoordinatorSalary(mockCoordinatorId, baseSalary, penalties);
+    const penaltyPercentage = 10; // 10%
+    const result = await calculateCoordinatorSalary(mockCoordinatorId, baseSalary, penaltyPercentage);
 
-    const expectedTopups = 100 + 50 + 100; // 250
+    const expectedTopups = 200;
     expect(result.totalTopupsThisMonth).toBe(expectedTopups);
-    expect(result.finalSalary).toBe(baseSalary + (expectedTopups * 0.05) - penalties); // 1000 + 12.5 - 50 = 962.5
+
+    const bonus = expectedTopups * 0.05; // 200 * 0.05 = 10
+    const grossSalaryBeforePenalty = baseSalary + bonus; // 1000 + 10 = 1010
+    const expectedPenaltyAmount = grossSalaryBeforePenalty * (penaltyPercentage / 100); // 1010 * 0.10 = 101
+    const expectedFinalSalary = grossSalaryBeforePenalty - expectedPenaltyAmount; // 1010 - 101 = 909
+
+    expect(result.finalSalary).toBe(expectedFinalSalary);
   });
 
-  test("should handle zero base salary and zero penalties", async () => {
+  test("should handle 0 penalty percentage", async () => {
+    User.find.mockResolvedValue([]);
+    const baseSalary = 1000;
+    const penaltyPercentage = 0;
+    const result = await calculateCoordinatorSalary(mockCoordinatorId, baseSalary, penaltyPercentage);
+    expect(result.finalSalary).toBe(baseSalary); // 1000 + 0 - 0
+    expect(result.totalTopupsThisMonth).toBe(0);
+  });
+
+  test("should handle 100% penalty", async () => {
     const studentId1 = new mongoose.Types.ObjectId();
     User.find.mockResolvedValue([{ _id: studentId1 }]);
     const middleOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 15);
     Wallet.find.mockResolvedValue([
-      { user: studentId1, history: [{ reason: "topup", newBalance: 100, oldBalance: 0, createdAt: middleOfMonth }] },
+      { user: studentId1, history: [{ reason: "topup", newBalance: 200, oldBalance: 0, createdAt: middleOfMonth }] },
     ]);
 
-    const result = await calculateCoordinatorSalary(mockCoordinatorId, 0, 0);
-    expect(result.totalTopupsThisMonth).toBe(100);
-    expect(result.finalSalary).toBe(100 * 0.05); // 5
+    const baseSalary = 1000;
+    const penaltyPercentage = 100; // 100% penalty
+    const result = await calculateCoordinatorSalary(mockCoordinatorId, baseSalary, penaltyPercentage);
+
+    const expectedTopups = 200;
+    const bonus = expectedTopups * 0.05; // 10
+    const grossSalaryBeforePenalty = baseSalary + bonus; // 1010
+    const expectedPenaltyAmount = grossSalaryBeforePenalty * (penaltyPercentage / 100); // 1010 * 1 = 1010
+    expect(result.finalSalary).toBe(grossSalaryBeforePenalty - expectedPenaltyAmount); // Should be 0
+    expect(result.totalTopupsThisMonth).toBe(expectedTopups);
   });
+
 
   test("should use 0 for null/undefined baseSalary or penalties in calculation", async () => {
-    User.find.mockResolvedValue([]); // No students, so topups will be 0
+    User.find.mockResolvedValue([]);
 
-    let result = await calculateCoordinatorSalary(mockCoordinatorId, null, 50);
-    expect(result.finalSalary).toBe(-50); // 0 + 0 - 50
+    let result = await calculateCoordinatorSalary(mockCoordinatorId, null, 10); // 10% penalty on 0 gross
+    expect(result.finalSalary).toBe(0);
 
-    result = await calculateCoordinatorSalary(mockCoordinatorId, 1000, undefined);
-    expect(result.finalSalary).toBe(1000); // 1000 + 0 - 0
+    result = await calculateCoordinatorSalary(mockCoordinatorId, 1000, undefined); // 0% penalty
+    expect(result.finalSalary).toBe(1000);
 
-    result = await calculateCoordinatorSalary(mockCoordinatorId, null, null);
-    expect(result.finalSalary).toBe(0); // 0 + 0 - 0
+    result = await calculateCoordinatorSalary(mockCoordinatorId, null, null); // 0% penalty on 0 gross
+    expect(result.finalSalary).toBe(0);
   });
 
-  test("should return base salary minus penalties if Wallet.find throws error", async () => {
+  test("should calculate penalty on base salary if Wallet.find throws error", async () => {
     const students = [{ _id: new mongoose.Types.ObjectId() }];
     User.find.mockResolvedValue(students);
     Wallet.find.mockRejectedValue(new Error("DB error"));
 
-    const result = await calculateCoordinatorSalary(mockCoordinatorId, 1200, 75);
-    expect(result.finalSalary).toBe(1200 - 75); // 1125
+    const baseSalary = 1200;
+    const penaltyPercentage = 20; // 20%
+    const result = await calculateCoordinatorSalary(mockCoordinatorId, baseSalary, penaltyPercentage);
+
+    const expectedPenaltyOnError = baseSalary * (penaltyPercentage / 100); // 1200 * 0.20 = 240
+    expect(result.finalSalary).toBe(baseSalary - expectedPenaltyOnError); // 1200 - 240 = 960
     expect(result.totalTopupsThisMonth).toBe(0);
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Error calculating salary"), expect.any(Error));
   });

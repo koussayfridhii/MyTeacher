@@ -471,14 +471,18 @@ export const calculateCoordinatorSalary = async (coordinatorId, baseSalary = 0, 
     }
 
     const bonus = totalTopupsThisMonth * 0.05;
-    const finalSalary = (baseSalary || 0) + bonus - (penalties || 0);
+    const grossSalaryBeforePenalty = (baseSalary || 0) + bonus;
+    const penaltyAmount = grossSalaryBeforePenalty * ((penalties || 0) / 100);
+    const finalSalary = grossSalaryBeforePenalty - penaltyAmount;
 
     return { finalSalary, totalTopupsThisMonth };
 
   } catch (error) {
     console.error(`Error calculating salary for coordinator ${coordinatorId}:`, error);
-    // Return base salary minus penalties in case of error fetching topups
-    return { finalSalary: (baseSalary || 0) - (penalties || 0), totalTopupsThisMonth: 0 };
+    // In case of error fetching topups, calculate salary based on base_salary and penalty percentage of base_salary.
+    const grossSalaryBeforePenaltyOnError = (baseSalary || 0);
+    const penaltyAmountOnError = grossSalaryBeforePenaltyOnError * ((penalties || 0) / 100);
+    return { finalSalary: grossSalaryBeforePenaltyOnError - penaltyAmountOnError, totalTopupsThisMonth: 0 };
   }
 };
 
