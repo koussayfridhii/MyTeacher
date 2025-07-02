@@ -43,6 +43,34 @@ const userSchema = new mongoose.Schema(
       enum: ["Parent", "Student", "Teacher", ""],
     },
 
+    // Base salary for coordinators
+    base_salary: {
+      type: Number,
+      default: null, // Default to null, can be set for coordinators
+      validate: {
+        validator: function (val) {
+          // Allow null or undefined
+          if (val === null || typeof val === 'undefined') {
+            return true;
+          }
+          // If a value is provided, it must be a non-negative number
+          // and only applicable if the role is coordinator.
+          // Controller logic should ideally ensure this is only set for coordinators.
+          if (this.role === "coordinator") {
+            return typeof val === 'number' && val >= 0;
+          }
+          // If not a coordinator, this field should ideally be null or not set.
+          // Allowing it to be set but ignored for non-coordinators,
+          // or strict validation to prevent setting for non-coordinators.
+          // For now, let's ensure if it's set for a coordinator, it's valid.
+          // If it's set for a non-coordinator, this validator won't prevent it,
+          // but it won't be used.
+          return true; // Looser validation for now, relying on controller logic.
+        },
+        message: props => `Base salary must be a non-negative number. Value: ${props.value}`
+      }
+    },
+
     // Internal role for RBAC (admin, coordinator, teacher, student, parent)
     role: {
       type: String,

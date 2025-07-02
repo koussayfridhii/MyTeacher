@@ -37,21 +37,30 @@ const Coordinators = () => {
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState("firstName");
   const [sortOrder, setSortOrder] = useState("asc");
-  const { isOpen, onOpen, onClose } = useDisclosure(); // For create modal
+  const { isOpen: isCreateModalOpen, onOpen: onCreateModalOpen, onClose: onCreateModalClose } = useDisclosure(); // Renamed for create modal
+  const { isOpen: isEditModalOpen, onOpen: onEditModalOpen, onClose: onEditModalClose } = useDisclosure(); // For edit modal
   const toast = useToast(); // For notifications
 
-  // State for confirmation modals
+  // State for confirmation modals and selected coordinator for editing
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
-  const [selectedCoordinatorId, setSelectedCoordinatorId] = useState(null);
+  const [selectedCoordinator, setSelectedCoordinator] = useState(null); // Changed from selectedCoordinatorId to store the whole object
   const [isDisapproving, setIsDisapproving] = useState(false); // To know if we are disapproving or approving
 
   const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm();
+    register: registerCreate,
+    handleSubmit: handleSubmitCreate,
+    reset: resetCreate,
+    formState: { errors: errorsCreate, isSubmitting: isSubmittingCreate },
+  } = useForm(); // Renamed for create form
+
+  const {
+    register: registerEdit,
+    handleSubmit: handleSubmitEdit,
+    reset: resetEdit,
+    setValue: setEditValue, // To set form values for the edit modal
+    formState: { errors: errorsEdit, isSubmitting: isSubmittingEdit },
+  } = useForm(); // For edit form
 
   const {
     data: allCoordinators = [],
@@ -84,6 +93,18 @@ const Coordinators = () => {
     });
   }, [allCoordinators, search, sortField, sortOrder]);
 
+  const openEditModal = (coordinator) => {
+    setSelectedCoordinator(coordinator);
+    // Pre-fill form with coordinator data
+    setEditValue("firstName", coordinator.firstName);
+    setEditValue("lastName", coordinator.lastName);
+    setEditValue("email", coordinator.email);
+    setEditValue("mobileNumber", coordinator.mobileNumber);
+    setEditValue("rib", coordinator.rib || "");
+    setEditValue("base_salary", coordinator.base_salary !== null && coordinator.base_salary !== undefined ? coordinator.base_salary : 0);
+    onEditModalOpen();
+  };
+
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -93,50 +114,89 @@ const Coordinators = () => {
     }
   };
   const token = localStorage.getItem("token");
-  const onSubmit = async (data) => {
+
+  const onCreateSubmit = async (data) => {
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/users/create`,
         {
           ...data,
           role: "coordinator",
+          // base_salary will be handled by backend if included in data
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      reset();
-      onClose();
+      resetCreate();
+      onCreateModalClose();
       refetch();
+      toast({ title: "Coordinator created.", status: "success", duration: 3000, isClosable: true });
     } catch (err) {
       console.error(err);
+      toast({ title: "Error creating coordinator.", description: err.response?.data?.error || "Server error", status: "error", duration: 5000, isClosable: true });
     }
   };
 
-  const openDeleteModal = (id) => {
-    setSelectedCoordinatorId(id);
+  const onEditSubmit = async (data) => {
+    if (!selectedCoordinator) return;
+    try {
+      // Ensure base_salary is a number or null
+      const payload = { ...data };
+      if (payload.base_salary === "" || payload.base_salary === undefined || payload.base_salary === null) {
+        payload.base_salary = 0;
+      } else {
+        payload.base_salary = Number(payload.base_salary);
+        if (isNaN(payload.base_salary) || payload.base_salary < 0) {
+            toast({ title: "Invalid Base Salary", description: "Base salary must be a non-negative number.", status: "error", duration: 5000, isClosable: true });
+            return;
+        }
+      }
+      // Remove password if not changed (assuming password field is empty if not changing)
+      if (!payload.password) {
+        delete payload.password;
+      }
+
+
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/users/${selectedCoordinator._id}`,
+        payload, // Send all editable fields
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      resetEdit();
+      onEditModalClose();
+      refetch();
+      toast({ title: "Coordinator updated.", status: "success", duration: 3000, isClosable: true });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error updating coordinator.", description: err.response?.data?.error || "Server error", status: "error", duration: 5000, isClosable: true });
+    }
+  };
+
+  const openDeleteModal = (coord) => {
+    setSelectedCoordinator(coord);
     setIsDeleteModalOpen(true);
   };
 
   const closeDeleteModal = () => {
-    setSelectedCoordinatorId(null);
+    setSelectedCoordinator(null);
     setIsDeleteModalOpen(false);
   };
 
-  const openApproveModal = (id, currentlyApproved) => {
-    setSelectedCoordinatorId(id);
+  const openApproveModal = (coord, currentlyApproved) => {
+    setSelectedCoordinator(coord);
     setIsDisapproving(currentlyApproved); // If currently approved, action is to disapprove
     setIsApproveModalOpen(true);
   };
 
   const closeApproveModal = () => {
-    setSelectedCoordinatorId(null);
+    setSelectedCoordinator(null);
     setIsApproveModalOpen(false);
   };
 
   const handleDeleteCoordinator = async () => {
-    if (!selectedCoordinatorId) return;
+    if (!selectedCoordinator || !selectedCoordinator._id) return;
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/users/${selectedCoordinatorId}`,
+        `${import.meta.env.VITE_API_URL}/users/${selectedCoordinator._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast({
@@ -182,12 +242,12 @@ const Coordinators = () => {
   };
 
   const handleToggleApproveCoordinator = async () => {
-    if (!selectedCoordinatorId) return;
+    if (!selectedCoordinator || !selectedCoordinator._id) return;
     try {
       await axios.patch(
         `${
           import.meta.env.VITE_API_URL
-        }/users/approve/${selectedCoordinatorId}`,
+        }/users/approve/${selectedCoordinator._id}`,
         { approve: !isDisapproving }, // Send the opposite of current disapproval state
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -253,7 +313,7 @@ const Coordinators = () => {
 
   return (
     <Box p={4} borderWidth="1px" borderColor="primary" borderRadius="md">
-      <Button mb={4} bg="primary" color="white" onClick={onOpen}>
+      <Button mb={4} bg="primary" color="white" onClick={onCreateModalOpen}>
         {currentLanguage === "fr"
           ? "Créer un coordinateur"
           : currentLanguage === "ar"
@@ -288,7 +348,9 @@ const Coordinators = () => {
               "studentsCreatedThisMonth",
               "totalIncome",
               "incomeThisMonth",
-              "actions", // Added actions column
+              "base_salary", // Added Base Salary
+              "monthly_salary", // Added Monthly Salary
+              "actions",
             ].map((field, idx) => {
               let labelText;
               if (field === "actions") {
@@ -298,6 +360,20 @@ const Coordinators = () => {
                     : currentLanguage === "ar"
                     ? "الإجراءات"
                     : "Actions";
+              } else if (field === "base_salary") {
+                labelText =
+                  currentLanguage === "fr"
+                    ? "Salaire de Base"
+                    : currentLanguage === "ar"
+                    ? "الراتب الأساسي"
+                    : "Base Salary";
+              } else if (field === "monthly_salary") {
+                labelText =
+                  currentLanguage === "fr"
+                    ? "Salaire Mensuel"
+                    : currentLanguage === "ar"
+                    ? "الراتب الشهري"
+                    : "Monthly Salary";
               } else if (field === "firstName") {
                 labelText =
                   currentLanguage === "fr"
@@ -405,13 +481,23 @@ const Coordinators = () => {
               <Td isNumeric>{coord.studentsCreatedThisMonth}</Td>
               <Td isNumeric>{coord.totalIncome}</Td>
               <Td isNumeric>{coord.incomeThisMonth}</Td>
+              <Td isNumeric>{coord.base_salary !== null && coord.base_salary !== undefined ? coord.base_salary : "-"}</Td>
+              <Td isNumeric>{coord.monthly_salary !== null && coord.monthly_salary !== undefined ? coord.monthly_salary.toFixed(2) : "-"}</Td>
               <Td>
                 <HStack spacing={2} justifyContent="center" wrap="wrap">
                   <Button
                     size="sm"
+                    colorScheme="blue"
+                    mr={2}
+                    onClick={() => openEditModal(coord)}
+                  >
+                    {currentLanguage === "fr" ? "Modifier" : currentLanguage === "ar" ? "تعديل" : "Edit"}
+                  </Button>
+                  <Button
+                    size="sm"
                     colorScheme="red"
                     mr={2}
-                    onClick={() => openDeleteModal(coord._id)} // Updated onClick
+                    onClick={() => openDeleteModal(coord)}
                   >
                     {currentLanguage === "fr"
                       ? "Supprimer"
@@ -423,8 +509,8 @@ const Coordinators = () => {
                     size="sm"
                     colorScheme={coord.isApproved ? "yellow" : "green"}
                     onClick={() =>
-                      openApproveModal(coord._id, coord.isApproved)
-                    } // Updated onClick
+                      openApproveModal(coord, coord.isApproved)
+                    }
                   >
                     {coord.isApproved
                       ? currentLanguage === "fr"
@@ -547,7 +633,7 @@ const Coordinators = () => {
       </Modal>
 
       {/* Create Coordinator Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isCreateModalOpen} onClose={onCreateModalClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -559,7 +645,7 @@ const Coordinators = () => {
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <form id="create-coord-form" onSubmit={handleSubmit(onSubmit)}>
+            <form id="create-coord-form" onSubmit={handleSubmitCreate(onCreateSubmit)}>
               {[
                 { labelKey: "firstName", name: "firstName", required: true },
                 { labelKey: "lastName", name: "lastName", required: true },
@@ -571,6 +657,7 @@ const Coordinators = () => {
                 { labelKey: "email", name: "email", required: true },
                 { labelKey: "password", name: "password", required: true },
                 { labelKey: "rib", name: "rib", required: false },
+                { labelKey: "baseSalary", name: "base_salary", required: false, type: "number" }, // Added base_salary field
               ].map((field) => {
                 let translatedLabel;
                 let translatedPlaceholder;
@@ -622,6 +709,12 @@ const Coordinators = () => {
                       ? "RIB"
                       : "RIB";
                   translatedPlaceholder = translatedLabel;
+                } else if (field.labelKey === "baseSalary") {
+                  translatedLabel =
+                    currentLanguage === "fr" ? "Salaire de Base" :
+                    currentLanguage === "ar" ? "الراتب الأساسي" :
+                    "Base Salary";
+                  translatedPlaceholder = translatedLabel;
                 } else {
                   translatedLabel = field.labelKey; // fallback
                   translatedPlaceholder = field.labelKey;
@@ -636,7 +729,7 @@ const Coordinators = () => {
                     <FormLabel>{translatedLabel}</FormLabel>
                     <Input
                       placeholder={translatedPlaceholder}
-                      {...register(field.name, {
+                      {...registerCreate(field.name, { // Use registerCreate
                         required: field.required
                           ? `${translatedLabel}${
                               currentLanguage === "fr"
@@ -648,9 +741,9 @@ const Coordinators = () => {
                           : false,
                       })}
                     />
-                    {errors[field.name] && (
+                    {errorsCreate[field.name] && ( // Use errorsCreate
                       <Text color="red.500" fontSize="sm">
-                        {errors[field.name].message}
+                        {errorsCreate[field.name].message}
                       </Text>
                     )}
                   </FormControl>
@@ -659,7 +752,7 @@ const Coordinators = () => {
             </form>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
+            <Button variant="ghost" mr={3} onClick={onCreateModalClose}> {/* Use onCreateModalClose */}
               {currentLanguage === "fr"
                 ? "Annuler"
                 : currentLanguage === "ar"
@@ -671,13 +764,92 @@ const Coordinators = () => {
               color="white"
               type="submit"
               form="create-coord-form"
-              isLoading={isSubmitting}
+              isLoading={isSubmittingCreate} // Use isSubmittingCreate
             >
               {currentLanguage === "fr"
                 ? "Créer"
                 : currentLanguage === "ar"
                 ? "إنشاء"
                 : "Create"}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Edit Coordinator Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={onEditModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            {currentLanguage === "fr"
+              ? "Modifier le coordinateur"
+              : currentLanguage === "ar"
+              ? "تعديل المنسق"
+              : "Edit Coordinator"}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <form id="edit-coord-form" onSubmit={handleSubmitEdit(onEditSubmit)}>
+              {[
+                { labelKey: "firstName", name: "firstName", required: true },
+                { labelKey: "lastName", name: "lastName", required: true },
+                { labelKey: "mobileNumber", name: "mobileNumber", required: true },
+                { labelKey: "email", name: "email", required: true },
+                // { labelKey: "password", name: "password", required: false, type: "password", note: currentLanguage === "fr" ? "Laisser vide pour ne pas changer" : currentLanguage === "ar" ? "اتركه فارغًا لعدم التغيير" : "Leave blank to keep unchanged" },
+                { labelKey: "rib", name: "rib", required: false },
+                { labelKey: "baseSalary", name: "base_salary", required: false, type: "number" },
+              ].map((field) => {
+                let translatedLabel;
+                let translatedPlaceholder;
+                // Basic translations, can be expanded
+                if (field.labelKey === "firstName") translatedLabel = currentLanguage === "fr" ? "Prénom" : currentLanguage === "ar" ? "الاسم الأول" : "First Name";
+                else if (field.labelKey === "lastName") translatedLabel = currentLanguage === "fr" ? "Nom de famille" : currentLanguage === "ar" ? "اسم العائلة" : "Last Name";
+                else if (field.labelKey === "mobileNumber") translatedLabel = currentLanguage === "fr" ? "Mobile" : currentLanguage === "ar" ? "الجوال" : "Mobile";
+                else if (field.labelKey === "email") translatedLabel = currentLanguage === "fr" ? "Email" : currentLanguage === "ar" ? "البريد الإلكتروني" : "Email";
+                // else if (field.labelKey === "password") translatedLabel = currentLanguage === "fr" ? "Mot de passe" : currentLanguage === "ar" ? "كلمة المرور" : "Password"; // Password label removed
+                else if (field.labelKey === "rib") translatedLabel = currentLanguage === "fr" ? "RIB" : currentLanguage === "ar" ? "RIB" : "RIB";
+                else if (field.labelKey === "baseSalary") translatedLabel = currentLanguage === "fr" ? "Salaire de Base" : currentLanguage === "ar" ? "الراتب الأساسي" : "Base Salary";
+                else translatedLabel = field.labelKey;
+
+                translatedPlaceholder = translatedLabel;
+                // if (field.name === "password" && field.note) translatedPlaceholder = field.note; // Password note removed
+
+
+                return (
+                  <FormControl key={field.name} mb={3} isRequired={field.required}>
+                    <FormLabel>{translatedLabel}</FormLabel>
+                    <Input
+                      type={field.type || "text"}
+                      placeholder={translatedPlaceholder}
+                      {...registerEdit(field.name, {
+                        required: field.required ? `${translatedLabel} ${currentLanguage === "fr" ? "est requis" : currentLanguage === "ar" ? "مطلوب" : "is required"}` : false,
+                        valueAsNumber: field.type === "number" ? true : false,
+                      })}
+                      defaultValue={selectedCoordinator ? selectedCoordinator[field.name] : ""}
+                    />
+                    {errorsEdit[field.name] && (
+                      <Text color="red.500" fontSize="sm">
+                        {errorsEdit[field.name].message}
+                      </Text>
+                    )}
+                    {/* {field.name === "password" && field.note && (!errorsEdit[field.name]) && <Text fontSize="xs" color="gray.500">{field.note}</Text>} // Password note display removed */}
+                  </FormControl>
+                );
+              })}
+            </form>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onEditModalClose}>
+              {currentLanguage === "fr" ? "Annuler" : currentLanguage === "ar" ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              bg="primary"
+              color="white"
+              type="submit"
+              form="edit-coord-form"
+              isLoading={isSubmittingEdit}
+            >
+              {currentLanguage === "fr" ? "Sauvegarder" : currentLanguage === "ar" ? "حفظ" : "Save Changes"}
             </Button>
           </ModalFooter>
         </ModalContent>
