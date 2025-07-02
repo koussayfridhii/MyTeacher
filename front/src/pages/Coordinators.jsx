@@ -795,7 +795,7 @@ const Coordinators = () => {
                 { labelKey: "lastName", name: "lastName", required: true },
                 { labelKey: "mobileNumber", name: "mobileNumber", required: true },
                 { labelKey: "email", name: "email", required: true },
-                { labelKey: "password", name: "password", required: false, type: "password", note: currentLanguage === "fr" ? "Laisser vide pour ne pas changer" : currentLanguage === "ar" ? "اتركه فارغًا لعدم التغيير" : "Leave blank to keep unchanged" },
+                // { labelKey: "password", name: "password", required: false, type: "password", note: currentLanguage === "fr" ? "Laisser vide pour ne pas changer" : currentLanguage === "ar" ? "اتركه فارغًا لعدم التغيير" : "Leave blank to keep unchanged" },
                 { labelKey: "rib", name: "rib", required: false },
                 { labelKey: "baseSalary", name: "base_salary", required: false, type: "number" },
               ].map((field) => {
@@ -806,13 +806,13 @@ const Coordinators = () => {
                 else if (field.labelKey === "lastName") translatedLabel = currentLanguage === "fr" ? "Nom de famille" : currentLanguage === "ar" ? "اسم العائلة" : "Last Name";
                 else if (field.labelKey === "mobileNumber") translatedLabel = currentLanguage === "fr" ? "Mobile" : currentLanguage === "ar" ? "الجوال" : "Mobile";
                 else if (field.labelKey === "email") translatedLabel = currentLanguage === "fr" ? "Email" : currentLanguage === "ar" ? "البريد الإلكتروني" : "Email";
-                else if (field.labelKey === "password") translatedLabel = currentLanguage === "fr" ? "Mot de passe" : currentLanguage === "ar" ? "كلمة المرور" : "Password";
+                // else if (field.labelKey === "password") translatedLabel = currentLanguage === "fr" ? "Mot de passe" : currentLanguage === "ar" ? "كلمة المرور" : "Password"; // Password label removed
                 else if (field.labelKey === "rib") translatedLabel = currentLanguage === "fr" ? "RIB" : currentLanguage === "ar" ? "RIB" : "RIB";
                 else if (field.labelKey === "baseSalary") translatedLabel = currentLanguage === "fr" ? "Salaire de Base" : currentLanguage === "ar" ? "الراتب الأساسي" : "Base Salary";
                 else translatedLabel = field.labelKey;
 
                 translatedPlaceholder = translatedLabel;
-                if (field.name === "password" && field.note) translatedPlaceholder = field.note;
+                // if (field.name === "password" && field.note) translatedPlaceholder = field.note; // Password note removed
 
 
                 return (
@@ -832,7 +832,7 @@ const Coordinators = () => {
                         {errorsEdit[field.name].message}
                       </Text>
                     )}
-                    {field.name === "password" && field.note && (!errorsEdit[field.name]) && <Text fontSize="xs" color="gray.500">{field.note}</Text>}
+                    {/* {field.name === "password" && field.note && (!errorsEdit[field.name]) && <Text fontSize="xs" color="gray.500">{field.note}</Text>} // Password note display removed */}
                   </FormControl>
                 );
               })}
