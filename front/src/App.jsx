@@ -54,8 +54,6 @@ const DashboardMessages = lazy(() =>
 ); // Import DashboardMessages
 const GroupsPage = lazy(() => import("./pages/GroupsPage.jsx")); // Import GroupsPage
 const MySalaryPage = lazy(() => import("./pages/MySalaryPage.jsx")); // Import MySalaryPage
-
-
 // Potential Client Pages
 const PotentialClientsListView = lazy(() =>
   import("./components/ListView.jsx")
