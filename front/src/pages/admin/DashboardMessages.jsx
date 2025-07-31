@@ -26,6 +26,7 @@ import {
   Flex, // Added Flex for layout
   Spacer, // Added Spacer for layout
   Icon, // Added Icon for sort indicators
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { FaSearch, FaArrowUp, FaArrowDown } from "react-icons/fa"; // Sort icons
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons"; // Pagination icons
@@ -34,11 +35,14 @@ import { format } from 'date-fns';
 import { withAuthorization } from "../../HOC/Protect";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useMemo } from "react"; // Added useMemo
+import useWindowSize from "../../hooks/useWindowSize";
 
 const DashboardMessagesComponent = () => {
   const [allMessages, setAllMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
 
   // Client-side Pagination, Search, Sort State
   const [currentPage, setCurrentPage] = useState(1);
@@ -217,6 +221,32 @@ const DashboardMessagesComponent = () => {
         <Text textAlign="center" py={10}>
           No messages found matching your criteria.
         </Text>
+      ) : isMobile ? (
+        <VStack spacing={4} align="stretch">
+          {currentDisplayMessages.map((msg) => (
+            <Box
+              key={msg._id}
+              p={4}
+              bg={useColorModeValue("gray.50", "gray.800")}
+              borderRadius="md"
+              shadow="sm"
+            >
+              <Flex justify="space-between" align="center" mb={2}>
+                <Heading size="sm">{msg.name}</Heading>
+                <Tag size="sm" colorScheme="teal" variant="subtle">
+                  {format(new Date(msg.createdAt), "yyyy-MM-dd HH:mm")}
+                </Tag>
+              </Flex>
+              <Text fontSize="sm" color="gray.500" mb={1}>
+                <a href={`mailto:${msg.email}`}>{msg.email}</a>
+              </Text>
+              <Text fontSize="sm" color="gray.500" mb={3}>
+                <a href={`tel:${msg.phone}`}>{msg.phone}</a>
+              </Text>
+              <Text whiteSpace="pre-wrap">{msg.message}</Text>
+            </Box>
+          ))}
+        </VStack>
       ) : (
         <TableContainer borderWidth="1px" borderColor={tableBorderColor} borderRadius="md">
           <Table variant="simple" size="sm">
