@@ -10,13 +10,19 @@ import {
   Box,
   Spinner,
   Text,
+  VStack,
+  Heading,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import apiClient from "../hooks/apiClient";
 import { useSelector } from "react-redux"; // Import useSelector
 import { useMemo } from "react"; // Import useMemo
+import useWindowSize from "../hooks/useWindowSize";
 
 const MonthlyIncomeTable = () => {
   const currentLanguage = useSelector((state) => state.language.language); // Get current language
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
   const [monthlyData, setMonthlyData] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -102,6 +108,34 @@ const MonthlyIncomeTable = () => {
 
       {loading ? (
         <Spinner />
+      ) : isMobile ? (
+        <VStack spacing={4} align="stretch">
+          {localizedMonthNames.map((name, idx) => {
+            const monthKey = String(idx + 1);
+            const row = monthlyData[monthKey] || {};
+            return (
+              <Box
+                key={monthKey}
+                p={4}
+                bg={useColorModeValue("gray.50", "gray.800")}
+                borderRadius="md"
+                shadow="sm"
+              >
+                <Heading size="sm" mb={2}>
+                  {name}
+                </Heading>
+                {keys.map((key) => (
+                  <Text key={key}>
+                    <Text as="span" fontWeight="bold">
+                      {key}:
+                    </Text>{" "}
+                    {row[key] !== undefined ? row[key] : 0}
+                  </Text>
+                ))}
+              </Box>
+            );
+          })}
+        </VStack>
       ) : (
         <TableContainer overflowX="auto">
           <Table

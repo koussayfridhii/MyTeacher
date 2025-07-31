@@ -14,10 +14,15 @@ import {
   Heading,
   TableContainer,
   TableCaption,
+  VStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import apiClient from "../hooks/apiClient.js"; // Import apiClient
+import useWindowSize from "../hooks/useWindowSize.js";
 
 const StudentStatsTable = () => {
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true); // Initialize loading state
   const [error, setError] = useState(null); // Initialize error state
@@ -93,35 +98,66 @@ const StudentStatsTable = () => {
       <Text fontSize="xl" mb={4}>
         Total Students: <strong>{stats.totalStudents}</strong>
       </Text>
-      <TableContainer w="full">
-        <Table variant="striped" colorScheme="blue" size="sm" w="full">
-          <TableCaption placement="top">
-            Monthly New Student Registrations
-          </TableCaption>
-          <Thead>
-            <Tr>
-              <Th>Month</Th>
-              <Th isNumeric>New Students</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {stats.statsByMonth && stats.statsByMonth.length > 0 ? (
-              stats.statsByMonth.map((stat, index) => (
-                <Tr key={index}>
-                  <Td>{stat.month}</Td>
-                  <Td isNumeric>{stat.count}</Td>
-                </Tr>
-              ))
-            ) : (
+      {isMobile ? (
+        <VStack spacing={4} align="stretch">
+          {stats.statsByMonth && stats.statsByMonth.length > 0 ? (
+            stats.statsByMonth.map((stat, index) => (
+              <Box
+                key={index}
+                p={4}
+                bg={useColorModeValue("gray.50", "gray.800")}
+                borderRadius="md"
+                shadow="sm"
+              >
+                <Text>
+                  <Text as="span" fontWeight="bold">
+                    Month:
+                  </Text>{" "}
+                  {stat.month}
+                </Text>
+                <Text>
+                  <Text as="span" fontWeight="bold">
+                    New Students:
+                  </Text>{" "}
+                  {stat.count}
+                </Text>
+              </Box>
+            ))
+          ) : (
+            <Text>No monthly data available.</Text>
+          )}
+        </VStack>
+      ) : (
+        <TableContainer w="full">
+          <Table variant="striped" colorScheme="blue" size="sm" w="full">
+            <TableCaption placement="top">
+              Monthly New Student Registrations
+            </TableCaption>
+            <Thead>
               <Tr>
-                <Td colSpan={2} textAlign="center">
-                  No monthly data available.
-                </Td>
+                <Th>Month</Th>
+                <Th isNumeric>New Students</Th>
               </Tr>
-            )}
-          </Tbody>
-        </Table>
-      </TableContainer>
+            </Thead>
+            <Tbody>
+              {stats.statsByMonth && stats.statsByMonth.length > 0 ? (
+                stats.statsByMonth.map((stat, index) => (
+                  <Tr key={index}>
+                    <Td>{stat.month}</Td>
+                    <Td isNumeric>{stat.count}</Td>
+                  </Tr>
+                ))
+              ) : (
+                <Tr>
+                  <Td colSpan={2} textAlign="center">
+                    No monthly data available.
+                  </Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      )}
     </Box>
   );
 };
