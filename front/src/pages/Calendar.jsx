@@ -40,6 +40,7 @@ import { useStreamVideoClient } from "@stream-io/video-react-sdk";
 import MeetingModal from "../components/MeetingModal";
 import ReactSelect from "react-select";
 import { withAuthorization } from "../HOC/Protect";
+import useWindowSize from "../hooks/useWindowSize";
 
 const CalendarPage = () => {
   const calendarRef = useRef(null);
@@ -47,6 +48,8 @@ const CalendarPage = () => {
   const client = useStreamVideoClient();
   const token = localStorage.getItem("token");
   const user = useSelector((state) => state.user.user);
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
 
   // Early return or loading state if user is not yet populated
   if (!user) {
@@ -571,20 +574,29 @@ const CalendarPage = () => {
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-        headerToolbar={{
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-        }}
-        initialView="timeGridWeek"
         selectable
         select={handleSelect}
         events={events}
         eventClick={handleEventClick}
         editable
+        selectLongPressDelay={100}
         nowIndicator
         weekends
         slotDuration="01:00:00"
+        initialView={isMobile ? "listWeek" : "timeGridWeek"}
+        headerToolbar={
+          isMobile
+            ? {
+                left: "prev,next",
+                center: "title",
+                right: "listWeek,dayGridMonth",
+              }
+            : {
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+              }
+        }
       />
 
       {/* Type Modal */}
