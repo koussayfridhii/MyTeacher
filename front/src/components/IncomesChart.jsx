@@ -121,11 +121,11 @@ const MonthlyIncomeTable = () => {
                 borderRadius="md"
                 shadow="sm"
               >
-                <Heading size="sm" mb={2}>
+                <Heading size="sm" mb={2} color="primary">
                   {name}
                 </Heading>
                 {keys.map((key) => (
-                  <Text key={key}>
+                  <Text key={key} color="black">
                     <Text as="span" fontWeight="bold">
                       {key}:
                     </Text>{" "}
@@ -146,7 +146,7 @@ const MonthlyIncomeTable = () => {
           >
             <Thead bg="gray.100">
               <Tr>
-                <Th>
+                <Th color="primary">
                   {currentLanguage === "fr"
                     ? "Mois"
                     : currentLanguage === "ar"
@@ -154,13 +154,13 @@ const MonthlyIncomeTable = () => {
                     : "Month"}
                 </Th>
                 {keys.map((key) => (
-                  <Th key={key} textTransform="capitalize">
+                  <Th key={key} textTransform="capitalize" color="primary">
                     {key}
                   </Th>
                 ))}
               </Tr>
             </Thead>
-            <Tbody>
+            <Tbody color="black">
               {localizedMonthNames.map((name, idx) => {
                 const monthKey = String(idx + 1);
                 const row = monthlyData[monthKey] || {};
