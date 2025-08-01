@@ -3,9 +3,12 @@ import Chart from "react-apexcharts";
 import { useCoordinators } from "../hooks/useCoordinators";
 import { Center, Spinner, Flex, Text, Box, Stack } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
+import useWindowSize from "../hooks/useWindowSize";
 
 const CoordinatorsRankChart = ({ admin }) => {
   const currentLanguage = useSelector((state) => state.language.language);
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
   const [seriesIncome, setSeriesIncome] = useState([]);
   const [seriesStudents, setSeriesStudents] = useState([]);
   const { data: allCoordinators = [], isLoading, isError } = useCoordinators();
@@ -98,6 +101,14 @@ const CoordinatorsRankChart = ({ admin }) => {
           options: {
             chart: {
               width: "100%",
+            },
+            xaxis: {
+              labels: {
+                rotate: -45,
+                style: {
+                  fontSize: "10px",
+                },
+              },
             },
           },
         },
@@ -194,7 +205,7 @@ const CoordinatorsRankChart = ({ admin }) => {
             options={optionsIncomes}
             series={seriesIncome}
             type="bar"
-            height={500}
+            height={isMobile ? 350 : 500}
             width="100%"
           />
         </Box>
@@ -204,7 +215,7 @@ const CoordinatorsRankChart = ({ admin }) => {
           options={optionsStudents}
           series={seriesStudents}
           type="bar"
-          height={500}
+          height={isMobile ? 350 : 500}
           width="100%"
         />
       </Box>

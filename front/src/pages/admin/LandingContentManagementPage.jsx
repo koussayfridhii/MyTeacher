@@ -892,17 +892,15 @@ const LandingContentManagementPage = () => {
                 {sectionConfig.fields.map((fieldKey) => (
                   <GridItem
                     key={fieldKey}
-                    colSpan={
-                      contentFields[fieldKey].type === "textarea" ||
-                      contentFields[fieldKey].type === "richtext" || // Ensure richtext also gets full width if desired
-                      contentFields[fieldKey].type === "image" ||
-                      sectionConfig.fields.length === 1 || // if it's the only field in section
-                      (sectionConfig.fields.length % 2 !== 0 &&
-                        sectionConfig.fields.indexOf(fieldKey) ===
-                          sectionConfig.fields.length - 1) // If it's the last odd item
-                        ? 2
-                        : 1
-                    }
+                    colSpan={{
+                      base: 2,
+                      md:
+                        contentFields[fieldKey].type === "textarea" ||
+                        contentFields[fieldKey].type === "richtext" ||
+                        contentFields[fieldKey].type === "image"
+                          ? 2
+                          : 1,
+                    }}
                   >
                     {renderFormField(fieldKey, contentFields[fieldKey])}
                   </GridItem>

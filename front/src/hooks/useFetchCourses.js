@@ -41,7 +41,7 @@ async function fetchAndFilterClasses({ queryKey }) {
 
     // coordinators only see their own classes
     const coordFilter =
-      user.role === "coordinator" ? course.coordinator._id === user._id : true;
+      user.role === "coordinator" ? course.coordinator?._id === user._id : true;
 
     return meetsType && studentFilter && coordFilter;
   });
