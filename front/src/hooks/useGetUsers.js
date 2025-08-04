@@ -42,3 +42,22 @@ export const useApproveUser = () => {
     },
   });
 };
+
+// Mutation for updating a user
+const updateUser = async ({ id, ...updates }) => {
+  await axios.patch(
+    `${import.meta.env.VITE_API_URL}/users/${id}`,
+    updates,
+    getAuthConfig()
+  );
+};
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+};

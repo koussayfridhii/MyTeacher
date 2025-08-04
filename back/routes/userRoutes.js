@@ -11,7 +11,7 @@ import {
   deleteAttendedClass,
   getCoordinators,
   getStudents,
-  updateUserByAdmin,
+  updateUser,
   deleteUser, // Import the new controller
 } from "../controllers/userController.js";
 
@@ -38,8 +38,8 @@ router.get(
 );
 router.get("/students", auth, role("admin"), getStudents);
 
-// Admin updates any user
-router.patch("/:id", auth, role("admin"), updateUserByAdmin);
+// Admin or coordinator updates user
+router.patch("/:id", auth, role("admin", "coordinator"), updateUser);
 
 // Admin deletes any user
 router.delete("/:id", auth, role("admin"), deleteUser);

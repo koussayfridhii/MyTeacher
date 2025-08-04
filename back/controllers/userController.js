@@ -804,210 +804,130 @@ export const deleteUser = async (req, res, next) => {
 };
 
 // @route   PATCH /api/users/:id
-// @access  Admin
-export const updateUserByAdmin = async (req, res, next) => {
+// @access  Admin, Coordinator
+export const updateUser = async (req, res, next) => {
   try {
     const userIdToUpdate = req.params.id;
     const updates = req.body;
-
-    // Prevent non-admins from using this
-    if (req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ error: "Insufficient permissions to update user." });
-    }
-
+    const { role: requesterRole, _id: requesterId } = req.user;
     const userToUpdate = await User.findById(userIdToUpdate);
     if (!userToUpdate) {
       return res.status(404).json({ error: "User not found." });
     }
-
-    // Fields that admin can update
-    const allowedUpdates = [
-      "firstName",
-      "lastName",
-      "email",
-      "mobileNumber",
-      "title",
-      "role",
-      "profilePic",
-      "subject",
-      "programs",
-      "coordinator",
-      "isApproved",
-      "isAssigned",
-      "rib",
-      "about",
-      "max_hours_per_week",
-      "base_salary",
-      "penalties", // Added penalties to allowed updates
-    ];
-
-    // Filter updates to only allowed fields
-    const filteredUpdates = Object.keys(updates)
-      .filter((key) => allowedUpdates.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = updates[key];
-        return obj;
-      }, {});
-
-    // Special handling for max_hours_per_week:
-    // It should only be set if the user is a teacher.
-    // If role is being changed FROM teacher, or if it's not a teacher, set to null.
-    if (filteredUpdates.hasOwnProperty("max_hours_per_week")) {
-      if (
-        userToUpdate.role === "teacher" ||
-        (filteredUpdates.role && filteredUpdates.role === "teacher")
-      ) {
-        if (
-          filteredUpdates.max_hours_per_week === null ||
-          filteredUpdates.max_hours_per_week === "" ||
-          filteredUpdates.max_hours_per_week === undefined
-        ) {
+    let allowedUpdates;
+    let filteredUpdates;
+    if (requesterRole === "admin") {
+      allowedUpdates = [
+        "firstName", "lastName", "email", "mobileNumber", "title", "role",
+        "profilePic", "subject", "programs", "coordinator", "isApproved",
+        "isAssigned", "rib", "about", "max_hours_per_week", "base_salary", "penalties"
+      ];
+      filteredUpdates = Object.keys(updates)
+        .filter(key => allowedUpdates.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = updates[key];
+          return obj;
+        }, {});
+      if (filteredUpdates.hasOwnProperty("max_hours_per_week")) {
+        if (userToUpdate.role === "teacher" || (filteredUpdates.role && filteredUpdates.role === "teacher")) {
+          if (filteredUpdates.max_hours_per_week === null || filteredUpdates.max_hours_per_week === "" || filteredUpdates.max_hours_per_week === undefined) {
+            filteredUpdates.max_hours_per_week = null;
+          } else {
+            filteredUpdates.max_hours_per_week = Number(filteredUpdates.max_hours_per_week);
+            if (isNaN(filteredUpdates.max_hours_per_week) || filteredUpdates.max_hours_per_week < 0) {
+              return res.status(400).json({ error: "Invalid value for max_hours_per_week. Must be a non-negative number or null." });
+            }
+          }
+        } else {
           filteredUpdates.max_hours_per_week = null;
-        } else {
-          filteredUpdates.max_hours_per_week = Number(
-            filteredUpdates.max_hours_per_week
-          );
-          if (
-            isNaN(filteredUpdates.max_hours_per_week) ||
-            filteredUpdates.max_hours_per_week < 0
-          ) {
-            return res.status(400).json({
-              error:
-                "Invalid value for max_hours_per_week. Must be a non-negative number or null.",
-            });
-          }
         }
-      } else {
-        // If user is not a teacher, ensure max_hours_per_week is not set or is nulled
-        filteredUpdates.max_hours_per_week = null;
-      }
-    } else if (
-      userToUpdate.role !== "teacher" &&
-      userToUpdate.max_hours_per_week !== null
-    ) {
-      // If max_hours_per_week is not in updates, but user is not a teacher, ensure it's nulled
-      // This handles cases where role might be changed by the same update package
-      if (
-        !filteredUpdates.role ||
-        (filteredUpdates.role && filteredUpdates.role !== "teacher")
-      ) {
-        await User.findByIdAndUpdate(
-          userIdToUpdate,
-          { $set: { max_hours_per_week: null } },
-          { new: true, runValidators: true }
-        );
-      }
-    }
-
-    // Handle base_salary update
-    if (filteredUpdates.hasOwnProperty("base_salary")) {
-      const newRole = filteredUpdates.role || userToUpdate.role;
-      if (newRole === "coordinator") {
-        if (filteredUpdates.base_salary === null || filteredUpdates.base_salary === "" || filteredUpdates.base_salary === undefined) {
-          filteredUpdates.base_salary = 0; // Default to 0 if empty or null
-        } else {
-          const salary = Number(filteredUpdates.base_salary);
-          if (isNaN(salary) || salary < 0) {
-            return res.status(400).json({
-              error: "Invalid value for base_salary. Must be a non-negative number or null/empty for 0.",
-            });
-          }
-          filteredUpdates.base_salary = salary;
+      } else if (userToUpdate.role !== "teacher" && userToUpdate.max_hours_per_week !== null) {
+        if (!filteredUpdates.role || (filteredUpdates.role && filteredUpdates.role !== "teacher")) {
+          await User.findByIdAndUpdate(userIdToUpdate, { $set: { max_hours_per_week: null } }, { new: true, runValidators: true });
         }
-      } else {
-        // If the role is not coordinator (either currently or being changed to non-coordinator),
-        // ensure base_salary is nulled out.
+      }
+      if (filteredUpdates.hasOwnProperty("base_salary")) {
+        const newRole = filteredUpdates.role || userToUpdate.role;
+        if (newRole === "coordinator") {
+          if (filteredUpdates.base_salary === null || filteredUpdates.base_salary === "" || filteredUpdates.base_salary === undefined) {
+            filteredUpdates.base_salary = 0;
+          } else {
+            const salary = Number(filteredUpdates.base_salary);
+            if (isNaN(salary) || salary < 0) {
+              return res.status(400).json({ error: "Invalid value for base_salary. Must be a non-negative number or null/empty for 0." });
+            }
+            filteredUpdates.base_salary = salary;
+          }
+        } else {
+          filteredUpdates.base_salary = null;
+        }
+      } else if (filteredUpdates.role && filteredUpdates.role !== "coordinator" && userToUpdate.role === "coordinator") {
         filteredUpdates.base_salary = null;
       }
-    } else if (filteredUpdates.role && filteredUpdates.role !== "coordinator" && userToUpdate.role === "coordinator") {
-      // If role is changed FROM coordinator and base_salary is not in updates, nullify it
-      filteredUpdates.base_salary = null;
-    }
-
-    // Handle penalties update
-    // Determine the role that will be effective after this update
-    const effectiveRole = filteredUpdates.role || userToUpdate.role;
-
-    if (filteredUpdates.hasOwnProperty("penalties")) {
-      if (effectiveRole === "coordinator") {
-        if (filteredUpdates.penalties === null || filteredUpdates.penalties === "" || typeof filteredUpdates.penalties === 'undefined') {
-          filteredUpdates.penalties = 0; // Default to 0 if empty, null, or undefined
-        } else {
-          const penaltiesValue = Number(filteredUpdates.penalties);
-          if (isNaN(penaltiesValue) || penaltiesValue < 0) {
-            return res.status(400).json({
-              error: "Invalid value for penalties. Must be a non-negative number or null/empty for 0.",
-            });
+      const effectiveRole = filteredUpdates.role || userToUpdate.role;
+      if (filteredUpdates.hasOwnProperty("penalties")) {
+        if (effectiveRole === "coordinator") {
+          if (filteredUpdates.penalties === null || filteredUpdates.penalties === "" || typeof filteredUpdates.penalties === 'undefined') {
+            filteredUpdates.penalties = 0;
+          } else {
+            const penaltiesValue = Number(filteredUpdates.penalties);
+            if (isNaN(penaltiesValue) || penaltiesValue < 0) {
+              return res.status(400).json({ error: "Invalid value for penalties. Must be a non-negative number or null/empty for 0." });
+            }
+            filteredUpdates.penalties = penaltiesValue;
           }
-          filteredUpdates.penalties = penaltiesValue;
-        }
-      } else {
-        // If the role is not coordinator, penalties should be 0
-        filteredUpdates.penalties = 0;
-      }
-    } else if (effectiveRole !== "coordinator" && userToUpdate.role === "coordinator") {
-      // If role is changed FROM coordinator and 'penalties' is not in updates, set to 0
-      filteredUpdates.penalties = 0;
-    } else if (effectiveRole !== "coordinator" && userToUpdate.penalties !== 0) {
-      // If user is not a coordinator and penalties somehow has a non-zero value (e.g. old data), set to 0
-      // This case might not be strictly necessary if penalties are always set to 0 for non-coordinators
-      // upon role change or if penalties field is not part of the update.
-      // However, it ensures data integrity if an admin is just updating other fields for a non-coordinator.
-      // We only apply this if 'penalties' is not part of the current update request for a non-coordinator.
-      if (!filteredUpdates.hasOwnProperty("penalties")) {
+        } else {
           filteredUpdates.penalties = 0;
+        }
+      } else if (effectiveRole !== "coordinator" && userToUpdate.role === "coordinator") {
+        filteredUpdates.penalties = 0;
+      } else if (effectiveRole !== "coordinator" && userToUpdate.penalties !== 0) {
+        if (!filteredUpdates.hasOwnProperty("penalties")) {
+          filteredUpdates.penalties = 0;
+        }
       }
+      if (filteredUpdates.role && filteredUpdates.role !== "teacher" && userToUpdate.role === "teacher") {
+        filteredUpdates.subject = null;
+        filteredUpdates.programs = [];
+        filteredUpdates.max_hours_per_week = null;
+      }
+    } else if (requesterRole === "coordinator") {
+      if (userToUpdate.role !== "student" || !userToUpdate.coordinator || userToUpdate.coordinator.toString() !== requesterId.toString()) {
+        return res.status(403).json({ error: "Coordinators can only update their assigned students." });
+      }
+      allowedUpdates = ["firstName", "lastName", "email", "mobileNumber"];
+      filteredUpdates = Object.keys(updates)
+        .filter(key => allowedUpdates.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = updates[key];
+          return obj;
+        }, {});
+    } else {
+      return res.status(403).json({ error: "Insufficient permissions to update user." });
     }
-
-
-    // If role is changed from teacher, nullify teacher-specific fields
-    if (
-      filteredUpdates.role &&
-      filteredUpdates.role !== "teacher" &&
-      userToUpdate.role === "teacher"
-    ) {
-      filteredUpdates.subject = null;
-      filteredUpdates.programs = [];
-      filteredUpdates.max_hours_per_week = null;
-    }
-
-    // Handle password update separately if provided
     if (updates.password) {
       if (updates.password.length < 6) {
-        return res
-          .status(400)
-          .json({ error: "Password must be at least 6 characters long." });
+        return res.status(400).json({ error: "Password must be at least 6 characters long." });
       }
       const hashed = await bcrypt.hash(updates.password, 10);
       filteredUpdates.password = hashed;
     }
-
     const updatedUser = await User.findByIdAndUpdate(
       userIdToUpdate,
       { $set: filteredUpdates },
       { new: true, runValidators: true }
     ).select("-password");
-
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found after update." });
     }
-
-    // If the role was changed to something other than teacher, ensure max_hours_per_week is null
-    if (
-      updatedUser.role !== "teacher" &&
-      updatedUser.max_hours_per_week !== null
-    ) {
-      updatedUser.max_hours_per_week = null;
-      await updatedUser.save();
+    if (requesterRole === 'admin') {
+      if (updatedUser.role !== 'teacher' && updatedUser.max_hours_per_week !== null) {
+        updatedUser.max_hours_per_week = null;
+        await updatedUser.save();
+      }
     }
-
-    res
-      .status(200)
-      .json({ message: "User updated successfully.", user: updatedUser });
+    res.status(200).json({ message: "User updated successfully.", user: updatedUser });
   } catch (err) {
-    // Mongoose validation errors can be detailed
     if (err.name === "ValidationError") {
       return res.status(400).json({ error: err.message });
     }
