@@ -24,7 +24,8 @@ import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { withAuthorization } from "../HOC/Protect";
 import CreateStudentModal from "../components/CreateUserModal";
-import { useGetUsers, useApproveUser } from "../hooks/useGetUsers";
+import EditStudentModal from "../components/EditStudentModal";
+import { useGetUsers, useApproveUser, useUpdateUser } from "../hooks/useGetUsers";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
@@ -38,6 +39,7 @@ const Students = () => {
   const queryClient = useQueryClient();
   const { data: users = [], isLoading } = useGetUsers();
   const approveMutation = useApproveUser();
+  const updateUserMutation = useUpdateUser();
   const [search, setSearch] = useState("");
   // const [coordinatorSearch, setCoordinatorSearch] = useState(""); // Will be removed
   const [page, setPage] = useState(1);
@@ -47,6 +49,8 @@ const Students = () => {
 
   // modal controls
   const studentModal = useDisclosure();
+  const editModal = useDisclosure();
+  const [editingStudent, setEditingStudent] = useState(null);
 
   // translations
   const t = {
@@ -299,6 +303,37 @@ const Students = () => {
     }
   };
 
+  const handleEdit = (student) => {
+    setEditingStudent(student);
+    editModal.onOpen();
+  };
+
+  const handleEditSave = async (data) => {
+    updateUserMutation.mutate(
+      { id: editingStudent._id, ...data },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Student updated successfully",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          editModal.onClose();
+        },
+        onError: (error) => {
+          toast({
+            title: "Failed to update student",
+            description: error.response?.data?.error || "An error occurred",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        },
+      }
+    );
+  };
+
   const coordinators = users.filter((u) => u.role === "coordinator");
 
   if (isLoading)
@@ -335,6 +370,16 @@ const Students = () => {
         showTeacherFields={false}
         onCreate={handleCreate}
       />
+      {editingStudent && (
+        <EditStudentModal
+          isOpen={editModal.isOpen}
+          onClose={editModal.onClose}
+          labels={{ ...labels, modalTitle: "Edit Student" }}
+          student={editingStudent}
+          coordinators={coordinators}
+          onSave={handleEditSave}
+        />
+      )}
 
       <Table variant="simple">
         <Thead>
@@ -355,7 +400,8 @@ const Students = () => {
             <Th onClick={() => handleSort("status")} cursor="pointer">
               {labels.status} {renderSortIcon("status")}
             </Th>
-            {user.role === "admin" && !isMyStudentsRoute && <Th>Actions</Th>}
+            {user.role === "admin" && !isMyStudentsRoute && <Th>Approve Actions</Th>}
+            <Th>Actions</Th>
             {(user.role === "admin" || !isMyStudentsRoute) && (
               <Th onClick={() => handleSort("coordinator")} cursor="pointer">
                 Coordinator {renderSortIcon("coordinator")}
@@ -373,7 +419,7 @@ const Students = () => {
               <Td>{stu.wallet?.minimum ?? "-"}</Td>
               <Td>{stu.isApproved ? "✔️" : "❌"}</Td>
 
-              {/* Actions for admin on manage page */}
+              {/* Approve Actions for admin on manage page */}
               {user.role === "admin" && !isMyStudentsRoute && (
                 <Td>
                   {!stu.coordinator?._id ? (
@@ -412,6 +458,13 @@ const Students = () => {
                   )}
                 </Td>
               )}
+
+              {/* Edit Action */}
+              <Td>
+                <Button size="sm" onClick={() => handleEdit(stu)}>
+                  Edit
+                </Button>
+              </Td>
 
               {/* Coordinator column */}
               {(user.role === "admin" || !isMyStudentsRoute) && (
